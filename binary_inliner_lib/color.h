@@ -2,6 +2,7 @@
 
 #include <compare>
 
+#include "export_macro.h"
 #include "tools.h"
 
 

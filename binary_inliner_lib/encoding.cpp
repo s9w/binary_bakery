@@ -45,41 +45,6 @@ namespace {
    }
 
 
-   template<int bpp>
-   [[nodiscard]] auto get_image_meta(
-      const image<bpp>& image
-   ) -> content_meta
-   {
-      const std::optional<color_pair<bpp>> color_pair = get_color_pair<bpp>(image);
-      if (color_pair.has_value())
-      {
-         return dual_image_type<bpp>{
-            image.m_width,
-            image.height,
-            color_pair.value().color0,
-            color_pair.value().color1
-         };
-      }
-      else
-      {
-         return naive_image_type{ image.m_width, image.height, bpp};
-      }
-   }
-
-
-   template<int bpp>
-   [[nodiscard]] auto get_payload(
-      const int width,
-      const int height,
-      const unsigned char* image_data_ptr
-   ) -> payload
-   {
-      const image<bpp> image{ width, height, image_data_ptr };
-      const content_meta meta = get_image_meta(image);
-      return { image.to_uint64(), image.get_byte_count(), meta };
-   }
-
-
    [[nodiscard]] auto get_image_payload(const std::string& filename) -> payload
    {
       int width, height, components;
@@ -92,13 +57,13 @@ namespace {
       const payload result = [&]() {
          switch (components) {
          case 1:
-            return get_payload<1>(width, height, data);
+            return detail::get_payload<1>(width, height, data);
          case 2:
-            return get_payload<2>(width, height, data);
+            return detail::get_payload<2>(width, height, data);
          case 3:
-            return get_payload<3>(width, height, data);
+            return detail::get_payload<3>(width, height, data);
          case 4:
-            return get_payload<4>(width, height, data);
+            return detail::get_payload<4>(width, height, data);
          default:
             std::cout << "unexpected\n";
             return payload{};
