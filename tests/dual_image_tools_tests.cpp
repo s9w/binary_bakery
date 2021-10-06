@@ -6,7 +6,6 @@ using namespace inliner;
 
 namespace
 {
-
    template<int bpp>
    auto check_color_pair(
       const char* path
@@ -44,12 +43,14 @@ namespace
    }
 }
 
+
 TEST_CASE("color pair detection")
 {
    check_color_pair("dual_24bit.png", color(255, 255, 255), color(255, 0, 0));
    check_color_pair("dual_32bit.png", color{ 255, 255, 255, 255 }, color{ 255, 0, 0, 128 });
    check_color_pair<3>("not_dual_24bit.png");
 }
+
 
 TEST_CASE("color indexing test")
 {

@@ -17,23 +17,19 @@ namespace inliner {
 namespace inliner::detail{
 
    template<int bpp>
-   [[nodiscard]] auto get_payload(
+   [[nodiscard]] auto get_image_payload(
       const int width,
       const int height,
       const unsigned char* image_data_ptr
-   )->payload;
-
+   ) -> payload;
 
    template<int bpp>
-   [[nodiscard]] auto get_image_meta(
-      const image<bpp>& image
-   ) -> content_meta;
-
+   [[nodiscard]] auto get_image_meta(const image<bpp>& image) -> content_meta;
 }
 
 
 template<int bpp>
-auto inliner::detail::get_payload(
+auto inliner::detail::get_image_payload(
    const int width,
    const int height,
    const unsigned char* image_data_ptr
@@ -55,9 +51,9 @@ auto inliner::detail::get_image_meta(
    {
       return dual_image_type<bpp>{
          image.m_width,
-            image.m_height,
-            color_pair.value().color0,
-            color_pair.value().color1
+         image.m_height,
+         color_pair.value().color0,
+         color_pair.value().color1
       };
    }
    else
