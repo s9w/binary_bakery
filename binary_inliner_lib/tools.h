@@ -2,6 +2,8 @@
 
 namespace inliner {
 
+   struct no_init {};
+
    template<typename color_type>
    [[nodiscard]] constexpr auto get_symbol_count(const int byte_count) -> int;
 }

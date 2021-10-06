@@ -42,11 +42,6 @@ namespace {
       return color_pair<bpp>{color_A, color_B.value()};
    }
 
-   //template auto get_actual_color_pair<1>(unsigned char* data, const int width, const int height)->std::optional<color_pair<1>>;
-   //template auto get_actual_color_pair<2>(unsigned char* data, const int width, const int height)->std::optional<color_pair<2>>;
-   //template auto get_actual_color_pair<3>(unsigned char* data, const int width, const int height)->std::optional<color_pair<3>>;
-   //template auto get_actual_color_pair<4>(unsigned char* data, const int width, const int height)->std::optional<color_pair<4>>;
-
 
    template<int bpp>
    [[nodiscard]] constexpr auto get_indexed_color(
@@ -71,9 +66,7 @@ namespace {
 
 
 template<int bpp>
-auto inliner::get_color_pair(
-   const image<bpp>& image
-) -> std::optional<color_pair<bpp>>
+auto inliner::get_color_pair(const image<bpp>& image) -> std::optional<color_pair<bpp>>
 {
    if (image.get_pixel_count() == 0)
    {
@@ -102,23 +95,20 @@ template auto inliner::get_color_pair(const image<4>& image)->std::optional<colo
 
 template<int bpp>
 auto inliner::get_indexed_dual_image(
-   unsigned char* data,
-   const int width,
-   const int height,
+   const image<bpp>& im,
    const color_pair<bpp>& pair
 ) -> std::vector<color_name>
 {
-   const int pixel_count = width * height;
-   using color_type = color<bpp>;
-   const color_type* colors = std::bit_cast<const color_type*>(data);
-
    std::vector<color_name> result;
-   result.reserve(pixel_count);
-
-   for (int i = 0; i < pixel_count; ++i)
+   result.reserve(im.get_pixel_count());
+   for(const auto& color : im)
    {
-      result.emplace_back(get_indexed_color(colors[i]));
+      result.emplace_back(get_indexed_color(color, pair));
    }
-
-   return result;
+   return result;;
 }
+
+template auto inliner::get_indexed_dual_image<1>(const image<1>& im, const color_pair<1>& pair) ->std::vector<color_name>;
+template auto inliner::get_indexed_dual_image<2>(const image<2>& im, const color_pair<2>& pair) ->std::vector<color_name>;
+template auto inliner::get_indexed_dual_image<3>(const image<3>& im, const color_pair<3>& pair) ->std::vector<color_name>;
+template auto inliner::get_indexed_dual_image<4>(const image<4>& im, const color_pair<4>& pair) ->std::vector<color_name>;

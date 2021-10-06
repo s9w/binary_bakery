@@ -16,7 +16,26 @@ namespace inliner {
    struct color {
       uint8_t components[bpp];
       auto operator<=>(const color<bpp>&) const = default;
+      color(no_init){ }
+      color(uint8_t r) requires(bpp == 1)
+         : components{ r }
+      {}
+      color(uint8_t r, uint8_t a) requires(bpp == 2)
+         : components{ r, a }
+      {}
+      color(uint8_t r, uint8_t g, uint8_t b) requires(bpp==3)
+         : components{ r, g, b }
+      {}
+      color(uint8_t r, uint8_t g, uint8_t b, uint8_t a) requires(bpp == 4)
+         : components{ r, g, b, a }
+      {}
    };
+
+   // Deduction guides
+   color(uint8_t) -> color<1>;
+   color(uint8_t, uint8_t) -> color<2>;
+   color(uint8_t, uint8_t, uint8_t) -> color<3>;
+   color(uint8_t, uint8_t, uint8_t, uint8_t) -> color<4>;
 
    template<int bpp>
    struct image {
@@ -32,6 +51,7 @@ namespace inliner {
       [[nodiscard]] auto get_byte_count() const -> int;
       [[nodiscard]] auto get_pixel_count() const -> int;
       [[nodiscard]] auto operator[](const int index) const -> const color_type&;
+      [[nodiscard]] auto operator[](const int index) -> color_type&;
       [[nodiscard]] auto begin() const -> auto;
       [[nodiscard]] auto end() const -> auto;
    };
@@ -66,7 +86,7 @@ auto inliner::get_image(const std::string& filename) -> image<bpp>
 template <int bpp>
 inliner::image<bpp>::image(const int w, const int h, const unsigned char* data): m_width(w)
    , m_height(h)
-   , m_pixels(m_width* m_height)
+   , m_pixels(m_width* m_height, no_init{})
 {
    std::memcpy(m_pixels.data(), data, get_byte_count());
 }
@@ -98,6 +118,13 @@ auto inliner::image<bpp>::get_pixel_count() const -> int
 
 template <int bpp>
 auto inliner::image<bpp>::operator[](const int index) const -> const color_type&
+{
+   return m_pixels[index];
+}
+
+
+template <int bpp>
+auto inliner::image<bpp>::operator[](const int index) -> color_type&
 {
    return m_pixels[index];
 }
