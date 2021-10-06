@@ -1,2 +1,4 @@
 .vs
 x64
+libs/
+*.user
