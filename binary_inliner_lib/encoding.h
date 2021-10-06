@@ -10,7 +10,7 @@
 
 namespace inliner {
 
-   [[nodiscard]] auto encode(const std::string& filename) -> payload;
+   [[nodiscard]] auto get_payload(const std::string& filename) -> payload;
 
 }
 

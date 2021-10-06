@@ -66,7 +66,7 @@ namespace {
 }
 
 
-auto inliner::encode(const std::string& filename) -> payload
+auto inliner::get_payload(const std::string& filename) -> payload
 {
    if (is_image_path(filename))
       return get_image_payload(filename);
