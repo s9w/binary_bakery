@@ -6,7 +6,7 @@
 #include <iostream>
 
 #include "tools.h"
-#include "color.h"
+#include "image.h"
 #include "binary_image_tools.h"
 
 #include "stb_image.h"

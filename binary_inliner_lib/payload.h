@@ -4,7 +4,7 @@
 #include <variant>
 #include <vector>
 
-#include "color.h"
+#include "image.h"
 
 
 namespace inliner {
