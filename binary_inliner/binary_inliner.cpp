@@ -43,12 +43,12 @@ namespace inliner {
       uint8_t r, g, b;
    };
 
-   template<typename color_type>
-   struct image {
-      std::vector<color_type> pixels;
-      int width = 0;
-      int height = 0;
-   };
+   //template<typename color_type>
+   //struct image {
+   //   std::vector<color_type> pixels;
+   //   int width = 0;
+   //   int height = 0;
+   //};
 
    template<typename color_type>
    [[nodiscard]] auto decode_image(const payload& input) -> std::vector<color_type>

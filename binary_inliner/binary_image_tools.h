@@ -19,7 +19,7 @@ namespace inliner
 
    template<int bpp>
    [[nodiscard]] auto get_color_pair(
-      const image_view<bpp>& image
+      const image<bpp>& image
    ) -> std::optional<color_pair<bpp>>;
 
    enum class color_name{first, second};

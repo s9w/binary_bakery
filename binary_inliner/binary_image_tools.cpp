@@ -9,17 +9,14 @@ namespace {
 
    template<int bpp>
    [[nodiscard]] auto get_actual_color_pair(
-      const image_view<bpp>& image
+      const image<bpp>& im
    ) -> std::optional<color_pair<bpp>>
    {
-      using color_type = image_view<bpp>::color_type;
-      //const int pixel_count = width * height;
-      //using color_type = color<bpp>;
-      //const color_type* colors = std::bit_cast<const color_type*>(data);
+      using color_type = image<bpp>::color_type;
 
-      color_type color_A = image[0];
+      color_type color_A = im[0];
       std::optional<color_type> color_B;
-      for (const color_type& color : image)
+      for (const color_type& color : im)
       {
          if (color == color_A)
          {
@@ -75,20 +72,18 @@ namespace {
 
 template<int bpp>
 auto inliner::get_color_pair(
-   const image_view<bpp>& image
+   const image<bpp>& image
 ) -> std::optional<color_pair<bpp>>
 {
-   const int pixel_count = image.width * image.height;
-
-   if (pixel_count == 0)
+   if (image.get_pixel_count() == 0)
    {
       return std::nullopt;
    }
-   else if (pixel_count == 1)
+   else if (image.get_pixel_count() == 1)
    {
       return color_pair<bpp>{ image[0], image[0] };
    }
-   else if (pixel_count == 2)
+   else if (image.get_pixel_count() == 2)
    {
       return color_pair<bpp>{ image[0], image[1] };
    }
@@ -98,10 +93,10 @@ auto inliner::get_color_pair(
    }
 }
 
-template auto inliner::get_color_pair(const image_view<1>& image)->std::optional<color_pair<1>>;
-template auto inliner::get_color_pair(const image_view<2>& image)->std::optional<color_pair<2>>;
-template auto inliner::get_color_pair(const image_view<3>& image)->std::optional<color_pair<3>>;
-template auto inliner::get_color_pair(const image_view<4>& image)->std::optional<color_pair<4>>;
+template auto inliner::get_color_pair(const image<1>& image)->std::optional<color_pair<1>>;
+template auto inliner::get_color_pair(const image<2>& image)->std::optional<color_pair<2>>;
+template auto inliner::get_color_pair(const image<3>& image)->std::optional<color_pair<3>>;
+template auto inliner::get_color_pair(const image<4>& image)->std::optional<color_pair<4>>;
 
 
 
