@@ -26,7 +26,7 @@ namespace user
 
       int end = 0;
    }
-}
+} // namespace user
 
 
 #include <doctest/doctest.h>

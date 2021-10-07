@@ -57,7 +57,7 @@ namespace inliner {
 
 
    template<int source_size>
-   [[nodiscard]] auto decode_into_pointer(
+   auto decode_into_pointer(
       const uint64_t(&source)[source_size],
       void* dst
    ) -> void;
@@ -98,16 +98,16 @@ constexpr auto inliner::get_header(
 {
    header result;
 
-   const detail::better_array<uint8_t, 8> temp0 = std::bit_cast<detail::better_array<uint8_t, 8>>(ptr[0]);
+   const auto temp0 = std::bit_cast<detail::better_array<uint8_t, 8>>(ptr[0]);
    result.type = temp0[0];
    result.bpp = temp0[1];
 
-   const detail::better_array<uint16_t, 4> temp1 = std::bit_cast<detail::better_array<uint16_t, 4>>(ptr[1]);
+   const auto temp1 = std::bit_cast<detail::better_array<uint16_t, 4>>(ptr[1]);
    result.width = temp1[0];
    result.height = temp1[1];
    result.byte_count = temp1[2];
 
-   const detail::better_array<uint32_t, 2> temp2 = std::bit_cast<detail::better_array<uint32_t, 2>>(ptr[2]);
+   const auto temp2 = std::bit_cast<detail::better_array<uint32_t, 2>>(ptr[2]);
    result.color0 = temp2[0];
    result.color1 = temp2[1];
 
@@ -119,7 +119,7 @@ constexpr auto inliner::is_image(
    const uint64_t* ptr
 ) -> bool
 {
-   const detail::better_array<uint8_t, 8> temp0 = std::bit_cast<detail::better_array<uint8_t, 8>>(ptr[0]);
+   const auto temp0 = std::bit_cast<detail::better_array<uint8_t, 8>>(ptr[0]);
    const uint8_t type = temp0[0];
    return type == 0 || type == 1;
 }
@@ -133,7 +133,7 @@ constexpr auto inliner::get_width(
    {
       return -1;
    }
-   const detail::better_array<uint16_t, 4> temp1 = std::bit_cast<detail::better_array<uint16_t, 4>>(ptr[1]);
+   const auto temp1 = std::bit_cast<detail::better_array<uint16_t, 4>>(ptr[1]);
    return temp1[0];
 }
 
@@ -146,7 +146,7 @@ constexpr auto inliner::get_height(
    {
       return -1;
    }
-   const detail::better_array<uint16_t, 4> temp1 = std::bit_cast<detail::better_array<uint16_t, 4>>(ptr[1]);
+   const auto temp1 = std::bit_cast<detail::better_array<uint16_t, 4>>(ptr[1]);
    return temp1[1];
 }
 
@@ -155,7 +155,7 @@ constexpr auto inliner::get_byte_count(
    const uint64_t* ptr
 ) -> int
 {
-   const detail::better_array<uint16_t, 4> temp1 = std::bit_cast<detail::better_array<uint16_t, 4>>(ptr[1]);
+   const auto temp1 = std::bit_cast<detail::better_array<uint16_t, 4>>(ptr[1]);
    return temp1[2];
 }
 
@@ -169,8 +169,7 @@ constexpr auto inliner::decode_to_array(
    static_assert(element_count > 0, "Not enough bytes to even fill one of those types.");
    using target_type = detail::wrapper_type<user_type, element_count>;
 
-   target_type result = std::bit_cast<target_type>(source);
-   return result.m_data;
+   return std::bit_cast<target_type>(source).m_data;
 }
 #endif
 
@@ -181,16 +180,16 @@ auto inliner::decode_to_vector(
    const uint64_t(&source)[source_size]
 ) -> std::vector<user_type>
 {
-   const int byte_count = get_byte_count(source);
+   const int byte_count = get_byte_count(&source[0]);
    const int element_count = byte_count / sizeof(user_type);
 
    std::vector<user_type> result;
    result.reserve(element_count);
 
-   const user_type* ptr = reinterpret_cast<const user_type*>(&source[3]);
+   auto ptr = reinterpret_cast<const user_type*>(&source[3]);
    for (int i = 0; i < element_count; ++i)
    {
-      const user_type& value = reinterpret_cast<const user_type&>(ptr[i]);
+      auto value = reinterpret_cast<const user_type&>(ptr[i]);
       result.emplace_back(value);
    }
 
