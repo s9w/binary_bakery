@@ -14,21 +14,25 @@ namespace inliner {
 
    template<int bpp>
    struct color {
-      uint8_t components[bpp];
+      uint8_t m_components[bpp];
+
       auto operator<=>(const color<bpp>&) const = default;
-      color(no_init){ }
-      color(uint8_t r) requires(bpp == 1)
-         : components{ r }
+      constexpr color(no_init){ }
+      constexpr color(uint8_t r) requires(bpp == 1)
+         : m_components{ r }
       {}
-      color(uint8_t r, uint8_t a) requires(bpp == 2)
-         : components{ r, a }
+      constexpr color(uint8_t r, uint8_t a) requires(bpp == 2)
+         : m_components{ r, a }
       {}
-      color(uint8_t r, uint8_t g, uint8_t b) requires(bpp==3)
-         : components{ r, g, b }
+      constexpr color(uint8_t r, uint8_t g, uint8_t b) requires(bpp==3)
+         : m_components{ r, g, b }
       {}
-      color(uint8_t r, uint8_t g, uint8_t b, uint8_t a) requires(bpp == 4)
-         : components{ r, g, b, a }
+      constexpr color(uint8_t r, uint8_t g, uint8_t b, uint8_t a) requires(bpp == 4)
+         : m_components{ r, g, b, a }
       {}
+      [[nodiscard]] constexpr auto operator[](const int index) const -> uint8_t {
+         return m_components[index];
+      }
    };
 
    // Deduction guides

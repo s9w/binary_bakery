@@ -96,6 +96,8 @@
     <ClCompile Include="encoding.cpp" />
     <ClCompile Include="file_tools.cpp" />
     <ClCompile Include="implementations.cpp" />
+    <ClCompile Include="payload.cpp" />
+    <ClCompile Include="tools.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

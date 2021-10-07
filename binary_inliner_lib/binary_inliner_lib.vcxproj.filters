@@ -53,5 +53,11 @@
     <ClCompile Include="file_tools.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="payload.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tools.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

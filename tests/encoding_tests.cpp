@@ -35,7 +35,7 @@ TEST_CASE("normal image encoding")
    const naive_image_type image_meta = std::get<naive_image_type>(pl.meta);
    CHECK_EQ(image_meta.width, 3);
    CHECK_EQ(image_meta.height, 2);
-   CHECK_EQ(image_meta.bpp, 3);
+   CHECK_EQ(image_meta.m_bpp, 3);
 }
 
 

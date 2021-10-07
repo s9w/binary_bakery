@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 namespace inliner {
 
    struct no_init {};
@@ -18,6 +20,18 @@ namespace inliner {
 
    template <class T>
    auto append_copy(std::vector<T>& dst, std::vector<T>& src) -> void;
+
+   template<typename ... Ts>
+   auto get_byte_sequence(const Ts... value) -> std::vector<uint8_t>;
+
+   struct binary_sequencer {
+      std::vector<uint8_t> m_sequence;
+
+      explicit binary_sequencer(const int reserve_size);
+
+      template<class T>
+      auto add(const T value) -> void;
+   };
 
 }
 
@@ -70,3 +84,22 @@ auto inliner::append_copy(
 }
 
 
+template<typename ... Ts>
+auto inliner::get_byte_sequence(
+   const Ts... value
+) -> std::vector<uint8_t>
+{
+   binary_sequencer sequencer(0);
+   (sequencer.add(value), ...);
+   return sequencer.m_sequence;
+}
+
+
+
+template<class T>
+auto inliner::binary_sequencer::add(const T value) -> void
+{
+   m_sequence.resize(m_sequence.size() + sizeof(T));
+   uint8_t* target = &m_sequence[m_sequence.size() - sizeof(T)];
+   std::memcpy(target, &value, sizeof(T));
+}

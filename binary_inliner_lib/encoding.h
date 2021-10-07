@@ -52,6 +52,7 @@ auto inliner::detail::get_image_meta(
       return dual_image_type<bpp>{
          image.m_width,
          image.m_height,
+         bpp,
          color_pair.value().color0,
          color_pair.value().color1
       };
