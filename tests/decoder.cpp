@@ -1,3 +1,6 @@
+
+#define BAKERY_PROVIDE_VECTOR
+#define BAKERY_PROVIDE_STD_ARRAY
 #include "decoder.h"
 
 
@@ -12,11 +15,14 @@ namespace user
    auto user_fun()
    {
       #include "user_in_test.cpp"
-      constexpr inliner::meta decoded_meta = inliner::decode_meta(input0);
-      static_assert(decoded_meta.byte_count == 8);
-      const auto content = inliner::decode_content<user_type, decoded_meta.byte_count>(input0);
+      constexpr inliner::header decoded_meta = inliner::get_header(input0);
+      const auto content = inliner::decode_to_array<user_type, decoded_meta.byte_count>(input0);
+      //constexpr int element_count = std::size(content);
 
-      const auto x = inliner::decode_content_runtime<user_type>(input0);
+      const auto x = inliner::decode_to_vector<user_type>(input0);
+
+      //void* dst = nullptr;
+      //inliner::decode_into_pointer(input0, dst);
 
       int end = 0;
    }
