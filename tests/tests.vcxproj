@@ -81,6 +81,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="color_tests.cpp" />
+    <ClCompile Include="decoder.cpp" />
     <ClCompile Include="decoding_playground_constexpr.cpp" />
     <ClCompile Include="decoding_playground_runtime.cpp" />
     <ClCompile Include="dual_image_tools_tests.cpp" />

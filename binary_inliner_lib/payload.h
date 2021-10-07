@@ -44,7 +44,7 @@ namespace inliner {
       content_meta meta;
    };
 
-   [[nodiscard]] auto meta_to_binary(const payload& pl) -> std::vector<uint8_t>;
+   [[nodiscard]] auto meta_and_size_to_binary(const payload& pl, const uint32_t data_size) -> std::array<uint8_t, 24>;
 
 
 

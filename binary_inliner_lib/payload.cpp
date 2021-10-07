@@ -27,40 +27,83 @@ namespace
 
    template<image_type_c meta_type>
    auto write_details(
-      binary_sequencer& sequencer,
+      header_sequencer& sequencer,
       const meta_type& meta
    ) -> void
    {
       sequencer.add<uint8_t>(static_cast<uint8_t>(meta.m_bpp));
+
+      // padding
+      for(int i=0; i<6; ++i)
+         sequencer.add<uint8_t>(static_cast<uint8_t>(0ui8));
+
       sequencer.add<uint16_t>(static_cast<uint16_t>(meta.width));
       sequencer.add<uint16_t>(static_cast<uint16_t>(meta.height));
 
-      if constexpr (dual_image_type_c<meta_type>) {
-         for (int i = 0; i < meta.m_bpp; ++i)
-            sequencer.add<uint8_t>(meta.color0[i]);
-         for (int i = 0; i < meta.m_bpp; ++i)
-            sequencer.add<uint8_t>(meta.color1[i]);
-      }
+      //if constexpr (dual_image_type_c<meta_type>) {
+      //   for (int i = 0; i < meta.m_bpp; ++i)
+      //      sequencer.add<uint8_t>(meta.color0[i]);
+      //   for (int i = 0; i < meta.m_bpp; ++i)
+      //      sequencer.add<uint8_t>(meta.color1[i]);
+      //}
    }
 
 
    auto write_details(
-      binary_sequencer&,
+      header_sequencer& sequencer,
       const generic_binary&
    ) -> void
    {
-      // Do nothing
+      sequencer.add<uint8_t>(static_cast<uint8_t>(0ui8)); // bpp
+
+      // padding
+      for (int i = 0; i < 6; ++i)
+         sequencer.add<uint8_t>(static_cast<uint8_t>(0ui8));
+
+      sequencer.add<uint16_t>(static_cast<uint16_t>(0ui16)); // Width
+      sequencer.add<uint16_t>(static_cast<uint16_t>(0ui16)); // Height
+   }
+
+
+   template<typename meta_type>
+   auto write_dual_colors(
+      header_sequencer& sequencer,
+      const meta_type&
+   ) -> void
+   {
+      // Dummy
+      for(int i=0; i<8; ++i)
+         sequencer.add<uint8_t>(static_cast<uint8_t>(0ui8));
+   }
+
+
+   template<dual_image_type_c meta_type>
+   auto write_dual_colors(
+      header_sequencer& sequencer,
+      const meta_type& meta
+   ) -> void
+   {
+      const int dummy_components = 4 - meta.m_bpp;
+      for (int i = 0; i < meta.m_bpp; ++i)
+         sequencer.add<uint8_t>(meta.color0[i]);
+      for (int i = 0; i < dummy_components; ++i)
+         sequencer.add<uint8_t>(static_cast<uint8_t>(0ui8));
+
+      for (int i = 0; i < meta.m_bpp; ++i)
+         sequencer.add<uint8_t>(meta.color1[i]);
+      for (int i = 0; i < dummy_components; ++i)
+         sequencer.add<uint8_t>(static_cast<uint8_t>(0ui8));
    }
 
 } // namespace {}
 
 
-auto inliner::meta_to_binary(
-   const payload& pl
-) -> std::vector<uint8_t>
+auto inliner::meta_and_size_to_binary(
+   const payload& pl,
+   const uint32_t data_size
+) -> std::array<uint8_t, 24>
 {
-   constexpr size_t maximum_binary_size = 14;
-   binary_sequencer sequencer(maximum_binary_size);
+   header_sequencer sequencer;
 
    sequencer.add<uint8_t>(
       std::visit(
@@ -76,6 +119,13 @@ auto inliner::meta_to_binary(
       [&](const auto& alternative) {write_details(sequencer, alternative); }
       , pl.meta
    );
+
+   std::visit(
+      [&](const auto& alternative) {write_dual_colors(sequencer, alternative); }
+      , pl.meta
+   );
+
+   sequencer.add<uint32_t>(data_size);
 
    return sequencer.m_sequence;
 }

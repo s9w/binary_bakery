@@ -1,6 +1,8 @@
 #pragma once
 
 #include <vector>
+#include <array>
+#include <iterator>
 
 namespace inliner {
 
@@ -19,19 +21,35 @@ namespace inliner {
    constexpr auto equal(const T a, const T b) noexcept -> bool;
 
    template <class T>
-   auto append_copy(std::vector<T>& dst, std::vector<T>& src) -> void;
+   auto append_copy(std::vector<T>& dst, const std::vector<T>& src) -> void;
+
+   template <class T>
+   void append_moved(std::vector<T>& dst, std::vector<T>& src);
 
    template<typename ... Ts>
    auto get_byte_sequence(const Ts... value) -> std::vector<uint8_t>;
 
+   template<int byte_count>
    struct binary_sequencer {
-      std::vector<uint8_t> m_sequence;
+      std::array<uint8_t, byte_count> m_sequence;
+      int m_position = 0;
 
-      explicit binary_sequencer(const int reserve_size);
+      explicit binary_sequencer() = default;
+      ~binary_sequencer() {
+         const int target_position = byte_count;
+         if (m_position != target_position) {
+            std::terminate();
+         }
+      }
 
       template<class T>
       auto add(const T value) -> void;
    };
+   using header_sequencer = binary_sequencer<24>;
+
+   template<typename... Ts>
+   constexpr unsigned int actual_sizeof = (0 + ... + sizeof(Ts));
+   static_assert(actual_sizeof<double, int> == 12);
 
 }
 
@@ -77,10 +95,23 @@ constexpr auto inliner::equal(
 template <class T>
 auto inliner::append_copy(
    std::vector<T>& dst,
-   std::vector<T>& src
+   const std::vector<T>& src
 ) -> void
 {
    dst.insert(std::end(dst), std::cbegin(src), std::cend(src));
+}
+
+
+template <class T>
+void inliner::append_moved(std::vector<T>& dst, std::vector<T>& src)
+{
+   if (dst.empty())
+      dst = std::move(src);
+   else {
+      dst.reserve(dst.size() + src.size());
+      std::move(std::begin(src), std::end(src), std::back_inserter(dst));
+      src.clear();
+   }
 }
 
 
@@ -89,17 +120,23 @@ auto inliner::get_byte_sequence(
    const Ts... value
 ) -> std::vector<uint8_t>
 {
-   binary_sequencer sequencer(0);
+   const int byte_count = actual_sizeof<Ts...>;
+   binary_sequencer<byte_count> sequencer;
    (sequencer.add(value), ...);
-   return sequencer.m_sequence;
+   std::vector<uint8_t> result;
+
+   result.reserve(byte_count);
+   for (const uint8_t byte : sequencer.m_sequence)
+      result.emplace_back(byte);
+   return result;
 }
 
 
-
+template<int byte_count>
 template<class T>
-auto inliner::binary_sequencer::add(const T value) -> void
+auto inliner::binary_sequencer<byte_count>::add(const T value) -> void
 {
-   m_sequence.resize(m_sequence.size() + sizeof(T));
-   uint8_t* target = &m_sequence[m_sequence.size() - sizeof(T)];
+   uint8_t* target = &m_sequence[m_position];
    std::memcpy(target, &value, sizeof(T));
+   m_position += sizeof(T);
 }

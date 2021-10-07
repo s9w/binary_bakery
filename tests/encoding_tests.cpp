@@ -49,3 +49,20 @@ TEST_CASE("dual image encoding")
    CHECK_EQ(image_meta.color0, color(255, 255, 255));
    CHECK_EQ(image_meta.color1, color(255, 0, 0));
 }
+
+
+TEST_CASE("hex strings")
+{
+   CHECK_EQ(get_ui64_str(0), "0x0000000000000000");
+   CHECK_EQ(get_ui64_str(15), "0x000000000000000f");
+   CHECK_EQ(get_ui64_str(std::numeric_limits<uint64_t>::max()), "0xffffffffffffffff");
+}
+
+
+TEST_CASE("payload writing")
+{
+   const char* path = "user_in_test.cpp";
+   constexpr naive_image_type image_meta{200, 100, 3};
+   const payload pl{ {255ui8, 128ui8, 3ui8}, image_meta };
+   write_payload(path, pl);
+}

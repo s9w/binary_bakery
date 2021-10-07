@@ -73,3 +73,43 @@ auto inliner::get_payload(const std::string& filename) -> payload
    else
       return get_binary_file_payload(filename.c_str());
 }
+
+
+auto inliner::write_payload(
+   const std::string& filename,
+   const payload& pl
+) -> void
+{
+   
+   const uint32_t content_size = static_cast<uint32_t>(pl.m_content_data.size());
+   std::vector<uint8_t> target_bytes; // TODO reserve
+   for (const uint8_t byte : meta_and_size_to_binary(pl, content_size))
+      target_bytes.emplace_back(byte);
+   append_copy(target_bytes, pl.m_content_data);
+
+   std::ofstream filestream(filename, std::ios::out);
+   if (!filestream.good())
+   {
+      std::cout << std::format("Couldn't open {} for writing\n", filename);
+      return;
+   }
+   std::string content;
+   // TODO think about good reserve estimate
+   const int symbol_count = get_symbol_count<uint64_t>(static_cast<int>(target_bytes.size()));
+   const uint64_t* ui64_ptr = reinterpret_cast<const uint64_t*>(target_bytes.data());
+   for (int i = 0; i < symbol_count; ++i)
+   {
+      if (i > 0)
+      {
+         content += ", ";
+      }
+      content += get_ui64_str(ui64_ptr[i]);
+   }
+   filestream << std::format("constexpr uint64_t input[]{{\n    {}\n}};\n", content);
+}
+
+
+auto inliner::get_ui64_str(const uint64_t value) -> std::string
+{
+   return std::format("{:#018x}", value);
+}
