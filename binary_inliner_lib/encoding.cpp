@@ -78,6 +78,8 @@ auto inliner::get_payload(const std::string& filename) -> payload
 auto inliner::write_payload(
    const std::string& filename,
    const std::string& variable_name,
+   const int indentation,
+   const int max_columns,
    const payload& pl
 ) -> void
 {
@@ -98,15 +100,26 @@ auto inliner::write_payload(
    // TODO think about good reserve estimate
    const int symbol_count = get_symbol_count<uint64_t>(static_cast<int>(target_bytes.size()));
    const uint64_t* ui64_ptr = reinterpret_cast<const uint64_t*>(target_bytes.data());
+
+   const int groups_per_line = (max_columns - indentation) / (2 + 16 + 2);
+   int in_line_count = 0;
+   const std::string indentation_str(indentation, ' ');
    for (int i = 0; i < symbol_count; ++i)
    {
-      if (i > 0)
+      content += get_ui64_str(ui64_ptr[i]);
+      if (i < (symbol_count-1))
       {
          content += ", ";
       }
-      content += get_ui64_str(ui64_ptr[i]);
+      ++in_line_count;
+      if(in_line_count == groups_per_line)
+      {
+         content += std::format("\n{}", indentation_str);
+         in_line_count = 0;
+      }
    }
-   filestream << std::format("constexpr uint64_t {}[]{{\n    {}\n}};\n", variable_name, content);
+   
+   filestream << std::format("constexpr uint64_t {0}[]{{\n{1}{2}\n}};\n", variable_name, indentation_str, content);
 }
 
 

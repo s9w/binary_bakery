@@ -61,9 +61,12 @@ TEST_CASE("hex strings")
 
 TEST_CASE("payload writing")
 {
-   const char* path = "user_in_test.cpp";
-   constexpr naive_image_type image_meta{ 200, 100, 3 };
-   const std::vector<uint8_t> image_data{ 255ui8, 128ui8, 3ui8, 128ui8, 255ui8, 128ui8, 3ui8, 128ui8 };
-   const payload pl{ image_data, image_meta };
-   write_payload(path, "input0", pl);
+   //const char* path = "user_in_test.cpp";
+   //constexpr naive_image_type image_meta{ 200, 100, 3 };
+   //const std::vector<uint8_t> image_data{ 255ui8, 128ui8, 3ui8, 128ui8, 255ui8, 128ui8, 3ui8, 128ui8 };
+   //const payload pl{ image_data, image_meta };
+   //write_payload(path, "input0", pl);
+
+   const payload pl = get_payload("not_dual_24bit.png");
+   write_payload("input1.cpp", "input1", 3, 120, pl);
 }

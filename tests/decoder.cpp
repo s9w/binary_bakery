@@ -14,12 +14,12 @@ namespace user
 
    auto user_fun()
    {
-      #include "user_in_test.cpp"
-      constexpr inliner::header decoded_meta = inliner::get_header(input0);
-      const auto content = inliner::decode_to_array<user_type, decoded_meta.byte_count>(input0);
+      #include "input1.cpp"
+      constexpr inliner::header decoded_meta = inliner::get_header(input1);
+      const auto content = inliner::decode_to_array<user_type, decoded_meta.byte_count>(input1);
       //constexpr int element_count = std::size(content);
 
-      const auto x = inliner::decode_to_vector<user_type>(input0);
+      const auto x = inliner::decode_to_vector<user_type>(input1);
 
       //void* dst = nullptr;
       //inliner::decode_into_pointer(input0, dst);
