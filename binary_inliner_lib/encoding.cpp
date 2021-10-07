@@ -77,6 +77,7 @@ auto inliner::get_payload(const std::string& filename) -> payload
 
 auto inliner::write_payload(
    const std::string& filename,
+   const std::string& variable_name,
    const payload& pl
 ) -> void
 {
@@ -105,7 +106,7 @@ auto inliner::write_payload(
       }
       content += get_ui64_str(ui64_ptr[i]);
    }
-   filestream << std::format("constexpr uint64_t input[]{{\n    {}\n}};\n", content);
+   filestream << std::format("constexpr uint64_t {}[]{{\n    {}\n}};\n", variable_name, content);
 }
 
 

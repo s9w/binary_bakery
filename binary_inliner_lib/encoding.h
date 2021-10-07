@@ -11,7 +11,7 @@
 namespace inliner {
 
    [[nodiscard]] auto get_payload(const std::string& filename) -> payload;
-   auto write_payload(const std::string& filename, const payload& pl) -> void;
+   auto write_payload(const std::string& filename, const std::string& variable_name, const payload& pl) -> void;
 
    [[nodiscard]] auto get_ui64_str(const uint64_t value) -> std::string;
 

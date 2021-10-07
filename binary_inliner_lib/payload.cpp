@@ -26,7 +26,7 @@ namespace
 
 
    template<image_type_c meta_type>
-   auto write_details(
+   auto write_bpp_and_dimensions(
       header_sequencer& sequencer,
       const meta_type& meta
    ) -> void
@@ -39,17 +39,10 @@ namespace
 
       sequencer.add<uint16_t>(static_cast<uint16_t>(meta.width));
       sequencer.add<uint16_t>(static_cast<uint16_t>(meta.height));
-
-      //if constexpr (dual_image_type_c<meta_type>) {
-      //   for (int i = 0; i < meta.m_bpp; ++i)
-      //      sequencer.add<uint8_t>(meta.color0[i]);
-      //   for (int i = 0; i < meta.m_bpp; ++i)
-      //      sequencer.add<uint8_t>(meta.color1[i]);
-      //}
    }
 
 
-   auto write_details(
+   auto write_bpp_and_dimensions(
       header_sequencer& sequencer,
       const generic_binary&
    ) -> void
@@ -100,11 +93,12 @@ namespace
 
 auto inliner::meta_and_size_to_binary(
    const payload& pl,
-   const uint32_t data_size
+   const uint32_t data_byte_count
 ) -> std::array<uint8_t, 24>
 {
    header_sequencer sequencer;
 
+   // Write type
    sequencer.add<uint8_t>(
       std::visit(
          [](const auto& alternative) {
@@ -116,16 +110,18 @@ auto inliner::meta_and_size_to_binary(
    );
 
    std::visit(
-      [&](const auto& alternative) {write_details(sequencer, alternative); }
+      [&](const auto& alternative) {write_bpp_and_dimensions(sequencer, alternative); }
       , pl.meta
    );
 
+   // Write binary byte count
+   sequencer.add<uint32_t>(data_byte_count);
+
+   // Write dual colors
    std::visit(
       [&](const auto& alternative) {write_dual_colors(sequencer, alternative); }
       , pl.meta
    );
-
-   sequencer.add<uint32_t>(data_size);
 
    return sequencer.m_sequence;
 }

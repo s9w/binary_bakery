@@ -37,30 +37,17 @@ namespace inliner {
       t.m_bpp;
    };
 
-   using content_meta = std::variant<generic_binary, naive_image_type, dual_image_type<1>, dual_image_type<2>, dual_image_type<3>, dual_image_type<4>>;
+   using content_meta = std::variant<
+      generic_binary,
+      naive_image_type,
+      dual_image_type<1>, dual_image_type<2>, dual_image_type<3>, dual_image_type<4>
+   >;
 
    struct payload {
       std::vector<uint8_t> m_content_data;
       content_meta meta;
    };
 
-   [[nodiscard]] auto meta_and_size_to_binary(const payload& pl, const uint32_t data_size) -> std::array<uint8_t, 24>;
-
-
-
-   // storing:
-   // uint8, 1 byte for type. 0 for generic, 1 for naive image, 2 for dual image
-
-   // generic:
-   // nothing more
-
-   // both image types:
-   // uint8_t, 1 bytes for bpp
-   // uint16_t, 2 bytes for width
-   // uint16_t, 2 bytes for height
-
-   // indexed type
-   // bpp*1 byte for color0
-   // bpp*1 byte for color1
+   [[nodiscard]] auto meta_and_size_to_binary(const payload& pl, const uint32_t data_byte_count) -> std::array<uint8_t, 24>;
 
 }
