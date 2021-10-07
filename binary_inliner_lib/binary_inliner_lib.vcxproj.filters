@@ -30,9 +30,6 @@
     <ClInclude Include="image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="decoding.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="encoding.h">
       <Filter>Header Files</Filter>
     </ClInclude>

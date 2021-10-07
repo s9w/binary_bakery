@@ -16,22 +16,21 @@
 namespace inliner {
 
    struct header {
-      uint8_t type = -1;        // 0: Generic binary
-                                // 1: Image
-                                // 2: Dual-image (TODO)
+      uint8_t type = 0;        // 0: Generic binary
+                               // 1: Image
+                               // 2: Dual-image (TODO)
+      uint8_t bpp = 0;         // Number of channels [1-4]
+      uint16_t byte_count = 0; // Number of bytes stored
+      uint8_t padding0[4]{0, 0, 0, 0}; // TODO: maybe embed version
 
-      uint8_t bpp = -1;         // Number of channels [1-4]
-      uint8_t padding0[6]{};    // TODO: maybe embed version
+      uint16_t width = 0;      // Width in pixels
+      uint16_t height = 0;     // Height in pixels
+      uint16_t padding1[2]{0, 0};
 
-      uint16_t width = -1;      // Width in pixels
-      uint16_t height = -1;     // Height in pixels
-      uint16_t byte_count = -1; // Number of bytes stored
-      uint16_t padding1 = -1;
-
-      uint32_t color0 = -1;     // Replacement colors
-      uint32_t color1 = -1;     // Replacement colors
+      uint32_t color0 = 0;     // Replacement colors
+      uint32_t color1 = 0;     // Replacement colors
    };
-   
+   static_assert(sizeof(header) == 24);
 
    [[nodiscard]] constexpr auto get_header    (const uint64_t* ptr) -> header;
    [[nodiscard]] constexpr auto is_image      (const uint64_t* ptr) -> bool;
@@ -74,12 +73,11 @@ namespace inliner::detail {
 
    template<typename user_type, int element_count>
    struct wrapper_type {
-      uint64_t fillter[3];
-      std::array<user_type, element_count> m_data; // needs to be returned
-      // todo end padding
+      uint64_t filler[3];
+      alignas(user_type) std::array<user_type, element_count> m_data; // needs to be returned
+      // End padding should be unnecessary because of array alignment
    };
-
-   static_assert(sizeof(header) == 24);
+   
 } // namespace inliner::detail
 
 
@@ -98,18 +96,32 @@ constexpr auto inliner::get_header(
 {
    header result;
 
-   const auto temp0 = std::bit_cast<detail::better_array<uint8_t, 8>>(ptr[0]);
-   result.type = temp0[0];
-   result.bpp = temp0[1];
+   {
+      struct front_decoder {
+         uint8_t type = 0;
+         uint8_t bpp = 0;
+         uint16_t byte_count = 0;
+         uint8_t padding0[4];
+      };
 
-   const auto temp1 = std::bit_cast<detail::better_array<uint16_t, 4>>(ptr[1]);
-   result.width = temp1[0];
-   result.height = temp1[1];
-   result.byte_count = temp1[2];
+      const front_decoder temp = std::bit_cast<front_decoder>(ptr[0]);
+      result.type = temp.type;
+      result.bpp = temp.bpp;
+      result.byte_count = temp.byte_count;
+   }
 
-   const auto temp2 = std::bit_cast<detail::better_array<uint32_t, 2>>(ptr[2]);
-   result.color0 = temp2[0];
-   result.color1 = temp2[1];
+   if (result.type > 0)
+   {
+      const auto temp = std::bit_cast<detail::better_array<uint16_t, 4>>(ptr[1]);
+      result.width = temp[0];
+      result.height = temp[1];
+   }
+   if (result.type == 2)
+   {
+      const auto temp = std::bit_cast<detail::better_array<uint32_t, 2>>(ptr[2]);
+      result.color0 = temp[0];
+      result.color1 = temp[1];
+   }
 
    return result;
 }
@@ -121,7 +133,7 @@ constexpr auto inliner::is_image(
 {
    const auto temp0 = std::bit_cast<detail::better_array<uint8_t, 8>>(ptr[0]);
    const uint8_t type = temp0[0];
-   return type == 0 || type == 1;
+   return type == 1 || type == 2;
 }
 
 
@@ -133,8 +145,8 @@ constexpr auto inliner::get_width(
    {
       return -1;
    }
-   const auto temp1 = std::bit_cast<detail::better_array<uint16_t, 4>>(ptr[1]);
-   return temp1[0];
+   const auto temp = std::bit_cast<detail::better_array<uint16_t, 4>>(ptr[1]);
+   return temp[0];
 }
 
 
@@ -146,8 +158,8 @@ constexpr auto inliner::get_height(
    {
       return -1;
    }
-   const auto temp1 = std::bit_cast<detail::better_array<uint16_t, 4>>(ptr[1]);
-   return temp1[1];
+   const auto temp = std::bit_cast<detail::better_array<uint16_t, 4>>(ptr[1]);
+   return temp[1];
 }
 
 
@@ -155,8 +167,8 @@ constexpr auto inliner::get_byte_count(
    const uint64_t* ptr
 ) -> int
 {
-   const auto temp1 = std::bit_cast<detail::better_array<uint16_t, 4>>(ptr[1]);
-   return temp1[2];
+   const auto temp1 = std::bit_cast<detail::better_array<uint16_t, 4>>(ptr[0]);
+   return temp1[1];
 }
 
 

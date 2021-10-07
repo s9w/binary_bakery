@@ -22,37 +22,38 @@ namespace
    constexpr uint8_t meta_type_int_v = meta_type_int<T>::value;
 
 
-
+   template<typename target_type, typename meta_type>
+   auto get_bpp(
+      const meta_type& meta
+   ) -> target_type
+   {
+      if constexpr (image_type_c<meta_type>)
+      {
+         return static_cast<target_type>(meta.m_bpp);
+      }
+      else
+      {
+         return target_type{};
+      }
+   }
 
 
    template<image_type_c meta_type>
-   auto write_bpp_and_dimensions(
+   auto write_dimensions(
       header_sequencer& sequencer,
       const meta_type& meta
    ) -> void
    {
-      sequencer.add<uint8_t>(static_cast<uint8_t>(meta.m_bpp));
-
-      // padding
-      for(int i=0; i<6; ++i)
-         sequencer.add<uint8_t>(static_cast<uint8_t>(0ui8));
-
       sequencer.add<uint16_t>(static_cast<uint16_t>(meta.width));
       sequencer.add<uint16_t>(static_cast<uint16_t>(meta.height));
    }
 
 
-   auto write_bpp_and_dimensions(
+   auto write_dimensions(
       header_sequencer& sequencer,
       const generic_binary&
    ) -> void
    {
-      sequencer.add<uint8_t>(static_cast<uint8_t>(0ui8)); // bpp
-
-      // padding
-      for (int i = 0; i < 6; ++i)
-         sequencer.add<uint8_t>(static_cast<uint8_t>(0ui8));
-
       sequencer.add<uint16_t>(static_cast<uint16_t>(0ui16)); // Width
       sequencer.add<uint16_t>(static_cast<uint16_t>(0ui16)); // Height
    }
@@ -64,9 +65,7 @@ namespace
       const meta_type&
    ) -> void
    {
-      // Dummy
-      for(int i=0; i<8; ++i)
-         sequencer.add<uint8_t>(static_cast<uint8_t>(0ui8));
+      sequencer.add<uint64_t>(0ui64);
    }
 
 
@@ -109,13 +108,29 @@ auto inliner::meta_and_size_to_binary(
       )
    );
 
+   // Write bpp
+   sequencer.add<uint8_t>(
+      std::visit(
+         [](const auto x) {return get_bpp<uint8_t>(x); }
+         , pl.meta
+      )
+   );
+
+   // binary byte count
+   sequencer.add<uint16_t>(static_cast<uint16_t>(data_byte_count));
+
+   // 4 byte padding
+   sequencer.add<uint32_t>(0ui32);
+
+   // Dimensions
    std::visit(
-      [&](const auto& alternative) {write_bpp_and_dimensions(sequencer, alternative); }
+      [&](const auto& alternative) {write_dimensions(sequencer, alternative); }
       , pl.meta
    );
 
-   // Write binary byte count
-   sequencer.add<uint32_t>(data_byte_count);
+   // 4 byte padding
+   sequencer.add<uint32_t>(0ui32);
+   
 
    // Write dual colors
    std::visit(

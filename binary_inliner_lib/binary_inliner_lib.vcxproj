@@ -85,7 +85,6 @@
     <ClInclude Include="binary_image_tools.h" />
     <ClInclude Include="file_tools.h" />
     <ClInclude Include="image.h" />
-    <ClInclude Include="decoding.h" />
     <ClInclude Include="encoding.h" />
     <ClInclude Include="payload.h" />
     <ClInclude Include="stb_image.h" />

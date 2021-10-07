@@ -7,22 +7,18 @@
 namespace user
 {
    struct user_type {
-      uint8_t m_value[8];
+      //uint8_t m_value[8];
       //uint64_t xxx;
-      //uint8_t r, g, b;
+      uint8_t r, g, b;
    };
 
    auto user_fun()
    {
-      #include "input1.cpp"
-      constexpr inliner::header decoded_meta = inliner::get_header(input1);
-      const auto content = inliner::decode_to_array<user_type, decoded_meta.byte_count>(input1);
-      //constexpr int element_count = std::size(content);
+      #include "dual_24bit.h"
+      constexpr inliner::header decoded_meta = inliner::get_header(dual_24bit);
+      constexpr auto content = inliner::decode_to_array<user_type, decoded_meta.byte_count>(dual_24bit);
 
-      const auto x = inliner::decode_to_vector<user_type>(input1);
-
-      //void* dst = nullptr;
-      //inliner::decode_into_pointer(input0, dst);
+      const auto vec = inliner::decode_to_vector<user_type>(dual_24bit);
 
       int end = 0;
    }
