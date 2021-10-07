@@ -183,16 +183,8 @@ auto inliner::decode_to_vector(
    const int byte_count = get_byte_count(&source[0]);
    const int element_count = byte_count / sizeof(user_type);
 
-   std::vector<user_type> result;
-   result.reserve(element_count);
-
-   auto ptr = reinterpret_cast<const user_type*>(&source[3]);
-   for (int i = 0; i < element_count; ++i)
-   {
-      auto value = reinterpret_cast<const user_type&>(ptr[i]);
-      result.emplace_back(value);
-   }
-
+   std::vector<user_type> result(element_count);
+   std::memcpy(result.data(), &source[3], byte_count);
    return result;
 }
 #endif
