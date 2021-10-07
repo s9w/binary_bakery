@@ -15,7 +15,7 @@ auto inliner::write_binary_file(
 
 
 
-auto inliner::get_binary_file(const char* path) -> binary_file_content
+auto inliner::get_binary_file(const char* path) -> std::vector<uint8_t>
 {
    std::ifstream file(path, std::ios::ate | std::ios::binary);
 
@@ -25,10 +25,9 @@ auto inliner::get_binary_file(const char* path) -> binary_file_content
    }
 
    const size_t byte_count = file.tellg();
-   const int symbol_count = get_symbol_count<uint64_t>(static_cast<int>(byte_count));
-   std::vector<uint64_t> buffer(symbol_count);
+   std::vector<uint8_t> buffer(byte_count);
 
    file.seekg(0);
    file.read(reinterpret_cast<char*>(buffer.data()), byte_count);
-   return { buffer, static_cast<int>(byte_count) };
+   return buffer;
 }

@@ -29,8 +29,8 @@ namespace {
 
    [[nodiscard]] auto get_binary_file_payload(const char* path) -> payload
    {
-      const binary_file_content file_content = get_binary_file(path);
-      return { file_content.data, file_content.byte_count, generic_binary{} };
+      const std::vector<uint8_t> file_content = get_binary_file(path);
+      return { file_content, generic_binary{} };
    }
 
 

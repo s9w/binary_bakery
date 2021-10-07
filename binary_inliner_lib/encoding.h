@@ -37,7 +37,7 @@ auto inliner::detail::get_image_payload(
 {
    const image<bpp> image{ width, height, image_data_ptr };
    const content_meta meta = get_image_meta(image);
-   return { image.to_uint64(), image.get_byte_count(), meta };
+   return { image.to_uint8(), meta };
 }
 
 

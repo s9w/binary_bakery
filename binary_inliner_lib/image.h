@@ -51,7 +51,7 @@ namespace inliner {
       std::vector<color_type> m_pixels;
 
       explicit image(const int w, const int h, const unsigned char* data);
-      [[nodiscard]] auto to_uint64() const -> std::vector<uint64_t>;
+      [[nodiscard]] auto to_uint8() const -> std::vector<uint8_t>;
       [[nodiscard]] auto get_byte_count() const -> int;
       [[nodiscard]] auto get_pixel_count() const -> int;
       [[nodiscard]] auto operator[](const int index) const -> const color_type&;
@@ -97,10 +97,9 @@ inliner::image<bpp>::image(const int w, const int h, const unsigned char* data):
 
 
 template<int bpp>
-auto inliner::image<bpp>::to_uint64() const -> std::vector<uint64_t>
+auto inliner::image<bpp>::to_uint8() const -> std::vector<uint8_t>
 {
-   const int ui64_count = get_symbol_count<uint64_t>(get_byte_count());
-   std::vector<uint64_t> result(ui64_count);
+   std::vector<uint8_t> result(get_byte_count());
    std::memcpy(result.data(), m_pixels.data(), get_byte_count());
    return result;
 }

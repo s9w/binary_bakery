@@ -22,8 +22,7 @@ TEST_CASE("generic binary encoding")
 
    const payload pl = get_payload(path);
    CHECK(std::holds_alternative<generic_binary>(pl.meta));
-   CHECK_EQ(pl.byte_count, 12);
-   CHECK_EQ(pl.data.size(), 2);
+   CHECK_EQ(pl.m_content_data.size(), 12);
 }
 
 

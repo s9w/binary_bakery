@@ -31,21 +31,16 @@ namespace inliner {
    concept dual_image_type_c = requires(T t) {
       t.color0;
    };
-   static_assert(dual_image_type_c<dual_image_type<2>>);
-   static_assert(dual_image_type_c<naive_image_type> == false);
 
    template<typename T>
    concept image_type_c = requires(T t) {
       t.m_bpp;
    };
-   static_assert(image_type_c<naive_image_type>);
-   static_assert(image_type_c<dual_image_type<2>>);
 
    using content_meta = std::variant<generic_binary, naive_image_type, dual_image_type<1>, dual_image_type<2>, dual_image_type<3>, dual_image_type<4>>;
 
    struct payload {
-      std::vector<uint64_t> data;
-      int byte_count;
+      std::vector<uint8_t> m_content_data;
       content_meta meta;
    };
 
@@ -55,7 +50,6 @@ namespace inliner {
 
    // storing:
    // uint8, 1 byte for type. 0 for generic, 1 for naive image, 2 for dual image
-   // uint32_t, 4 byte for byte count
 
    // generic:
    // nothing more

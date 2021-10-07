@@ -16,13 +16,12 @@ TEST_CASE("meta_to_binary")
 
    const std::vector<uint8_t> expected = get_byte_sequence(
       2ui8,
-      byte_count,
       bpp,
       width,
       height,
       255ui8, 0ui8, 0ui8,
       0ui8, 255ui8, 0ui8
    );
-   const std::vector<uint8_t> result = meta_to_binary(payload{ {}, byte_count, dual_meta });
+   const std::vector<uint8_t> result = meta_to_binary(payload{ {}, dual_meta });
    CHECK_EQ(result, expected);
 }

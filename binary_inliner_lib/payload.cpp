@@ -59,7 +59,7 @@ auto inliner::meta_to_binary(
    const payload& pl
 ) -> std::vector<uint8_t>
 {
-   constexpr size_t maximum_binary_size = 18;
+   constexpr size_t maximum_binary_size = 14;
    binary_sequencer sequencer(maximum_binary_size);
 
    sequencer.add<uint8_t>(
@@ -71,8 +71,6 @@ auto inliner::meta_to_binary(
          , pl.meta
       )
    );
-
-   sequencer.add<uint32_t>(static_cast<uint32_t>(pl.byte_count));
 
    std::visit(
       [&](const auto& alternative) {write_details(sequencer, alternative); }
