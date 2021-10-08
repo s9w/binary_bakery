@@ -146,13 +146,14 @@ auto bb::write_payload_to_file(
    const std::string indentation_str(indentation, ' ');
    for (int i = 0; i < symbol_count; ++i)
    {
+      const bool is_last = i == (symbol_count - 1);
       content += get_ui64_str(ui64_ptr[i]);
-      if (i < (symbol_count-1))
+      if (is_last == false)
       {
          content += ", ";
       }
       ++in_line_count;
-      if(in_line_count == groups_per_line)
+      if(in_line_count == groups_per_line && is_last == false)
       {
          content += std::format("\n{}", indentation_str);
          in_line_count = 0;

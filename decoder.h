@@ -4,13 +4,13 @@
 #include <cstdint> // For sized types
 #include <string>  // For std::memcpy
 
-#ifdef BAKERY_PROVIDE_VECTOR
+#ifdef    BAKERY_PROVIDE_VECTOR
 #include <vector>
-#endif
+#endif // BAKERY_PROVIDE_VECTOR
 
-#ifdef BAKERY_PROVIDE_STD_ARRAY
+#ifdef    BAKERY_PROVIDE_STD_ARRAY
 #include <array>
-#endif
+#endif // BAKERY_PROVIDE_STD_ARRAY
 
 
 namespace bb {
@@ -63,17 +63,17 @@ namespace bb {
    [[nodiscard]] constexpr auto get_element_count(const uint64_t(&source)[array_size]) -> int;
 
 
-#ifdef BAKERY_PROVIDE_STD_ARRAY
+#ifdef    BAKERY_PROVIDE_STD_ARRAY
    template<typename user_type, header head, int array_size, int element_count = get_element_count<user_type>(head)>
    [[nodiscard]] constexpr auto decode_to_array(
       const uint64_t(&source)[array_size]
    ) -> std::array<user_type, element_count>;
-#endif
+#endif // BAKERY_PROVIDE_STD_ARRAY
 
-#ifdef BAKERY_PROVIDE_VECTOR
+#ifdef    BAKERY_PROVIDE_VECTOR
    template<typename user_type, int source_size>
    [[nodiscard]] auto decode_to_vector(const uint64_t(&source)[source_size]) -> std::vector<user_type>;
-#endif
+#endif // BAKERY_PROVIDE_VECTOR
 
 
    template<typename user_type, int source_size>
@@ -284,7 +284,7 @@ constexpr auto bb::decode_to_array(
       return std::bit_cast<target_type>(source).m_data;
    }
 }
-#endif
+#endif // BAKERY_PROVIDE_STD_ARRAY
 
 
 #ifdef BAKERY_PROVIDE_VECTOR
@@ -311,7 +311,7 @@ auto bb::decode_to_vector(
    }
    return result;
 }
-#endif
+#endif // BAKERY_PROVIDE_VECTOR
 
 
 template<typename user_type, int source_size>

@@ -13,19 +13,19 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{56b69b75-2beb-4e0a-908a-ead9f6498217}</ProjectGuid>
-    <RootNamespace>binarybakerylib</RootNamespace>
+    <ProjectGuid>{36ff9f00-2c70-4772-beab-6c4cf64668af}</ProjectGuid>
+    <RootNamespace>binarybakery</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -45,9 +45,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(SolutionDir);$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(SolutionDir);$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -82,22 +84,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="color.h" />
-    <ClInclude Include="config.h" />
-    <ClInclude Include="encoding.h" />
-    <ClInclude Include="file_tools.h" />
-    <ClInclude Include="image.h" />
-    <ClInclude Include="payload.h" />
-    <ClInclude Include="stb_image.h" />
-    <ClInclude Include="tools.h" />
+    <ClCompile Include="bb_main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="config.cpp" />
-    <ClCompile Include="encoding.cpp" />
-    <ClCompile Include="file_tools.cpp" />
-    <ClCompile Include="implementations.cpp" />
-    <ClCompile Include="payload.cpp" />
-    <ClCompile Include="tools.cpp" />
+    <ProjectReference Include="..\binary_bakery_lib\binary_bakery_lib.vcxproj">
+      <Project>{56b69b75-2beb-4e0a-908a-ead9f6498217}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
