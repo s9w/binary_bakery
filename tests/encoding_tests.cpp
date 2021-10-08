@@ -2,7 +2,7 @@
 #include <string>
 
 #include "test_tools.h"
-#include "../binary_inliner_lib/encoding.h"
+#include "../binary_bakery_lib/encoding.h"
 
 #include <doctest/doctest.h>
 

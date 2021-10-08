@@ -1,6 +1,6 @@
 #include <doctest/doctest.h>
 
-#include "../binary_inliner_lib/payload.h"
+#include "../binary_bakery_lib/payload.h"
 
 using namespace inliner;
 

@@ -1,6 +1,6 @@
 #include <doctest/doctest.h>
 
-#include "../binary_inliner_lib/image.h"
+#include "../binary_bakery_lib/image.h"
 
 using namespace inliner;
 

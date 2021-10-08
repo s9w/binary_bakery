@@ -90,12 +90,12 @@
     <ClCompile Include="tools_test.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\binary_inliner_lib\binary_inliner_lib.vcxproj">
-      <Project>{f3dac5df-079d-48d6-a821-552ad6fcc3c7}</Project>
+    <ProjectReference Include="..\binary_bakery_lib\binary_bakery_lib.vcxproj">
+      <Project>{56b69b75-2beb-4e0a-908a-ead9f6498217}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="decoder.h" />
+    <ClInclude Include="..\decoder.h" />
     <ClInclude Include="test_tools.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
