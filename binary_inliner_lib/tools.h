@@ -32,6 +32,7 @@ namespace inliner {
    template<typename enum_type>
    [[nodiscard]] auto get_bit_encoded(const std::vector<enum_type>& enums, const enum_type one_value) -> std::vector<uint8_t>;
 
+   // TODO this only needs to live in user-facing decoder.h
    template<int bit_count, typename T>
    [[nodiscard]] auto get_bit_decoded(const std::vector<uint8_t>& enums, const T& value0, const T& value1) -> std::array<T, bit_count>;
 

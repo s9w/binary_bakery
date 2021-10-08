@@ -33,59 +33,54 @@ namespace inliner {
    };
    static_assert(sizeof(header) == 24);
 
-   [[nodiscard]] constexpr auto get_header    (const uint64_t* ptr) -> header;
-   [[nodiscard]] constexpr auto is_image      (const uint64_t* ptr) -> bool;
-   [[nodiscard]] constexpr auto get_width     (const uint64_t* ptr) -> int;
-   [[nodiscard]] constexpr auto get_height    (const uint64_t* ptr) -> int;
+   template<int array_size>
+   [[nodiscard]] constexpr auto get_header(const uint64_t(&source)[array_size]) -> header;
 
+   template<int array_size>
+   [[nodiscard]] constexpr auto is_image  (const uint64_t(&source)[array_size]) -> bool;
 
-   [[nodiscard]] constexpr auto get_byte_count_from_bit_count(
-      const int bit_count
-   ) -> int
-   {
-      int byte_count = bit_count / 8;
-      if ((bit_count % 8) > 0)
-         ++byte_count;
-      return byte_count;
-   }
+   template<int array_size>
+   [[nodiscard]] constexpr auto get_width (const uint64_t(&source)[array_size]) -> int;
+
+   template<int array_size>
+   [[nodiscard]] constexpr auto get_height(const uint64_t(&source)[array_size]) -> int;
+
+   // These methods provide easy access to the number of elements in the dataset. In images, that equates to the number
+   // of pixels. In generic binaries, that's the number of elements of the target type.
+   // Can be called with a decoded header (faster), or the dataset itself. Can be called without a target type if the
+   // dataset is an image, otherwise the target type has to be provided as template parameter. Throws if that
+   // assumption is violated.
+   // Every function is constexpr.
+   [[nodiscard]] constexpr auto get_element_count(const header& head) -> int;
 
    template<typename user_type>
-   constexpr auto get_ultimate_element_count(
-      const header& head
-   ) -> int
-   {
-      if (head.type == 2)
-      {
-         const int pixel_count = head.bit_count;
-         return pixel_count;
-      }
-      else
-      {
-         // Byte count is exact for everything but Indexed images
-         const int byte_count = head.bit_count / 8;
-         return byte_count / sizeof(user_type);
-      }
-   }
+   [[nodiscard]] constexpr auto get_element_count(const header& head) -> int;
+
+   template<int array_size>
+   [[nodiscard]] constexpr auto get_element_count(const uint64_t(&source)[array_size]) -> int;
+
+   template<typename user_type, int array_size>
+   [[nodiscard]] constexpr auto get_element_count(const uint64_t(&source)[array_size]) -> int;
 
 
 #ifdef BAKERY_PROVIDE_STD_ARRAY
-   template<typename user_type, header head, int array_size, int element_count = get_ultimate_element_count<user_type>(head)>
+   template<typename user_type, header head, int array_size, int element_count = get_element_count<user_type>(head)>
    [[nodiscard]] constexpr auto decode_to_array(
       const uint64_t(&source)[array_size]
    ) -> std::array<user_type, element_count>;
 #endif
 
 #ifdef BAKERY_PROVIDE_VECTOR
-   //template<typename user_type, int source_size>
-   //[[nodiscard]] auto decode_to_vector(const uint64_t(&source)[source_size]) -> std::vector<user_type>;
+   template<typename user_type, int source_size>
+   [[nodiscard]] auto decode_to_vector(const uint64_t(&source)[source_size]) -> std::vector<user_type>;
 #endif
 
 
-   //template<int source_size>
-   //auto decode_into_pointer(
-   //   const uint64_t(&source)[source_size],
-   //   void* dst
-   //) -> void;
+   template<typename user_type, int source_size>
+   auto decode_into_pointer(
+      const uint64_t(&source)[source_size],
+      user_type* dst
+   ) -> void;
 
 } // namespace inliner
 
@@ -114,8 +109,55 @@ namespace inliner::detail {
       color_type<bpp> color1;
    };
 
+
    template<int bpp>
-   [[nodiscard]] constexpr auto get_sized_color_pair(const header& head) -> color_pair_type<bpp>;
+   [[nodiscard]] constexpr auto get_sized_color_pair(const header& head) -> color_pair_type<bpp>
+   {
+      const auto head_color0 = std::bit_cast<color_type<4>>(head.color0);
+      const auto head_color1 = std::bit_cast<color_type<4>>(head.color1);
+
+      color_type<bpp> color0{};
+      color_type<bpp> color1{};
+      for (int i = 0; i < bpp; ++i)
+      {
+         color0.m_components[i] = head_color0.m_components[i];
+         color1.m_components[i] = head_color1.m_components[i];
+      }
+      return { color0, color1 };
+   }
+
+
+   template<typename T, typename color_type, typename target_type>
+   constexpr auto reconstruct(
+      const int element_count,
+      const uint8_t* source,
+      target_type& target,
+      const color_type& color0,
+      const color_type& color1
+   ) -> void
+   {
+      for (int i = 0; i < element_count; ++i)
+      {
+         const int byte_index = i / 8;
+         const int bit_index = i % 8;
+         const int left_shift_amount = 7 - bit_index; // 7 is leftest bit
+         const uint8_t mask = 1ui8 << left_shift_amount;
+         const bool binary_value = static_cast<bool>((source[byte_index] & mask) >> left_shift_amount);
+         const auto replacement_color = std::bit_cast<T>(binary_value ? color1 : color0);
+         target[i] = replacement_color;
+      }
+   }
+
+
+   [[nodiscard]] constexpr auto get_byte_count_from_bit_count(
+      const int bit_count
+   ) -> int
+   {
+      int byte_count = bit_count / 8;
+      if ((bit_count % 8) > 0)
+         ++byte_count;
+      return byte_count;
+   }
    
 } // namespace inliner::detail
 
@@ -129,8 +171,9 @@ constexpr auto inliner::detail::better_array<T, size>::operator[](
 }
 
 
+template<int array_size>
 constexpr auto inliner::get_header(
-   const uint64_t* ptr
+   const uint64_t(&source)[array_size]
 ) -> header
 {
    header result;
@@ -143,7 +186,7 @@ constexpr auto inliner::get_header(
          uint32_t bit_count;
       };
 
-      const front_decoder temp = std::bit_cast<front_decoder>(ptr[0]);
+      const front_decoder temp = std::bit_cast<front_decoder>(source[0]);
       result.type = temp.type;
       result.bpp = temp.bpp;
       result.bit_count = temp.bit_count;
@@ -151,13 +194,13 @@ constexpr auto inliner::get_header(
 
    if (result.type > 0)
    {
-      const auto temp = std::bit_cast<detail::better_array<uint16_t, 4>>(ptr[1]);
+      const auto temp = std::bit_cast<detail::better_array<uint16_t, 4>>(source[1]);
       result.width = temp[0];
       result.height = temp[1];
    }
    if (result.type == 2)
    {
-      const auto temp = std::bit_cast<detail::better_array<uint32_t, 2>>(ptr[2]);
+      const auto temp = std::bit_cast<detail::better_array<uint32_t, 2>>(source[2]);
       result.color0 = temp[0];
       result.color1 = temp[1];
    }
@@ -166,44 +209,42 @@ constexpr auto inliner::get_header(
 }
 
 
+template<int array_size>
 constexpr auto inliner::is_image(
-   const uint64_t* ptr
+   const uint64_t(&source)[array_size]
 ) -> bool
 {
-   const auto temp0 = std::bit_cast<detail::better_array<uint8_t, 8>>(ptr[0]);
+   const auto temp0 = std::bit_cast<detail::better_array<uint8_t, 8>>(source[0]);
    const uint8_t type = temp0[0];
    return type == 1 || type == 2;
 }
 
 
+template<int array_size>
 constexpr auto inliner::get_width(
-   const uint64_t* ptr
+   const uint64_t(&source)[array_size]
 ) -> int
 {
-   if (is_image(ptr) == false)
+   if (is_image(source) == false)
    {
       return -1;
    }
-   const auto temp = std::bit_cast<detail::better_array<uint16_t, 4>>(ptr[1]);
+   const auto temp = std::bit_cast<detail::better_array<uint16_t, 4>>(source[1]);
    return temp[0];
 }
 
 
+template<int array_size>
 constexpr auto inliner::get_height(
-   const uint64_t* ptr
+   const uint64_t(&source)[array_size]
 ) -> int
 {
-   if (is_image(ptr) == false)
+   if (is_image(source) == false)
    {
       return -1;
    }
-   const auto temp = std::bit_cast<detail::better_array<uint16_t, 4>>(ptr[1]);
+   const auto temp = std::bit_cast<detail::better_array<uint16_t, 4>>(source[1]);
    return temp[1];
-}
-
-
-namespace inliner::detail {
-   
 }
 
 
@@ -218,27 +259,17 @@ constexpr auto inliner::decode_to_array(
    if constexpr (head.type == 2)
    {
       static_assert(sizeof(user_type) == head.bpp, "User type has different size than bpp");
-      //}
       const auto [color0, color1] = detail::get_sized_color_pair<head.bpp>(head);
 
       // First cast into its encoded representation
-      const int byte_count = get_byte_count_from_bit_count(head.bit_count);
+      const int byte_count = detail::get_byte_count_from_bit_count(head.bit_count);
       using interm_type = detail::wrapper_type<uint8_t, byte_count>;
       const std::array<uint8_t, byte_count> interm = std::bit_cast<interm_type>(source).m_data;
 
       // Then reconstruct the original colors
       using target_type = std::array<user_type, element_count>;
       target_type result;
-      for (int i = 0; i < element_count; ++i)
-      {
-         const int byte_index = i / 8;
-         const int bit_index = i % 8;
-         const int left_shift_amount = 7 - bit_index; // 7 is leftest bit
-         const uint8_t mask = 1ui8 << left_shift_amount;
-         const bool binary_value = static_cast<bool>((interm[byte_index] & mask) >> left_shift_amount);
-         const user_type replacement_color = std::bit_cast<user_type>(binary_value ? color1 : color0);
-         result[i] = replacement_color;
-      }
+      detail::reconstruct<user_type>(element_count, &interm[0], result, color0, color1);
       return result;
    }
    else
@@ -250,48 +281,106 @@ constexpr auto inliner::decode_to_array(
 #endif
 
 
-//#ifdef BAKERY_PROVIDE_VECTOR
-//template<typename user_type, int source_size>
-//auto inliner::decode_to_vector(
-//   const uint64_t(&source)[source_size]
-//) -> std::vector<user_type>
-//{
-//   const int byte_count = get_byte_count(&source[0]);
-//   const int element_count = byte_count / sizeof(user_type);
-//
-//   std::vector<user_type> result(element_count);
-//   std::memcpy(result.data(), &source[3], byte_count);
-//   return result;
-//}
-//#endif
-//
-//
-//template<int source_size>
-//auto inliner::decode_into_pointer(
-//   const uint64_t(&source)[source_size],
-//   void* dst
-//) -> void
-//{
-//   const int byte_count = get_byte_count(source);
-//   const uint64_t* start_ptr = &source[3];
-//   std::memcpy(dst, start_ptr, byte_count);
-//}
-
-
-template<int bpp>
-constexpr auto inliner::detail::get_sized_color_pair(
-   const header& head
-) -> color_pair_type<bpp>
+#ifdef BAKERY_PROVIDE_VECTOR
+template<typename user_type, int source_size>
+auto inliner::decode_to_vector(
+   const uint64_t(&source)[source_size]
+) -> std::vector<user_type>
 {
-   const auto head_color0 = std::bit_cast<color_type<4>>(head.color0);
-   const auto head_color1 = std::bit_cast<color_type<4>>(head.color1);
+   const header head = inliner::get_header(source);
+   const int element_count = get_element_count<user_type>(head);
+   const int byte_count = element_count * sizeof(user_type);
 
-   color_type<bpp> color0;
-   color_type<bpp> color1;
-   for (int i = 0; i < bpp; ++i)
+   std::vector<user_type> result(element_count);
+   const uint8_t* data_start_ptr = reinterpret_cast<const uint8_t*>(&source[3]);
+   if (head.type == 2)
    {
-      color0.m_components[i] = head_color0.m_components[i];
-      color1.m_components[i] = head_color1.m_components[i];
+      constexpr int bpp = sizeof(user_type);
+      const auto [color0, color1] = detail::get_sized_color_pair<bpp>(head);
+      detail::reconstruct<user_type>(element_count, data_start_ptr, result, color0, color1);
    }
-   return { color0, color1 };
+   else
+   {
+      std::memcpy(result.data(), data_start_ptr, byte_count);
+   }
+   return result;
+}
+#endif
+
+
+template<typename user_type, int source_size>
+auto inliner::decode_into_pointer(
+   const uint64_t(&source)[source_size],
+   user_type* dst
+) -> void
+{
+   const header head = inliner::get_header(source);
+   const int element_count = get_element_count<user_type>(head);
+   const int byte_count = element_count * sizeof(user_type);
+   const uint8_t* data_start_ptr = reinterpret_cast<const uint8_t*>(&source[3]);
+
+   if (head.type == 2)
+   {
+      constexpr int bpp = sizeof(user_type);
+      const auto [color0, color1] = detail::get_sized_color_pair<bpp>(head);
+      detail::reconstruct<user_type>(element_count, data_start_ptr, dst, color0, color1);
+   }
+   else
+   {
+      std::memcpy(dst, data_start_ptr, byte_count);
+   }
+}
+
+
+constexpr auto inliner::get_element_count(
+   const header& head
+) -> int
+{
+   if (head.type == 0)
+   {
+      throw "Can't be used on non-image payloads without a type.";
+   }
+   else
+   {
+      const int pixel_count = head.width * head.height;
+      return pixel_count;
+   }
+}
+
+
+template<typename user_type>
+constexpr auto inliner::get_element_count(
+   const header& head
+) -> int
+{
+   if (head.type == 2)
+   {
+      return get_element_count(head);
+   }
+   else
+   {
+      // Byte count is exact for everything but Indexed images
+      const int byte_count = head.bit_count / 8;
+      return byte_count / sizeof(user_type);
+   }
+}
+
+
+template<typename user_type, int array_size>
+constexpr auto inliner::get_element_count(
+   const uint64_t(&source)[array_size]
+) -> int
+{
+   const header head = inliner::get_header(source);
+   return get_element_count<user_type>(head);
+}
+
+
+template<int array_size>
+constexpr auto inliner::get_element_count(
+   const uint64_t(&source)[array_size]
+) -> int
+{
+   const header head = inliner::get_header(source);
+   return get_element_count(head);
 }
