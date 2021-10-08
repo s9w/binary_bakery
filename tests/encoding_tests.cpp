@@ -3,6 +3,7 @@
 
 #include "test_tools.h"
 #include "../binary_bakery_lib/encoding.h"
+#include "../binary_bakery_lib/config.h"
 
 #include <doctest/doctest.h>
 
@@ -62,5 +63,6 @@ TEST_CASE("hex strings")
 TEST_CASE("payload writing")
 {
    const payload pl = get_payload("rgb_example.png");
-   write_payload_to_file("rgb_example.h", "rgb_example", 3, 120, pl);
+   const config default_cfg{};
+   write_payload_to_file("rgb_example.h", "rgb_example", default_cfg, pl);
 }

@@ -49,6 +49,6 @@ namespace bb {
       content_meta meta;
    };
 
-   [[nodiscard]] auto meta_and_size_to_binary(const payload& pl, const uint32_t data_bit_count) -> std::array<uint8_t, 24>;
+   [[nodiscard]] auto meta_and_size_to_binary(const content_meta& meta, const uint32_t data_bit_count) -> std::array<uint8_t, 24>;
 
 }

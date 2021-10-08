@@ -5,6 +5,7 @@
 #include <optional>
 #include <iostream>
 
+#include "config.h"
 #include "tools.h"
 #include "file_tools.h"
 #include "image.h"
@@ -118,15 +119,14 @@ auto bb::get_payload(const std::string& filename) -> payload
 auto bb::write_payload_to_file(
    const std::string& filename,
    const std::string& variable_name,
-   const int indentation,
-   const int max_columns,
+   const config& cfg,
    const payload& pl
 ) -> void
 {
    const uint32_t bit_count = get_bit_count(pl); // if indexed then over dimensions, otherwise bytestream size
 
    std::vector<uint8_t> target_bytes; // TODO reserve
-   for (const uint8_t byte : meta_and_size_to_binary(pl, bit_count))
+   for (const uint8_t byte : meta_and_size_to_binary(pl.meta, bit_count))
       target_bytes.emplace_back(byte);
    append_copy(target_bytes, pl.m_content_data);
 
@@ -141,9 +141,9 @@ auto bb::write_payload_to_file(
    const int symbol_count = get_symbol_count<uint64_t>(static_cast<int>(target_bytes.size()));
    const uint64_t* ui64_ptr = reinterpret_cast<const uint64_t*>(target_bytes.data());
 
-   const int groups_per_line = (max_columns - indentation) / (2 + 16 + 2);
+   const int groups_per_line = (cfg.max_columns - cfg.indentation_size) / (2 + 16 + 2);
    int in_line_count = 0;
-   const std::string indentation_str(indentation, ' ');
+   const std::string indentation_str(cfg.indentation_size, ' ');
    for (int i = 0; i < symbol_count; ++i)
    {
       const bool is_last = i == (symbol_count - 1);

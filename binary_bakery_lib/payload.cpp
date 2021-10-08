@@ -91,7 +91,7 @@ namespace
 
 
 auto bb::meta_and_size_to_binary(
-   const payload& pl,
+   const content_meta& meta,
    const uint32_t data_bit_count
 ) -> std::array<uint8_t, 24>
 {
@@ -104,7 +104,7 @@ auto bb::meta_and_size_to_binary(
             using type = std::decay_t<decltype(alternative)>;
             return meta_type_int_v<type>;
          }
-         , pl.meta
+         , meta
       )
    );
 
@@ -112,7 +112,7 @@ auto bb::meta_and_size_to_binary(
    sequencer.add<uint8_t>(
       std::visit(
          [](const auto x) {return get_bpp<uint8_t>(x); }
-         , pl.meta
+         , meta
       )
    );
 
@@ -127,7 +127,7 @@ auto bb::meta_and_size_to_binary(
    // Dimensions
    std::visit(
       [&](const auto& alternative) {write_dimensions(sequencer, alternative); }
-      , pl.meta
+      , meta
    );
 
    // 4 byte padding
@@ -137,7 +137,7 @@ auto bb::meta_and_size_to_binary(
    // Write dual colors
    std::visit(
       [&](const auto& alternative) {write_dual_colors(sequencer, alternative); }
-      , pl.meta
+      , meta
    );
 
    return sequencer.m_sequence;

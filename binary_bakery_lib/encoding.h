@@ -10,13 +10,14 @@
 
 namespace bb {
 
+   struct config;
+
    [[nodiscard]] auto get_payload(const std::string& filename) -> payload;
 
    auto write_payload_to_file(
       const std::string& filename,
       const std::string& variable_name,
-      const int indentation,
-      const int max_columns,
+      const config& cfg,
       const payload& pl
    ) -> void;
 
