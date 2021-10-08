@@ -8,7 +8,7 @@
 
 #include "color.h"
 #include "tools.h"
-#include "payload.h"
+#include "content_meta.h"
 
 #include "stb_image.h"
 
@@ -37,13 +37,7 @@ namespace bb
    [[nodiscard]] auto get_image(const std::string& filename) -> image<bpp>;
 
    template<int bpp>
-   struct color_pair {
-      color<bpp> color0;
-      color<bpp> color1;
-   };
-
-   template<int bpp>
-   [[nodiscard]] auto get_color_pair(const image<bpp>& image)->std::optional<color_pair<bpp>>;
+   [[nodiscard]] auto get_color_pair(const image<bpp>& image) -> std::optional<color_pair<bpp>>;
 
    enum class dual_color_name { first, second };
 
@@ -259,37 +253,19 @@ namespace bb::detail {
    }
 }
 
+
 template<int bpp>
 auto bb::get_image_bytestream(
    const image<bpp>& image,
    const content_meta& meta
 ) -> std::vector<uint8_t>
 {
-   //const auto lambda = [&](const auto& alternative) {
-   //   using type = std::decay_t<decltype(alternative)>;
-   //   if constexpr (dual_image_type_c<type>)
-   //   {
-   //      const color_pair<bpp> pair{ alternative.color0, alternative.color1 };
-   //      return get_image_bytestream_dual(image, pair);
-   //      //return get_image_bytestream_dual(image, { alternative.color0, alternative.color1 });
-   //   }
-   //   else
-   //   {
-   //      return get_image_bytestream_naive(image);
-   //   }
-   //};
-   //return std::visit(lambda, meta);
-   
    return std::visit(
       [&](const auto& alternative) {
-         using type = std::decay_t<decltype(alternative)>;
          return detail::apply(image, alternative);
       }
-      //detail::apply
       , meta
    );
-
-   //return {};
 }
 
 

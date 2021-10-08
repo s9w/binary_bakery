@@ -2,7 +2,6 @@
 
 #include <cstdint>
 #include <variant>
-#include <vector>
 
 #include "color.h"
 
@@ -20,9 +19,10 @@ namespace bb {
    // Image with only two unique colors
    template<int bpp>
    struct dual_image_type {
+      static constexpr int m_bpp = bpp;
+
       int width = 0;
       int height = 0;
-      int m_bpp = bpp;
       color<bpp> color0;
       color<bpp> color1;
    };
@@ -42,12 +42,6 @@ namespace bb {
       naive_image_type,
       dual_image_type<1>, dual_image_type<2>, dual_image_type<3>, dual_image_type<4>
    >;
-
-   // Content bytestream + meta object
-   struct payload {
-      std::vector<uint8_t> m_content_data;
-      content_meta meta;
-   };
 
    [[nodiscard]] auto meta_and_size_to_binary(const content_meta& meta, const uint32_t data_bit_count) -> std::array<uint8_t, 24>;
 

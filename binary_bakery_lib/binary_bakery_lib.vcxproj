@@ -87,7 +87,7 @@
     <ClInclude Include="encoding.h" />
     <ClInclude Include="file_tools.h" />
     <ClInclude Include="image.h" />
-    <ClInclude Include="payload.h" />
+    <ClInclude Include="content_meta.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="tools.h" />
   </ItemGroup>
@@ -96,7 +96,7 @@
     <ClCompile Include="encoding.cpp" />
     <ClCompile Include="file_tools.cpp" />
     <ClCompile Include="implementations.cpp" />
-    <ClCompile Include="payload.cpp" />
+    <ClCompile Include="content_meta.cpp" />
     <ClCompile Include="tools.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -4,13 +4,19 @@
 #include <format>
 #include <optional>
 
-#include "payload.h"
+#include "content_meta.h"
 #include "image.h"
 
 
 namespace bb {
 
    struct config;
+
+   // Content bytestream + meta object
+   struct payload {
+      std::vector<uint8_t> m_content_data;
+      content_meta meta;
+   };
 
    [[nodiscard]] auto get_payload(const std::string& filename) -> payload;
 
@@ -63,7 +69,6 @@ auto bb::detail::get_image_meta(
       return dual_image_type<bpp>{
          image.m_width,
          image.m_height,
-         bpp,
          color_pair.value().color0,
          color_pair.value().color1
       };

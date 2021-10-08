@@ -14,6 +14,7 @@ TEST_CASE("color type")
 }
 
 
+// TODO move this
 TEST_CASE("image_type")
 {
    image<3> image_3x3 = get_image<3>("test_image.png");
@@ -23,4 +24,12 @@ TEST_CASE("image_type")
    CHECK_EQ(image_3x3[0], color{0, 0, 0});
    CHECK_EQ(image_3x3[1], color{255, 0, 0});
    CHECK_EQ(image_3x3[5], color{255, 255, 255});
+}
+
+
+TEST_CASE("get_4byte_padded()")
+{
+   CHECK_EQ(color{ 1ui8, 2ui8, 3ui8, 4ui8 }.get_4byte_padded(), color{ 1ui8, 2ui8, 3ui8, 4ui8 });
+   CHECK_EQ(color{ 1ui8, 2ui8, 3ui8       }.get_4byte_padded(), color{ 1ui8, 2ui8, 3ui8, 0ui8 });
+   CHECK_EQ(color{ 1ui8, 2ui8             }.get_4byte_padded(), color{ 1ui8, 2ui8, 0ui8, 0ui8 });
 }

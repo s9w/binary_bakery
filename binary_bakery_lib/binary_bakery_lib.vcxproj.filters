@@ -27,7 +27,7 @@
     <ClInclude Include="image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="payload.h">
+    <ClInclude Include="content_meta.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="stb_image.h">
@@ -50,7 +50,7 @@
     <ClCompile Include="implementations.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="payload.cpp">
+    <ClCompile Include="content_meta.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="tools.cpp">

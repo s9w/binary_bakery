@@ -1,6 +1,6 @@
 #include <doctest/doctest.h>
 
-#include "../binary_bakery_lib/payload.h"
+#include "../binary_bakery_lib/content_meta.h"
 
 using namespace bb;
 
@@ -12,7 +12,7 @@ TEST_CASE("meta_to_binary")
    constexpr uint16_t height = 10;
    constexpr uint8_t bpp = 3;
    constexpr uint32_t byte_count = width * height * bpp;
-   constexpr dual_image_type dual_meta{width, height, bpp, color0, color1};
+   constexpr dual_image_type<bpp> dual_meta{width, height, color0, color1};
 
    //const std::vector<uint8_t> expected = get_byte_sequence(
    //   2ui8,
