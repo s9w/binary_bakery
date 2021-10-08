@@ -92,7 +92,7 @@ namespace
 
 auto inliner::meta_and_size_to_binary(
    const payload& pl,
-   const uint32_t data_byte_count
+   const uint32_t data_bit_count
 ) -> std::array<uint8_t, 24>
 {
    header_sequencer sequencer;
@@ -116,11 +116,13 @@ auto inliner::meta_and_size_to_binary(
       )
    );
 
-   // binary byte count
-   sequencer.add<uint16_t>(static_cast<uint16_t>(data_byte_count));
+   // 2 byte padding
+   sequencer.add<uint16_t>(0ui16);
 
-   // 4 byte padding
-   sequencer.add<uint32_t>(0ui32);
+   // binary bit count
+   sequencer.add<uint32_t>(static_cast<uint32_t>(data_bit_count));
+
+   
 
    // Dimensions
    std::visit(

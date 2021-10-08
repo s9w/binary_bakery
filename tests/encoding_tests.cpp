@@ -62,5 +62,5 @@ TEST_CASE("hex strings")
 TEST_CASE("payload writing")
 {
    const payload pl = get_payload("dual_24bit.png");
-   write_payload("dual_24bit.h", "dual_24bit", 3, 120, pl);
+   write_payload_to_file("dual_24bit.h", "dual_24bit", 3, 120, pl);
 }

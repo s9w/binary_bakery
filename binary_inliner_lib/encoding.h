@@ -11,7 +11,8 @@
 namespace inliner {
 
    [[nodiscard]] auto get_payload(const std::string& filename) -> payload;
-   auto write_payload(
+
+   auto write_payload_to_file(
       const std::string& filename,
       const std::string& variable_name,
       const int indentation,
@@ -46,7 +47,7 @@ auto inliner::detail::get_image_payload(
 {
    const image<bpp> image{ width, height, image_data_ptr };
    const content_meta meta = get_image_meta(image);
-   return { image.to_uint8(), meta };
+   return { get_image_bytestream(image, meta), meta };
 }
 
 

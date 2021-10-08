@@ -8,7 +8,6 @@
 #include "tools.h"
 #include "file_tools.h"
 #include "image.h"
-#include "binary_image_tools.h"
 
 #include "stb_image.h"
 
@@ -63,7 +62,48 @@ namespace {
       return result;
    }
 
-}
+
+   template<dual_image_type_c meta_type>
+   [[nodiscard]] auto get_bit_count_impl(
+      const meta_type& meta
+   ) -> int
+   {
+      const int pixel_count = meta.width * meta.height;
+      return pixel_count;
+   }
+
+
+   template<typename T>
+   [[nodiscard]] auto get_bit_count_impl(
+      const T&
+   ) -> int
+   {
+      std::terminate();
+   }
+
+   
+   [[nodiscard]] auto get_bit_count(
+      const payload& pl
+   ) -> int
+   {
+      if (std::holds_alternative<generic_binary>(pl.meta) || std::holds_alternative<naive_image_type>(pl.meta))
+      {
+         const int byte_size = static_cast<int>(pl.m_content_data.size());
+         return byte_size * 8;
+      }
+      else
+      {
+         return std::visit(
+            [](const auto& alternative) {
+               return get_bit_count_impl(alternative);
+            },
+            //get_bit_count_impl,
+            pl.meta
+         );
+      }
+   }
+
+} // namespace {}
 
 
 auto inliner::get_payload(const std::string& filename) -> payload
@@ -75,7 +115,7 @@ auto inliner::get_payload(const std::string& filename) -> payload
 }
 
 
-auto inliner::write_payload(
+auto inliner::write_payload_to_file(
    const std::string& filename,
    const std::string& variable_name,
    const int indentation,
@@ -83,10 +123,10 @@ auto inliner::write_payload(
    const payload& pl
 ) -> void
 {
-   
-   const uint32_t content_size = static_cast<uint32_t>(pl.m_content_data.size());
+   const uint32_t bit_count = get_bit_count(pl); // if indexed then over dimensions, otherwise bytestream size
+
    std::vector<uint8_t> target_bytes; // TODO reserve
-   for (const uint8_t byte : meta_and_size_to_binary(pl, content_size))
+   for (const uint8_t byte : meta_and_size_to_binary(pl, bit_count))
       target_bytes.emplace_back(byte);
    append_copy(target_bytes, pl.m_content_data);
 

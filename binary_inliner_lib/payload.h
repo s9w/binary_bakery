@@ -4,7 +4,7 @@
 #include <variant>
 #include <vector>
 
-#include "image.h"
+#include "color.h"
 
 
 namespace inliner {
@@ -43,11 +43,12 @@ namespace inliner {
       dual_image_type<1>, dual_image_type<2>, dual_image_type<3>, dual_image_type<4>
    >;
 
+   // Content bytestream + meta object
    struct payload {
       std::vector<uint8_t> m_content_data;
       content_meta meta;
    };
 
-   [[nodiscard]] auto meta_and_size_to_binary(const payload& pl, const uint32_t data_byte_count) -> std::array<uint8_t, 24>;
+   [[nodiscard]] auto meta_and_size_to_binary(const payload& pl, const uint32_t data_bit_count) -> std::array<uint8_t, 24>;
 
 }

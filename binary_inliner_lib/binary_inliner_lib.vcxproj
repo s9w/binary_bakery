@@ -82,7 +82,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="binary_image_tools.h" />
+    <ClInclude Include="color.h" />
     <ClInclude Include="file_tools.h" />
     <ClInclude Include="image.h" />
     <ClInclude Include="encoding.h" />
@@ -91,7 +91,6 @@
     <ClInclude Include="tools.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="binary_image_tools.cpp" />
     <ClCompile Include="encoding.cpp" />
     <ClCompile Include="file_tools.cpp" />
     <ClCompile Include="implementations.cpp" />

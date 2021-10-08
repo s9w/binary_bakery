@@ -82,13 +82,12 @@
   <ItemGroup>
     <ClCompile Include="color_tests.cpp" />
     <ClCompile Include="decoder.cpp" />
-    <ClCompile Include="decoding_playground_constexpr.cpp" />
-    <ClCompile Include="decoding_playground_runtime.cpp" />
     <ClCompile Include="dual_image_tools_tests.cpp" />
     <ClCompile Include="encoding_tests.cpp" />
     <ClCompile Include="file_tools_tests.cpp" />
     <ClCompile Include="payload_tests.cpp" />
     <ClCompile Include="tests.cpp" />
+    <ClCompile Include="tools_test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\binary_inliner_lib\binary_inliner_lib.vcxproj">

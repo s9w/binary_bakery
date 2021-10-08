@@ -4,42 +4,16 @@
 #include <vector>
 #include <string>
 #include <format>
+#include <optional>
 
+#include "color.h"
 #include "tools.h"
+#include "payload.h"
 
 #include "stb_image.h"
 
-
-namespace inliner {
-
-   template<int bpp>
-   struct color {
-      uint8_t m_components[bpp];
-
-      auto operator<=>(const color<bpp>&) const = default;
-      constexpr color(no_init){ }
-      constexpr color(uint8_t r) requires(bpp == 1)
-         : m_components{ r }
-      {}
-      constexpr color(uint8_t r, uint8_t a) requires(bpp == 2)
-         : m_components{ r, a }
-      {}
-      constexpr color(uint8_t r, uint8_t g, uint8_t b) requires(bpp==3)
-         : m_components{ r, g, b }
-      {}
-      constexpr color(uint8_t r, uint8_t g, uint8_t b, uint8_t a) requires(bpp == 4)
-         : m_components{ r, g, b, a }
-      {}
-      [[nodiscard]] constexpr auto operator[](const int index) const -> uint8_t {
-         return m_components[index];
-      }
-   };
-
-   // Deduction guides
-   color(uint8_t) -> color<1>;
-   color(uint8_t, uint8_t) -> color<2>;
-   color(uint8_t, uint8_t, uint8_t) -> color<3>;
-   color(uint8_t, uint8_t, uint8_t, uint8_t) -> color<4>;
+namespace inliner
+{
 
    template<int bpp>
    struct image {
@@ -51,7 +25,6 @@ namespace inliner {
       std::vector<color_type> m_pixels;
 
       explicit image(const int w, const int h, const unsigned char* data);
-      [[nodiscard]] auto to_uint8() const -> std::vector<uint8_t>;
       [[nodiscard]] auto get_byte_count() const -> int;
       [[nodiscard]] auto get_pixel_count() const -> int;
       [[nodiscard]] auto operator[](const int index) const -> const color_type&;
@@ -63,6 +36,90 @@ namespace inliner {
    template<int bpp>
    [[nodiscard]] auto get_image(const std::string& filename) -> image<bpp>;
 
+   template<int bpp>
+   struct color_pair {
+      color<bpp> color0;
+      color<bpp> color1;
+   };
+
+   template<int bpp>
+   [[nodiscard]] auto get_color_pair(const image<bpp>& image)->std::optional<color_pair<bpp>>;
+
+   enum class dual_color_name { first, second };
+
+   template<int bpp>
+   [[nodiscard]] auto get_indexed_dual_image(
+      const image<bpp>& im,
+      const color_pair<bpp>& pair
+   ) -> std::vector<dual_color_name>;
+
+   template<int bpp>
+   [[nodiscard]] auto get_image_bytestream_naive(const image<bpp>& image) -> std::vector<uint8_t>;
+
+   template<int bpp>
+   [[nodiscard]] auto get_image_bytestream_dual(const image<bpp>& image, const color_pair<bpp>& pair) -> std::vector<uint8_t>;
+
+   template<int bpp>
+   [[nodiscard]] auto get_image_bytestream(const image<bpp>& image, const content_meta& meta) -> std::vector<uint8_t>;
+
+}
+
+namespace inliner::detail
+{
+   template<int bpp>
+   [[nodiscard]] auto get_actual_color_pair(
+      const image<bpp>& im
+   ) -> std::optional<color_pair<bpp>>
+   {
+      using color_type = image<bpp>::color_type;
+
+      color_type color_A = im[0];
+      std::optional<color_type> color_B;
+      for (const color_type& color : im)
+      {
+         if (color == color_A)
+         {
+            continue;
+         }
+         if (color_B.has_value() && color == color_B.value())
+         {
+            continue;
+         }
+         if (color_B.has_value() == false)
+         {
+            color_B.emplace(color);
+            continue;
+         }
+         return std::nullopt;
+      }
+
+      // Only contains one color
+      if (color_B.has_value() == false)
+      {
+         color_B.emplace(color_A);
+      }
+      return color_pair<bpp>{color_A, color_B.value()};
+   }
+
+
+   template<int bpp>
+   [[nodiscard]] constexpr auto get_indexed_color(
+      const color<bpp>& color,
+      const color_pair<bpp>& pair
+   ) -> dual_color_name
+   {
+      if (color == pair.color0)
+      {
+         return dual_color_name::first;
+      }
+      else if (color == pair.color1)
+      {
+         return dual_color_name::second;
+      }
+      else {
+         throw std::runtime_error("Color doesn't belong to pair. This shouldn't happen.");
+      }
+   }
 }
 
 
@@ -93,15 +150,6 @@ inliner::image<bpp>::image(const int w, const int h, const unsigned char* data):
    , m_pixels(m_width* m_height, no_init{})
 {
    std::memcpy(m_pixels.data(), data, get_byte_count());
-}
-
-
-template<int bpp>
-auto inliner::image<bpp>::to_uint8() const -> std::vector<uint8_t>
-{
-   std::vector<uint8_t> result(get_byte_count());
-   std::memcpy(result.data(), m_pixels.data(), get_byte_count());
-   return result;
 }
 
 
@@ -144,4 +192,141 @@ template <int bpp>
 auto inliner::image<bpp>::end() const -> auto
 {
    return std::end(m_pixels);
+}
+
+
+template<int bpp>
+auto inliner::get_image_bytestream_naive(
+   const image<bpp>& image
+) -> std::vector<uint8_t>
+{
+   std::vector<uint8_t> result(image.get_byte_count());
+   std::memcpy(result.data(), image.m_pixels.data(), image.get_byte_count());
+   return result;
+}
+
+
+template<int bpp>
+auto inliner::get_image_bytestream_dual(
+   const image<bpp>& image,
+   const color_pair<bpp>& pair
+) -> std::vector<uint8_t>
+{
+   const std::vector<dual_color_name> indexed_image = get_indexed_dual_image(image, pair);
+   return get_bit_encoded(indexed_image, dual_color_name::second);
+}
+
+
+namespace inliner::detail {
+   template<int bpp>
+   auto apply(
+      const image<bpp>& image,
+      const dual_image_type<bpp>& meta
+   ) -> std::vector<uint8_t>
+   {
+      //return {};
+      const color_pair<bpp> pair{ meta.color0, meta.color1 };
+      return get_image_bytestream_dual(image, pair);
+   }
+
+   template<int bpp, int dual_bpp>
+   auto apply(
+      const image<bpp>&,
+      const dual_image_type<dual_bpp>&
+   ) -> std::vector<uint8_t>
+   {
+      // This should never happen
+      std::terminate();
+   }
+
+   template<int bpp>
+   auto apply(
+      const image<bpp>& image,
+      const naive_image_type&
+   ) -> std::vector<uint8_t>
+   {
+      return get_image_bytestream_naive(image);
+   }
+
+   template<int bpp>
+   auto apply(
+      const image<bpp>&,
+      const generic_binary&
+   ) -> std::vector<uint8_t>
+   {
+      // This should never happen
+      std::terminate();
+   }
+}
+
+template<int bpp>
+auto inliner::get_image_bytestream(
+   const image<bpp>& image,
+   const content_meta& meta
+) -> std::vector<uint8_t>
+{
+   //const auto lambda = [&](const auto& alternative) {
+   //   using type = std::decay_t<decltype(alternative)>;
+   //   if constexpr (dual_image_type_c<type>)
+   //   {
+   //      const color_pair<bpp> pair{ alternative.color0, alternative.color1 };
+   //      return get_image_bytestream_dual(image, pair);
+   //      //return get_image_bytestream_dual(image, { alternative.color0, alternative.color1 });
+   //   }
+   //   else
+   //   {
+   //      return get_image_bytestream_naive(image);
+   //   }
+   //};
+   //return std::visit(lambda, meta);
+   
+   return std::visit(
+      [&](const auto& alternative) {
+         using type = std::decay_t<decltype(alternative)>;
+         return detail::apply(image, alternative);
+      }
+      //detail::apply
+      , meta
+   );
+
+   //return {};
+}
+
+
+template<int bpp>
+auto inliner::get_color_pair(const image<bpp>& image) -> std::optional<color_pair<bpp>>
+{
+   if (image.get_pixel_count() == 0)
+   {
+      return std::nullopt;
+   }
+   else if (image.get_pixel_count() == 1)
+   {
+      return color_pair<bpp>{ image[0], image[0] };
+   }
+   else if (image.get_pixel_count() == 2)
+   {
+      return color_pair<bpp>{ image[0], image[1] };
+   }
+   else
+   {
+      return detail::get_actual_color_pair(image);
+   }
+}
+
+
+
+template<int bpp>
+auto inliner::get_indexed_dual_image(
+   const image<bpp>& im,
+   const color_pair<bpp>& pair
+) -> std::vector<dual_color_name>
+{
+   std::vector<dual_color_name> result;
+   result.reserve(im.get_pixel_count());
+   for (const auto& color : im)
+   {
+      result.emplace_back(detail::get_indexed_color(color, pair));
+   }
+   return result;;
 }
