@@ -3,7 +3,7 @@
 #include "../binary_bakery_lib/image.h"
 // TODO: merge these tests into image
 
-using namespace inliner;
+using namespace bb;
 
 namespace
 {

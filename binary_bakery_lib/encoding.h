@@ -8,7 +8,7 @@
 #include "image.h"
 
 
-namespace inliner {
+namespace bb {
 
    [[nodiscard]] auto get_payload(const std::string& filename) -> payload;
 
@@ -24,7 +24,7 @@ namespace inliner {
 
 }
 
-namespace inliner::detail{
+namespace bb::detail{
 
    template<int bpp>
    [[nodiscard]] auto get_image_payload(
@@ -39,7 +39,7 @@ namespace inliner::detail{
 
 
 template<int bpp>
-auto inliner::detail::get_image_payload(
+auto bb::detail::get_image_payload(
    const int width,
    const int height,
    const unsigned char* image_data_ptr
@@ -52,7 +52,7 @@ auto inliner::detail::get_image_payload(
 
 
 template<int bpp>
-auto inliner::detail::get_image_meta(
+auto bb::detail::get_image_meta(
    const image<bpp>& image
 ) -> content_meta
 {

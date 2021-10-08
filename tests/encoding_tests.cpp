@@ -6,7 +6,7 @@
 
 #include <doctest/doctest.h>
 
-using namespace inliner;
+using namespace bb;
 
 namespace
 {

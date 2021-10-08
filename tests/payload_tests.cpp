@@ -2,7 +2,7 @@
 
 #include "../binary_bakery_lib/payload.h"
 
-using namespace inliner;
+using namespace bb;
 
 TEST_CASE("meta_to_binary")
 {

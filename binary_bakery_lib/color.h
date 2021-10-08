@@ -3,7 +3,7 @@
 #include "tools.h"
 
 
-namespace inliner {
+namespace bb {
 
    template<int bpp>
    struct color {

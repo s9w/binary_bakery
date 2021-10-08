@@ -12,7 +12,7 @@
 
 #include "stb_image.h"
 
-namespace inliner
+namespace bb
 {
 
    template<int bpp>
@@ -64,7 +64,7 @@ namespace inliner
 
 }
 
-namespace inliner::detail
+namespace bb::detail
 {
    template<int bpp>
    [[nodiscard]] auto get_actual_color_pair(
@@ -124,7 +124,7 @@ namespace inliner::detail
 
 
 template<int bpp>
-auto inliner::get_image(const std::string& filename) -> image<bpp>
+auto bb::get_image(const std::string& filename) -> image<bpp>
 {
    stbi_set_flip_vertically_on_load(true);
    int width, height, components;
@@ -145,7 +145,7 @@ auto inliner::get_image(const std::string& filename) -> image<bpp>
 
 
 template <int bpp>
-inliner::image<bpp>::image(const int w, const int h, const unsigned char* data): m_width(w)
+bb::image<bpp>::image(const int w, const int h, const unsigned char* data): m_width(w)
    , m_height(h)
    , m_pixels(m_width* m_height, no_init{})
 {
@@ -154,49 +154,49 @@ inliner::image<bpp>::image(const int w, const int h, const unsigned char* data):
 
 
 template <int bpp>
-auto inliner::image<bpp>::get_byte_count() const -> int
+auto bb::image<bpp>::get_byte_count() const -> int
 {
    return get_pixel_count() * sizeof(color_type);
 }
 
 
 template <int bpp>
-auto inliner::image<bpp>::get_pixel_count() const -> int
+auto bb::image<bpp>::get_pixel_count() const -> int
 {
    return m_width * m_height;
 }
 
 
 template <int bpp>
-auto inliner::image<bpp>::operator[](const int index) const -> const color_type&
+auto bb::image<bpp>::operator[](const int index) const -> const color_type&
 {
    return m_pixels[index];
 }
 
 
 template <int bpp>
-auto inliner::image<bpp>::operator[](const int index) -> color_type&
+auto bb::image<bpp>::operator[](const int index) -> color_type&
 {
    return m_pixels[index];
 }
 
 
 template <int bpp>
-auto inliner::image<bpp>::begin() const -> auto
+auto bb::image<bpp>::begin() const -> auto
 {
    return std::begin(m_pixels);
 }
 
 
 template <int bpp>
-auto inliner::image<bpp>::end() const -> auto
+auto bb::image<bpp>::end() const -> auto
 {
    return std::end(m_pixels);
 }
 
 
 template<int bpp>
-auto inliner::get_image_bytestream_naive(
+auto bb::get_image_bytestream_naive(
    const image<bpp>& image
 ) -> std::vector<uint8_t>
 {
@@ -207,7 +207,7 @@ auto inliner::get_image_bytestream_naive(
 
 
 template<int bpp>
-auto inliner::get_image_bytestream_dual(
+auto bb::get_image_bytestream_dual(
    const image<bpp>& image,
    const color_pair<bpp>& pair
 ) -> std::vector<uint8_t>
@@ -217,7 +217,7 @@ auto inliner::get_image_bytestream_dual(
 }
 
 
-namespace inliner::detail {
+namespace bb::detail {
    template<int bpp>
    auto apply(
       const image<bpp>& image,
@@ -260,7 +260,7 @@ namespace inliner::detail {
 }
 
 template<int bpp>
-auto inliner::get_image_bytestream(
+auto bb::get_image_bytestream(
    const image<bpp>& image,
    const content_meta& meta
 ) -> std::vector<uint8_t>
@@ -294,7 +294,7 @@ auto inliner::get_image_bytestream(
 
 
 template<int bpp>
-auto inliner::get_color_pair(const image<bpp>& image) -> std::optional<color_pair<bpp>>
+auto bb::get_color_pair(const image<bpp>& image) -> std::optional<color_pair<bpp>>
 {
    if (image.get_pixel_count() == 0)
    {
@@ -317,7 +317,7 @@ auto inliner::get_color_pair(const image<bpp>& image) -> std::optional<color_pai
 
 
 template<int bpp>
-auto inliner::get_indexed_dual_image(
+auto bb::get_indexed_dual_image(
    const image<bpp>& im,
    const color_pair<bpp>& pair
 ) -> std::vector<dual_color_name>

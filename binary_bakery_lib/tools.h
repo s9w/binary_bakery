@@ -4,7 +4,7 @@
 #include <array>
 #include <iterator>
 
-namespace inliner {
+namespace bb {
 
    struct no_init {};
 
@@ -14,10 +14,10 @@ namespace inliner {
    template<typename T>
    concept numerical = (std::integral<T> && !std::is_same_v<T, bool>) || std::floating_point<T>;
 
-   template<inliner::numerical T>
+   template<bb::numerical T>
    [[nodiscard]] constexpr auto abs(const T value) noexcept -> T;
 
-   template<inliner::numerical T>
+   template<bb::numerical T>
    [[nodiscard]] constexpr auto equal(const T a, const T b) noexcept -> bool;
 
    template <class T>
@@ -63,7 +63,7 @@ namespace inliner {
 
 
 template<typename color_type>
-constexpr auto inliner::get_symbol_count(const int byte_count) -> int
+constexpr auto bb::get_symbol_count(const int byte_count) -> int
 {
    const int complete_symbols = byte_count / sizeof(color_type);
    const int leftover_bytes = byte_count % sizeof(color_type);
@@ -75,8 +75,8 @@ constexpr auto inliner::get_symbol_count(const int byte_count) -> int
 }
 
 
-template<inliner::numerical T>
-constexpr auto inliner::abs(const T value) noexcept -> T
+template<bb::numerical T>
+constexpr auto bb::abs(const T value) noexcept -> T
 {
    if constexpr (std::is_unsigned_v<T>)
       return value;
@@ -85,8 +85,8 @@ constexpr auto inliner::abs(const T value) noexcept -> T
 }
 
 
-template<inliner::numerical T>
-constexpr auto inliner::equal(
+template<bb::numerical T>
+constexpr auto bb::equal(
    const T a,
    const T b
 ) noexcept -> bool
@@ -95,12 +95,12 @@ constexpr auto inliner::equal(
    if constexpr (std::is_integral_v<T>)
       return a == b;
    else
-      return inliner::abs(a - b) <= tol;
+      return bb::abs(a - b) <= tol;
 }
 
 
 template <class T>
-auto inliner::append_copy(
+auto bb::append_copy(
    std::vector<T>& dst,
    const std::vector<T>& src
 ) -> void
@@ -110,7 +110,7 @@ auto inliner::append_copy(
 
 
 template <class T>
-void inliner::append_moved(std::vector<T>& dst, std::vector<T>& src)
+void bb::append_moved(std::vector<T>& dst, std::vector<T>& src)
 {
    if (dst.empty())
       dst = std::move(src);
@@ -123,7 +123,7 @@ void inliner::append_moved(std::vector<T>& dst, std::vector<T>& src)
 
 
 template<typename ... Ts>
-auto inliner::get_byte_sequence(
+auto bb::get_byte_sequence(
    const Ts... value
 ) -> std::vector<uint8_t>
 {
@@ -141,7 +141,7 @@ auto inliner::get_byte_sequence(
 
 template<int byte_count>
 template<class T>
-auto inliner::binary_sequencer<byte_count>::add(const T value) -> void
+auto bb::binary_sequencer<byte_count>::add(const T value) -> void
 {
    uint8_t* target = &m_sequence[m_position];
    std::memcpy(target, &value, sizeof(T));
@@ -150,7 +150,7 @@ auto inliner::binary_sequencer<byte_count>::add(const T value) -> void
 
 
 template<typename enum_type>
-auto inliner::get_bit_encoded(
+auto bb::get_bit_encoded(
    const std::vector<enum_type>& enums,
    const enum_type one_value
 ) -> std::vector<uint8_t>
@@ -175,7 +175,7 @@ auto inliner::get_bit_encoded(
 
 
 template<int bit_count, typename T>
-auto inliner::get_bit_decoded(
+auto bb::get_bit_decoded(
    const std::vector<uint8_t>& enums,
    const T& value0,
    const T& value1

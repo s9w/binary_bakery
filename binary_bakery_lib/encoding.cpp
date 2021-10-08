@@ -14,7 +14,7 @@
 
 namespace {
 
-   using namespace inliner;
+   using namespace bb;
 
    [[nodiscard]] auto is_image_path(const std::string& filename) -> bool
    {
@@ -106,7 +106,7 @@ namespace {
 } // namespace {}
 
 
-auto inliner::get_payload(const std::string& filename) -> payload
+auto bb::get_payload(const std::string& filename) -> payload
 {
    if (is_image_path(filename))
       return get_image_payload(filename);
@@ -115,7 +115,7 @@ auto inliner::get_payload(const std::string& filename) -> payload
 }
 
 
-auto inliner::write_payload_to_file(
+auto bb::write_payload_to_file(
    const std::string& filename,
    const std::string& variable_name,
    const int indentation,
@@ -163,7 +163,7 @@ auto inliner::write_payload_to_file(
 }
 
 
-auto inliner::get_ui64_str(const uint64_t value) -> std::string
+auto bb::get_ui64_str(const uint64_t value) -> std::string
 {
    return std::format("{:#018x}", value);
 }

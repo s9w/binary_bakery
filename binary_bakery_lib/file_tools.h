@@ -5,7 +5,7 @@
 #include "tools.h"
 
 
-namespace inliner
+namespace bb
 {
 
    //struct binary_file_content {

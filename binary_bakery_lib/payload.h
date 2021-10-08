@@ -7,7 +7,7 @@
 #include "color.h"
 
 
-namespace inliner {
+namespace bb {
 
    struct generic_binary {};
 

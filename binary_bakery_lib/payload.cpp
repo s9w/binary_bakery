@@ -4,7 +4,7 @@
 
 namespace
 {
-   using namespace inliner;
+   using namespace bb;
 
    template<typename T>
    struct meta_type_int  {};
@@ -90,7 +90,7 @@ namespace
 } // namespace {}
 
 
-auto inliner::meta_and_size_to_binary(
+auto bb::meta_and_size_to_binary(
    const payload& pl,
    const uint32_t data_bit_count
 ) -> std::array<uint8_t, 24>

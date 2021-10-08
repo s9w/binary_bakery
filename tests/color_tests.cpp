@@ -2,7 +2,7 @@
 
 #include "../binary_bakery_lib/image.h"
 
-using namespace inliner;
+using namespace bb;
 
 TEST_CASE("color type")
 {

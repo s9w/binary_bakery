@@ -2,7 +2,7 @@
 
 #include "../binary_bakery_lib/file_tools.h"
 
-namespace inliner
+namespace bb
 {
 
    template<typename ... Ts>
@@ -14,7 +14,7 @@ namespace inliner
 }
 
 template<typename ... Ts>
-auto inliner::write_binary_sequence(
+auto bb::write_binary_sequence(
    const char* path,
    const Ts... value
 ) -> void

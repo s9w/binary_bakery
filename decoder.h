@@ -13,7 +13,7 @@
 #endif
 
 
-namespace inliner {
+namespace bb {
 
    struct header {
       uint8_t  type = 0;       // 0: Generic binary
@@ -82,10 +82,10 @@ namespace inliner {
       user_type* dst
    ) -> void;
 
-} // namespace inliner
+} // namespace bb
 
 
-namespace inliner::detail {
+namespace bb::detail {
    template<typename T, int size>
    struct better_array {
       T m_values[size];
@@ -127,6 +127,13 @@ namespace inliner::detail {
    }
 
 
+   struct div_t { int quot; int rem; };
+   constexpr auto div(const int x, const int y) -> div_t
+   {
+      return {x/y, x%y};
+   }
+
+
    template<typename T, typename color_type, typename target_type>
    constexpr auto reconstruct(
       const int element_count,
@@ -138,8 +145,7 @@ namespace inliner::detail {
    {
       for (int i = 0; i < element_count; ++i)
       {
-         const int byte_index = i / 8;
-         const int bit_index = i % 8;
+         const auto [byte_index, bit_index] = div(i, 8);
          const int left_shift_amount = 7 - bit_index; // 7 is leftest bit
          const uint8_t mask = 1ui8 << left_shift_amount;
          const bool binary_value = static_cast<bool>((source[byte_index] & mask) >> left_shift_amount);
@@ -153,17 +159,17 @@ namespace inliner::detail {
       const int bit_count
    ) -> int
    {
-      int byte_count = bit_count / 8;
-      if ((bit_count % 8) > 0)
+      auto [byte_count, bit_modulo] = div(bit_count, 8);
+      if (bit_modulo > 0)
          ++byte_count;
       return byte_count;
    }
    
-} // namespace inliner::detail
+} // namespace bb::detail
 
 
 template <typename T, int size>
-constexpr auto inliner::detail::better_array<T, size>::operator[](
+constexpr auto bb::detail::better_array<T, size>::operator[](
    const int index
 ) const -> const T&
 {
@@ -172,7 +178,7 @@ constexpr auto inliner::detail::better_array<T, size>::operator[](
 
 
 template<int array_size>
-constexpr auto inliner::get_header(
+constexpr auto bb::get_header(
    const uint64_t(&source)[array_size]
 ) -> header
 {
@@ -210,7 +216,7 @@ constexpr auto inliner::get_header(
 
 
 template<int array_size>
-constexpr auto inliner::is_image(
+constexpr auto bb::is_image(
    const uint64_t(&source)[array_size]
 ) -> bool
 {
@@ -221,7 +227,7 @@ constexpr auto inliner::is_image(
 
 
 template<int array_size>
-constexpr auto inliner::get_width(
+constexpr auto bb::get_width(
    const uint64_t(&source)[array_size]
 ) -> int
 {
@@ -235,7 +241,7 @@ constexpr auto inliner::get_width(
 
 
 template<int array_size>
-constexpr auto inliner::get_height(
+constexpr auto bb::get_height(
    const uint64_t(&source)[array_size]
 ) -> int
 {
@@ -249,8 +255,8 @@ constexpr auto inliner::get_height(
 
 
 #ifdef BAKERY_PROVIDE_STD_ARRAY
-template<typename user_type, inliner::header head, int array_size, int element_count>
-constexpr auto inliner::decode_to_array(
+template<typename user_type, bb::header head, int array_size, int element_count>
+constexpr auto bb::decode_to_array(
    const uint64_t(&source)[array_size]
 ) -> std::array<user_type, element_count>
 {
@@ -283,11 +289,11 @@ constexpr auto inliner::decode_to_array(
 
 #ifdef BAKERY_PROVIDE_VECTOR
 template<typename user_type, int source_size>
-auto inliner::decode_to_vector(
+auto bb::decode_to_vector(
    const uint64_t(&source)[source_size]
 ) -> std::vector<user_type>
 {
-   const header head = inliner::get_header(source);
+   const header head = bb::get_header(source);
    const int element_count = get_element_count<user_type>(head);
    const int byte_count = element_count * sizeof(user_type);
 
@@ -309,12 +315,12 @@ auto inliner::decode_to_vector(
 
 
 template<typename user_type, int source_size>
-auto inliner::decode_into_pointer(
+auto bb::decode_into_pointer(
    const uint64_t(&source)[source_size],
    user_type* dst
 ) -> void
 {
-   const header head = inliner::get_header(source);
+   const header head = bb::get_header(source);
    const int element_count = get_element_count<user_type>(head);
    const int byte_count = element_count * sizeof(user_type);
    const uint8_t* data_start_ptr = reinterpret_cast<const uint8_t*>(&source[3]);
@@ -332,7 +338,7 @@ auto inliner::decode_into_pointer(
 }
 
 
-constexpr auto inliner::get_element_count(
+constexpr auto bb::get_element_count(
    const header& head
 ) -> int
 {
@@ -349,7 +355,7 @@ constexpr auto inliner::get_element_count(
 
 
 template<typename user_type>
-constexpr auto inliner::get_element_count(
+constexpr auto bb::get_element_count(
    const header& head
 ) -> int
 {
@@ -367,20 +373,20 @@ constexpr auto inliner::get_element_count(
 
 
 template<typename user_type, int array_size>
-constexpr auto inliner::get_element_count(
+constexpr auto bb::get_element_count(
    const uint64_t(&source)[array_size]
 ) -> int
 {
-   const header head = inliner::get_header(source);
+   const header head = bb::get_header(source);
    return get_element_count<user_type>(head);
 }
 
 
 template<int array_size>
-constexpr auto inliner::get_element_count(
+constexpr auto bb::get_element_count(
    const uint64_t(&source)[array_size]
 ) -> int
 {
-   const header head = inliner::get_header(source);
+   const header head = bb::get_header(source);
    return get_element_count(head);
 }

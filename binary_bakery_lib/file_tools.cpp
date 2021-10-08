@@ -4,7 +4,7 @@
 #include <format>
 
 
-auto inliner::write_binary_file(
+auto bb::write_binary_file(
    const char* path,
    const std::vector<uint8_t>& byte_sequence
 ) -> void
@@ -15,7 +15,7 @@ auto inliner::write_binary_file(
 
 
 
-auto inliner::get_binary_file(const char* path) -> std::vector<uint8_t>
+auto bb::get_binary_file(const char* path) -> std::vector<uint8_t>
 {
    std::ifstream file(path, std::ios::ate | std::ios::binary);
 
