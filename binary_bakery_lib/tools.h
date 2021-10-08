@@ -4,6 +4,7 @@
 #include <array>
 #include <iterator>
 #include <string>
+#include <variant>
 
 namespace bb {
 
@@ -60,6 +61,33 @@ namespace bb {
    template<typename... Ts>
    constexpr unsigned int actual_sizeof = (0 + ... + sizeof(Ts));
    static_assert(actual_sizeof<double, int> == 12);
+
+
+   template<typename T>
+   struct is_variant : std::false_type {};
+   template<typename ...Args>
+   struct is_variant<std::variant<Args...>> : std::true_type {};
+
+   template<typename T>
+   inline constexpr bool is_variant_v = is_variant<T>::value;
+   template<class alternative_type, typename variant_type>
+   struct is_alternative
+   {
+      static_assert(is_variant_v<variant_type>, "can't use is_alternative<> with a non-variant");
+   };
+   template<typename alternative_type, typename... variant_alternatives>
+   struct is_alternative<alternative_type, std::variant<variant_alternatives...>>
+      : std::disjunction<std::is_same<alternative_type, variant_alternatives>...>
+   {
+
+   };
+
+   // is_alternative_v<A, B> returns if A is contained in the variant type B
+   template<class alternative_type, class variant_type>
+   constexpr bool is_alternative_v = is_alternative<alternative_type, variant_type>::value;
+
+   template<typename T, typename variant_type>
+   concept alternative_of = is_alternative_v<T, variant_type>;
 
 }
 

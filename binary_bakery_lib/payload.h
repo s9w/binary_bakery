@@ -1,7 +1,6 @@
 #pragma once
 
 #include <string>
-#include <format>
 #include <optional>
 
 #include "content_meta.h"
@@ -16,6 +15,14 @@ namespace bb {
    struct payload {
       std::vector<uint8_t> m_content_data;
       content_meta meta;
+      int bit_count;
+
+      // Making sure no one is left behind during init
+      payload(std::vector<uint8_t>&& p_content, const content_meta& p_meta, int p_bit_count)
+         : m_content_data(std::move(p_content))
+         , meta(p_meta)
+         , bit_count(p_bit_count)
+      {}
    };
 
    [[nodiscard]] auto get_payload(const std::string& filename) -> payload;
@@ -39,6 +46,11 @@ namespace bb::detail{
 
    template<int bpp>
    [[nodiscard]] auto get_image_meta(const image<bpp>& image) -> content_meta;
+
+   // Ugly, but MSVC bug, see
+   // https://developercommunity2.visualstudio.com/t/Unnecessary-namespace-needed-for-declara/1406720
+   template<bb::alternative_of<bb::content_meta> meta_type>
+   auto get_image_meta_bit_count(const meta_type meta) -> bool;
 }
 
 
@@ -50,8 +62,12 @@ auto bb::detail::get_image_payload(
 ) -> payload
 {
    const image<bpp> image{ width, height, image_data_ptr };
-   const content_meta meta = get_image_meta(image);
-   return { get_image_bytestream(image, meta), meta };
+   content_meta meta = get_image_meta(image);
+   std::vector<uint8_t> stream = get_image_bytestream(image, meta);
+
+   const int bit_count = std::visit([](const auto& alt) {return get_image_meta_bit_count(alt); }, meta);
+
+   return { std::move(stream), std::move(meta), bit_count };
 }
 
 
@@ -73,5 +89,26 @@ auto bb::detail::get_image_meta(
    else
    {
       return naive_image_type{ image.m_width, image.m_height, bpp };
+   }
+}
+
+
+template<bb::alternative_of<bb::content_meta> meta_type>
+auto bb::detail::get_image_meta_bit_count(const meta_type meta) -> bool
+{
+   if constexpr (dual_image_type_c<meta_type>)
+   {
+      const int pixel_count = meta.width * meta.height;
+      return pixel_count;
+   }
+   else if constexpr (std::same_as<meta_type, naive_image_type>)
+   {
+      const int pixel_count = meta.width * meta.height;
+      const int byte_count = pixel_count * meta.m_bpp;
+      return byte_count * 8;
+   }
+   else
+   {
+      std::terminate();
    }
 }

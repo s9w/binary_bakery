@@ -27,13 +27,13 @@
     <ClCompile Include="dual_image_tools_tests.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="encoding_tests.cpp">
+    <ClCompile Include="payload_tests.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="file_tools_tests.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="payload_tests.cpp">
+    <ClCompile Include="content_meta_tests.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="decoder.cpp">

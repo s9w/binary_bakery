@@ -29,8 +29,10 @@ namespace {
 
    [[nodiscard]] auto get_binary_file_payload(const char* path) -> payload
    {
-      const std::vector<uint8_t> file_content = get_binary_file(path);
-      return { file_content, generic_binary{} };
+      std::vector<uint8_t> file_content = get_binary_file(path);
+      const int byte_size = static_cast<int>(file_content.size());
+      const int bit_size = byte_size * 8;
+      return { std::move(file_content), generic_binary{}, bit_size };
    }
 
 
@@ -55,7 +57,7 @@ namespace {
             return detail::get_image_payload<4>(width, height, data);
          default:
             std::cout << "unexpected\n";
-            return payload{};
+            std::terminate();
          };
       }();
 
@@ -64,45 +66,45 @@ namespace {
    }
 
 
-   template<dual_image_type_c meta_type>
-   [[nodiscard]] auto get_bit_count_impl(
-      const meta_type& meta
-   ) -> int
-   {
-      const int pixel_count = meta.width * meta.height;
-      return pixel_count;
-   }
+   //template<dual_image_type_c meta_type>
+   //[[nodiscard]] auto get_bit_count_impl(
+   //   const meta_type& meta
+   //) -> int
+   //{
+   //   const int pixel_count = meta.width * meta.height;
+   //   return pixel_count;
+   //}
 
 
-   template<typename T>
-   [[nodiscard]] auto get_bit_count_impl(
-      const T&
-   ) -> int
-   {
-      std::terminate();
-   }
+   //template<typename T>
+   //[[nodiscard]] auto get_bit_count_impl(
+   //   const T&
+   //) -> int
+   //{
+   //   std::terminate();
+   //}
 
-   
-   [[nodiscard]] auto get_bit_count(
-      const payload& pl
-   ) -> int
-   {
-      if (std::holds_alternative<generic_binary>(pl.meta) || std::holds_alternative<naive_image_type>(pl.meta))
-      {
-         const int byte_size = static_cast<int>(pl.m_content_data.size());
-         return byte_size * 8;
-      }
-      else
-      {
-         return std::visit(
-            [](const auto& alternative) {
-               return get_bit_count_impl(alternative);
-            },
-            //get_bit_count_impl,
-            pl.meta
-         );
-      }
-   }
+   //
+   //[[nodiscard]] auto get_bit_count(
+   //   const payload& pl
+   //) -> int
+   //{
+   //   if (std::holds_alternative<generic_binary>(pl.meta) || std::holds_alternative<naive_image_type>(pl.meta))
+   //   {
+   //      const int byte_size = static_cast<int>(pl.m_content_data.size());
+   //      return byte_size * 8;
+   //   }
+   //   else
+   //   {
+   //      return std::visit(
+   //         [](const auto& alternative) {
+   //            return get_bit_count_impl(alternative);
+   //         },
+   //         //get_bit_count_impl,
+   //         pl.meta
+   //      );
+   //   }
+   //}
 
 } // namespace {}
 
@@ -123,10 +125,10 @@ auto bb::write_payload_to_file(
    const payload& pl
 ) -> void
 {
-   const uint32_t bit_count = get_bit_count(pl); // if indexed then over dimensions, otherwise bytestream size
+   //const uint32_t bit_count = get_bit_count(pl); // if indexed then over dimensions, otherwise bytestream size
 
    std::vector<uint8_t> target_bytes; // TODO reserve
-   for (const uint8_t byte : meta_and_size_to_binary(pl.meta, bit_count))
+   for (const uint8_t byte : meta_and_size_to_binary(pl.meta, pl.bit_count))
       target_bytes.emplace_back(byte);
    append_copy(target_bytes, pl.m_content_data);
 

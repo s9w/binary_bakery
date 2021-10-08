@@ -1,28 +1,68 @@
-#include <doctest/doctest.h>
+#include <fstream>
+#include <string>
 
-#include "../binary_bakery_lib/content_meta.h"
+#include "test_tools.h"
+#include "../binary_bakery_lib/payload.h"
+#include "../binary_bakery_lib/config.h"
+
+#include <doctest/doctest.h>
 
 using namespace bb;
 
-TEST_CASE("meta_to_binary")
+namespace
 {
-   constexpr color color0{ 255, 0, 0 };
-   constexpr color color1{ 0, 255, 0 };
-   constexpr uint16_t width = 20;
-   constexpr uint16_t height = 10;
-   constexpr uint8_t bpp = 3;
-   constexpr uint32_t byte_count = width * height * bpp;
-   constexpr dual_image_type<bpp> dual_meta{width, height, color0, color1};
 
-   //const std::vector<uint8_t> expected = get_byte_sequence(
-   //   2ui8,
-   //   bpp,
-   //   width,
-   //   height,
-   //   255ui8, 0ui8, 0ui8,
-   //   0ui8, 255ui8, 0ui8,
-   //   byte_count
-   //);
-   //const std::vector<uint8_t> result = meta_and_size_to_binary(payload{ {}, dual_meta }, byte_count);
-   //CHECK_EQ(result, expected);
+}
+
+
+TEST_CASE("generic binary encoding")
+{
+   const char* path = "generic_payload.bin";
+   const std::vector<uint8_t> byte_sequence = get_byte_sequence(1.12, 4);
+   write_binary_file(path, byte_sequence);
+
+   const payload pl = get_payload(path);
+   CHECK(std::holds_alternative<generic_binary>(pl.meta));
+   CHECK_EQ(pl.m_content_data.size(), 12);
+}
+
+
+TEST_CASE("normal image encoding")
+{
+   const char* path = "test_image.png";
+   const payload pl = get_payload(path);
+   CHECK(std::holds_alternative<naive_image_type>(pl.meta));
+   const naive_image_type image_meta = std::get<naive_image_type>(pl.meta);
+   CHECK_EQ(image_meta.width, 3);
+   CHECK_EQ(image_meta.height, 2);
+   CHECK_EQ(image_meta.m_bpp, 3);
+}
+
+
+TEST_CASE("dual image encoding")
+{
+   const char* path = "dual_24bit.png";
+   const payload pl = get_payload(path);
+   CHECK(std::holds_alternative<dual_image_type<3>>(pl.meta));
+   const dual_image_type<3> image_meta = std::get<dual_image_type<3>>(pl.meta);
+   CHECK_EQ(image_meta.width, 3);
+   CHECK_EQ(image_meta.height, 3);
+   CHECK_EQ(image_meta.color0, color(255, 255, 255));
+   CHECK_EQ(image_meta.color1, color(255, 0, 0));
+}
+
+
+TEST_CASE("hex strings")
+{
+   CHECK_EQ(get_ui64_str(0), "0x0000000000000000");
+   CHECK_EQ(get_ui64_str(15), "0x000000000000000f");
+   CHECK_EQ(get_ui64_str(std::numeric_limits<uint64_t>::max()), "0xffffffffffffffff");
+}
+
+
+TEST_CASE("payload writing")
+{
+   const payload pl = get_payload("rgb_example.png");
+   const config default_cfg{};
+   write_payload_to_file("rgb_example.h", "rgb_example", default_cfg, pl);
 }
