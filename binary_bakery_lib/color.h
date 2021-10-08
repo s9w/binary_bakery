@@ -12,12 +12,12 @@ namespace bb {
       static constexpr auto black() -> color;
 
       constexpr color(no_init) { }
-      constexpr color(uint8_t r) requires(bpp == 1);
-      constexpr color(uint8_t r, uint8_t a) requires(bpp == 2);
-      constexpr color(uint8_t r, uint8_t g, uint8_t b) requires(bpp == 3);
+      constexpr color(uint8_t r)                                  requires(bpp == 1);
+      constexpr color(uint8_t r, uint8_t a)                       requires(bpp == 2);
+      constexpr color(uint8_t r, uint8_t g, uint8_t b)            requires(bpp == 3);
       constexpr color(uint8_t r, uint8_t g, uint8_t b, uint8_t a) requires(bpp == 4);
-      [[nodiscard]] constexpr auto operator[](const int index) const -> uint8_t ;
-      [[nodiscard]] constexpr auto operator[](const int index) -> uint8_t& ;
+      [[nodiscard]] constexpr auto operator[](const int index) const -> uint8_t;
+      [[nodiscard]] constexpr auto operator[](const int index)       -> uint8_t&;
       [[nodiscard]] constexpr auto get_4byte_padded() const -> color<4>;
       auto operator<=>(const color<bpp>&) const = default;
    };

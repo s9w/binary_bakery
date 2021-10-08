@@ -26,9 +26,6 @@ namespace bb {
       const config& cfg,
       const payload& pl
    ) -> void;
-
-   [[nodiscard]] auto get_ui64_str(const uint64_t value) -> std::string;
-
 }
 
 namespace bb::detail{

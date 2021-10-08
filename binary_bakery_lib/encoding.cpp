@@ -163,8 +163,3 @@ auto bb::write_payload_to_file(
    filestream << std::format("constexpr uint64_t {0}[]{{\n{1}{2}\n}};\n", variable_name, indentation_str, content);
 }
 
-
-auto bb::get_ui64_str(const uint64_t value) -> std::string
-{
-   return std::format("{:#018x}", value);
-}

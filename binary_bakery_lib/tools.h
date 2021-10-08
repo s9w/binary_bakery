@@ -3,6 +3,7 @@
 #include <vector>
 #include <array>
 #include <iterator>
+#include <string>
 
 namespace bb {
 
@@ -28,6 +29,8 @@ namespace bb {
 
    template<typename ... Ts>
    [[nodiscard]] auto get_byte_sequence(const Ts... value) -> std::vector<uint8_t>;
+
+   [[nodiscard]] auto get_ui64_str(const uint64_t value) -> std::string;
 
    template<typename enum_type>
    [[nodiscard]] auto get_bit_encoded(const std::vector<enum_type>& enums, const enum_type one_value) -> std::vector<uint8_t>;
