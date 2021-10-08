@@ -84,7 +84,7 @@
   <ItemGroup>
     <ClInclude Include="color.h" />
     <ClInclude Include="config.h" />
-    <ClInclude Include="encoding.h" />
+    <ClInclude Include="payload.h" />
     <ClInclude Include="file_tools.h" />
     <ClInclude Include="image.h" />
     <ClInclude Include="content_meta.h" />
@@ -93,7 +93,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="config.cpp" />
-    <ClCompile Include="encoding.cpp" />
+    <ClCompile Include="payload.cpp" />
     <ClCompile Include="file_tools.cpp" />
     <ClCompile Include="implementations.cpp" />
     <ClCompile Include="content_meta.cpp" />

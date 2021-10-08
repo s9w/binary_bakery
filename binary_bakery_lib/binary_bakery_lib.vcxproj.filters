@@ -18,7 +18,7 @@
     <ClInclude Include="color.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="encoding.h">
+    <ClInclude Include="payload.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="file_tools.h">
@@ -41,7 +41,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="encoding.cpp">
+    <ClCompile Include="payload.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="file_tools.cpp">
