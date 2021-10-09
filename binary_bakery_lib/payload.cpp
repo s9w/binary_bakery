@@ -29,10 +29,11 @@ namespace {
    [[nodiscard]] auto get_binary_file_payload(const char* path) -> payload
    {
       std::vector<uint8_t> file_content = get_binary_file(path);
-      const int byte_size = static_cast<int>(file_content.size());
-      const int bit_size = byte_size * 8;
-      return { std::move(file_content), generic_binary{}, bit_size };
+      constexpr generic_binary meta{};
+      const int bit_count = detail::get_content_bit_count(meta, file_content);
+      return { std::move(file_content), meta, bit_count };
    }
+
 
    struct stbi_loader {
       unsigned char* m_data = nullptr;
@@ -48,30 +49,75 @@ namespace {
             throw std::runtime_error(msg);
          }
       }
+
       ~stbi_loader()
       {
          stbi_image_free(m_data);
       }
+
+      stbi_loader(const stbi_loader&) = delete;
+      stbi_loader& operator=(const stbi_loader&) = delete;
+      stbi_loader(stbi_loader&&) = delete;
+      stbi_loader& operator=(stbi_loader&&) = delete;
    };
+
+
+   template<int bpp>
+   [[nodiscard]] auto get_image_meta(
+      const image<bpp>& image
+   ) -> content_meta
+   {
+      const std::optional<color_pair<bpp>> color_pair = get_color_pair<bpp>(image);
+      if (color_pair.has_value())
+      {
+         return dual_image_type<bpp>{
+            image.m_width,
+               image.m_height,
+               color_pair.value().color0,
+               color_pair.value().color1
+         };
+      }
+      else
+      {
+         return naive_image_type{ image.m_width, image.m_height, bpp };
+      }
+   }
+
+
+   template<int bpp>
+   [[nodiscard]] auto get_image_payload_impl(
+      const int width,
+      const int height,
+      const unsigned char* image_data_ptr
+   ) -> payload
+   {
+      const image<bpp> image{ width, height, image_data_ptr };
+      content_meta meta = get_image_meta(image);
+      std::vector<uint8_t> stream = get_image_bytestream(image, meta);
+
+      const int bit_count = std::visit(
+         [&](const auto& alt) {return detail::get_content_bit_count(alt, stream); },
+         meta
+      );
+
+      return { std::move(stream), meta, bit_count };
+   }
 
 
    [[nodiscard]] auto get_image_payload(const std::string& filename) -> payload
    {
       const stbi_loader loader(filename);
 
-      if(loader.m_components >= 1)
-         return detail::get_image_payload_impl<loader.m_components>(loader.m_width, loader.m_height, loader.m_data);
-
       return [&]() {
          switch (loader.m_components) {
          case 1:
-            return detail::get_image_payload_impl<1>(loader.m_width, loader.m_height, loader.m_data);
+            return get_image_payload_impl<1>(loader.m_width, loader.m_height, loader.m_data);
          case 2:
-            return detail::get_image_payload_impl<2>(loader.m_width, loader.m_height, loader.m_data);
+            return get_image_payload_impl<2>(loader.m_width, loader.m_height, loader.m_data);
          case 3:
-            return detail::get_image_payload_impl<3>(loader.m_width, loader.m_height, loader.m_data);
+            return get_image_payload_impl<3>(loader.m_width, loader.m_height, loader.m_data);
          case 4:
-            return detail::get_image_payload_impl<4>(loader.m_width, loader.m_height, loader.m_data);
+            return get_image_payload_impl<4>(loader.m_width, loader.m_height, loader.m_data);
          default:
             std::cout << "unexpected\n";
             std::terminate();
@@ -99,7 +145,7 @@ auto bb::write_payload_to_file(
 ) -> void
 {
    std::vector<uint8_t> target_bytes; // TODO reserve
-   for (const uint8_t byte : meta_and_size_to_binary(pl.meta, pl.bit_count))
+   for (const uint8_t byte : meta_and_size_to_binary(pl.m_meta, pl.m_bit_count))
       target_bytes.emplace_back(byte);
    append_copy(target_bytes, pl.m_content_data);
 

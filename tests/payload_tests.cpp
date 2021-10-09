@@ -22,7 +22,7 @@ TEST_CASE("generic binary encoding")
    write_binary_file(path, byte_sequence);
 
    const payload pl = get_payload(path);
-   CHECK(std::holds_alternative<generic_binary>(pl.meta));
+   CHECK(std::holds_alternative<generic_binary>(pl.m_meta));
    CHECK_EQ(pl.m_content_data.size(), 12);
 }
 
@@ -31,8 +31,8 @@ TEST_CASE("normal image encoding")
 {
    const char* path = "test_image.png";
    const payload pl = get_payload(path);
-   CHECK(std::holds_alternative<naive_image_type>(pl.meta));
-   const naive_image_type image_meta = std::get<naive_image_type>(pl.meta);
+   CHECK(std::holds_alternative<naive_image_type>(pl.m_meta));
+   const naive_image_type image_meta = std::get<naive_image_type>(pl.m_meta);
    CHECK_EQ(image_meta.width, 3);
    CHECK_EQ(image_meta.height, 2);
    CHECK_EQ(image_meta.m_bpp, 3);
@@ -43,8 +43,8 @@ TEST_CASE("dual image encoding")
 {
    const char* path = "dual_24bit.png";
    const payload pl = get_payload(path);
-   CHECK(std::holds_alternative<dual_image_type<3>>(pl.meta));
-   const dual_image_type<3> image_meta = std::get<dual_image_type<3>>(pl.meta);
+   CHECK(std::holds_alternative<dual_image_type<3>>(pl.m_meta));
+   const dual_image_type<3> image_meta = std::get<dual_image_type<3>>(pl.m_meta);
    CHECK_EQ(image_meta.width, 3);
    CHECK_EQ(image_meta.height, 3);
    CHECK_EQ(image_meta.color0, color(255, 255, 255));
@@ -65,4 +65,27 @@ TEST_CASE("payload writing")
    const payload pl = get_payload("rgb_example.png");
    const config default_cfg{};
    write_payload_to_file("rgb_example.h", "rgb_example", default_cfg, pl);
+}
+
+
+TEST_CASE("get_content_bit_count()")
+{
+   SUBCASE("dual dual_image_type") {
+      constexpr dual_image_type<2> meta{ 3, 2, color<2>::black(), color<2>::black() };
+      const std::vector<uint8_t> stream(33);
+      const int bit_count = detail::get_content_bit_count(meta, stream);
+      CHECK(bit_count == 6);
+   }
+   SUBCASE("naive_image_type") {
+      constexpr naive_image_type meta{ 5, 4, 2 };
+      const std::vector<uint8_t> stream(33);
+      const int bit_count = detail::get_content_bit_count(meta, stream);
+      CHECK(bit_count == 33*8);
+   }
+   SUBCASE("generic_binary") {
+      constexpr generic_binary meta{};
+      const std::vector<uint8_t> stream(33);
+      const int bit_count = detail::get_content_bit_count(meta, stream);
+      CHECK(bit_count == 33 * 8);
+   }
 }
