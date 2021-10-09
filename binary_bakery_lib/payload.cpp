@@ -182,7 +182,8 @@ auto bb::write_payload_to_file(
       ++in_line_count;
       if(in_line_count == groups_per_line && is_last == false)
       {
-         content += std::format("\n{}", indentation_str);
+         content += "\n";
+         content += indentation_str;
          in_line_count = 0;
       }
    }
