@@ -10,19 +10,8 @@
 
 namespace bb {
 
-   struct no_init {};
-
    template<typename color_type>
    [[nodiscard]] constexpr auto get_symbol_count(const byte_count count) -> int;
-
-   template<typename T>
-   concept numerical = (std::integral<T> && !std::is_same_v<T, bool>) || std::floating_point<T>;
-
-   template<bb::numerical T>
-   [[nodiscard]] constexpr auto abs(const T value) noexcept -> T;
-
-   template<bb::numerical T>
-   [[nodiscard]] constexpr auto equal(const T a, const T b) noexcept -> bool;
 
    template <class T>
    auto append_copy(std::vector<T>& dst, const std::vector<T>& src) -> void;
@@ -34,33 +23,6 @@ namespace bb {
 
    template<typename enum_type>
    [[nodiscard]] auto get_bit_encoded(const std::vector<enum_type>& enums, const enum_type one_value) -> std::vector<uint8_t>;
-
-   template<typename T>
-   struct is_variant : std::false_type {};
-   template<typename ...Args>
-   struct is_variant<std::variant<Args...>> : std::true_type {};
-
-   template<typename T>
-   inline constexpr bool is_variant_v = is_variant<T>::value;
-   template<class alternative_type, typename variant_type>
-   struct is_alternative
-   {
-      static_assert(is_variant_v<variant_type>, "can't use is_alternative<> with a non-variant");
-   };
-   template<typename alternative_type, typename... variant_alternatives>
-   struct is_alternative<alternative_type, std::variant<variant_alternatives...>>
-      : std::disjunction<std::is_same<alternative_type, variant_alternatives>...>
-   {
-
-   };
-
-   // is_alternative_v<A, B> returns if A is contained in the variant type B
-   template<class alternative_type, class variant_type>
-   constexpr bool is_alternative_v = is_alternative<alternative_type, variant_type>::value;
-
-   template<typename T, typename variant_type>
-   concept alternative_of = is_alternative_v<T, variant_type>;
-
 }
 
 
@@ -75,30 +37,6 @@ constexpr auto bb::get_symbol_count(const byte_count count) -> int
    if (leftover_bytes > 0)
       ++symbol_count;
    return symbol_count;
-}
-
-
-template<bb::numerical T>
-constexpr auto bb::abs(const T value) noexcept -> T
-{
-   if constexpr (std::is_unsigned_v<T>)
-      return value;
-   else
-      return value < T{} ? -value : value;
-}
-
-
-template<bb::numerical T>
-constexpr auto bb::equal(
-   const T a,
-   const T b
-) noexcept -> bool
-{
-   constexpr double tol = 0.001;
-   if constexpr (std::is_integral_v<T>)
-      return a == b;
-   else
-      return bb::abs(a - b) <= tol;
 }
 
 
