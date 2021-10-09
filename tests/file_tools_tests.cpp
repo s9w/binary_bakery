@@ -1,8 +1,9 @@
 #include <fstream>
 #include <string>
 
-#include "test_tools.h"
+//#include "test_tools.h"
 #include <binary_bakery_lib/file_tools.h>
+#include <binary_bakery_lib/byte_sequencer.h>
 
 #include <doctest/doctest.h>
 

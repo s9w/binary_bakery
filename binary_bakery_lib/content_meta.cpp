@@ -1,5 +1,6 @@
 #include "content_meta.h"
 
+#include "byte_sequencer.h"
 #include "tools.h"
 
 namespace
@@ -119,6 +120,6 @@ auto bb::meta_and_size_to_header_stream(
       , meta
    );
 
-   return sequencer.m_sequence;
+   return sequencer.get();
 }
 

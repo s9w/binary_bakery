@@ -39,6 +39,9 @@
     <ClInclude Include="universal.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="byte_sequencer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="payload.cpp">

@@ -89,6 +89,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="byte_sequencer_tests.cpp" />
     <ClCompile Include="color_tests.cpp" />
     <ClCompile Include="decoder.cpp" />
     <ClCompile Include="dual_image_tools_tests.cpp" />

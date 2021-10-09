@@ -87,6 +87,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="byte_sequencer.h" />
     <ClInclude Include="color.h" />
     <ClInclude Include="config.h" />
     <ClInclude Include="payload.h" />

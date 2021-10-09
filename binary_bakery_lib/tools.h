@@ -30,31 +30,10 @@ namespace bb {
    template <class T>
    auto append_moved(std::vector<T>& dst, std::vector<T>& src) -> void;
 
-   template<typename ... Ts>
-   [[nodiscard]] auto get_byte_sequence(const Ts... value) -> std::vector<uint8_t>;
-
    [[nodiscard]] auto get_ui64_str(const uint64_t value) -> std::string;
 
    template<typename enum_type>
    [[nodiscard]] auto get_bit_encoded(const std::vector<enum_type>& enums, const enum_type one_value) -> std::vector<uint8_t>;
-
-   template<byte_count bytes>
-   struct binary_sequencer {
-      std::array<uint8_t, bytes.m_value> m_sequence;
-      int m_position = 0;
-
-      explicit binary_sequencer() = default;
-      ~binary_sequencer() {
-         const int target_position = bytes.m_value;
-         if (m_position != target_position) {
-            std::terminate();
-         }
-      }
-
-      template<class T>
-      auto add(const T value) -> void;
-   };
-   using header_sequencer = binary_sequencer<byte_count{24}>;
 
    template<typename T>
    struct is_variant : std::false_type {};
@@ -143,33 +122,6 @@ void bb::append_moved(std::vector<T>& dst, std::vector<T>& src)
       std::move(std::begin(src), std::end(src), std::back_inserter(dst));
       src.clear();
    }
-}
-
-
-template<typename ... Ts>
-auto bb::get_byte_sequence(
-   const Ts... value
-) -> std::vector<uint8_t>
-{
-   constexpr byte_count bytes = byte_sizeof<Ts...>;
-   binary_sequencer<bytes> sequencer;
-   (sequencer.add(value), ...);
-
-   std::vector<uint8_t> result;
-   result.reserve(bytes.m_value);
-   for (const uint8_t byte : sequencer.m_sequence)
-      result.emplace_back(byte);
-   return result;
-}
-
-
-template<bb::byte_count bytes>
-template<class T>
-auto bb::binary_sequencer<bytes>::add(const T value) -> void
-{
-   uint8_t* target = &m_sequence[m_position];
-   std::memcpy(target, &value, sizeof(T));
-   m_position += sizeof(T);
 }
 
 
