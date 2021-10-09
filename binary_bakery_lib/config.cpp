@@ -29,7 +29,7 @@ namespace
 
 
 auto bb::read_config_from_toml(
-   const char* filename
+   const fs::path& path
 ) -> config
 {
    config cfg;
@@ -37,15 +37,14 @@ auto bb::read_config_from_toml(
    toml::table tbl;
    try
    {
-      tbl = toml::parse_file(filename);
+      tbl = toml::parse_file(path.string());
    }
    catch (const toml::parse_error&)
    {
-      const std::string msg = std::format("Couldn't parse file {}", filename);
+      const std::string msg = std::format("Couldn't parse file {}. Using default config.", path.string());
       std::cout << msg << std::endl;
       return cfg;
    }
-
    
    set_value(tbl, cfg.in_single_file, "in_single_file");
    set_value(tbl, cfg.group_header_name, "group_header_name");

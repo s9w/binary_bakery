@@ -2,6 +2,9 @@
 
 #include <string>
 #include <optional>
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 #include "content_meta.h"
 #include "image.h"
@@ -16,17 +19,19 @@ namespace bb {
       std::vector<uint8_t> m_content_data;
       content_meta m_meta;
       bit_count m_bit_count;
+      std::string m_name;
 
       // Making sure no one is left behind during init
-      payload(std::vector<uint8_t>&& content, const content_meta& meta, bit_count bit_count)
+      payload(std::vector<uint8_t>&& content, const content_meta& meta, const bit_count& bit_count, const std::string& name)
          : m_content_data(std::move(content))
          , m_meta(meta)
          , m_bit_count(bit_count)
+         , m_name(name)
       {}
    };
 
    // TODO maybe make this optional and deal with exception from file opening, parsing errors etc
-   [[nodiscard]] auto get_payload(const std::string& filename) -> payload;
+   [[nodiscard]] auto get_payload(const fs::path& path) -> payload;
 
    auto write_payload_to_file(
       const std::string& filename,

@@ -5,7 +5,7 @@
 
 
 auto bb::write_binary_file(
-   const char* path,
+   const fs::path& path,
    const std::vector<uint8_t>& byte_sequence
 ) -> void
 {
@@ -16,12 +16,12 @@ auto bb::write_binary_file(
 
 
 
-auto bb::get_binary_file(const char* path) -> std::vector<uint8_t>
+auto bb::get_binary_file(const fs::path& path) -> std::vector<uint8_t>
 {
    std::ifstream file(path, std::ios::ate | std::ios::binary);
 
    if (file.is_open() == false) {
-      const std::string msg = std::format("Couldn't open file {}", path);
+      const std::string msg = std::format("Couldn't open file {}", path.string());
       throw std::runtime_error(msg);
    }
 

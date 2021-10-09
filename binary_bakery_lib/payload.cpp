@@ -16,9 +16,9 @@ namespace {
 
    using namespace bb;
 
-   [[nodiscard]] auto is_image_path(const std::string& filename) -> bool
+   [[nodiscard]] auto is_image_path(const fs::path& path) -> bool
    {
-      if (filename.ends_with("png"))
+      if (path.extension() == fs::path(".png"))
       {
          return true;
       }
@@ -26,12 +26,12 @@ namespace {
    }
 
 
-   [[nodiscard]] auto get_binary_file_payload(const char* path) -> payload
+   [[nodiscard]] auto get_binary_file_payload(const fs::path& path) -> payload
    {
       std::vector<uint8_t> file_content = get_binary_file(path);
       constexpr generic_binary meta{};
       const bit_count bits = detail::get_content_bit_count(meta, file_content);
-      return { std::move(file_content), meta, bits };
+      return { std::move(file_content), meta, bits, path.filename().string() };
    }
 
 
@@ -41,11 +41,11 @@ namespace {
       int m_height = 0;
       int m_components = 0;
 
-      explicit stbi_loader(const std::string& filename)
+      explicit stbi_loader(const fs::path& path)
       {
-         m_data = stbi_load(filename.c_str(), &m_width, &m_height, &m_components, 0);
+         m_data = stbi_load(path.string().c_str(), &m_width, &m_height, &m_components, 0);
          if (m_data == nullptr) {
-            const std::string msg = std::format("Couldn't open file {}", filename);
+            const std::string msg = std::format("Couldn't open file {}", path.string());
             throw std::runtime_error(msg);
          }
       }
@@ -88,7 +88,8 @@ namespace {
    [[nodiscard]] auto get_image_payload_impl(
       const int width,
       const int height,
-      const unsigned char* image_data_ptr
+      const unsigned char* image_data_ptr,
+      const std::string& name
    ) -> payload
    {
       const image<bpp> image{ width, height, image_data_ptr };
@@ -100,24 +101,25 @@ namespace {
          meta
       );
 
-      return { std::move(stream), meta, bits };
+      return { std::move(stream), meta, bits, name };
    }
 
 
-   [[nodiscard]] auto get_image_payload(const std::string& filename) -> payload
+   [[nodiscard]] auto get_image_payload(const fs::path& path) -> payload
    {
-      const stbi_loader loader(filename);
+      const stbi_loader loader(path);
+      const std::string name = path.filename().string();
 
       return [&]() {
          switch (loader.m_components) {
          case 1:
-            return get_image_payload_impl<1>(loader.m_width, loader.m_height, loader.m_data);
+            return get_image_payload_impl<1>(loader.m_width, loader.m_height, loader.m_data, name);
          case 2:
-            return get_image_payload_impl<2>(loader.m_width, loader.m_height, loader.m_data);
+            return get_image_payload_impl<2>(loader.m_width, loader.m_height, loader.m_data, name);
          case 3:
-            return get_image_payload_impl<3>(loader.m_width, loader.m_height, loader.m_data);
+            return get_image_payload_impl<3>(loader.m_width, loader.m_height, loader.m_data, name);
          case 4:
-            return get_image_payload_impl<4>(loader.m_width, loader.m_height, loader.m_data);
+            return get_image_payload_impl<4>(loader.m_width, loader.m_height, loader.m_data, name);
          default:
             std::cout << "unexpected\n";
             std::terminate();
@@ -128,12 +130,12 @@ namespace {
 } // namespace {}
 
 
-auto bb::get_payload(const std::string& filename) -> payload
+auto bb::get_payload(const fs::path& path) -> payload
 {
-   if (is_image_path(filename))
-      return get_image_payload(filename);
+   if (is_image_path(path))
+      return get_image_payload(path);
    else
-      return get_binary_file_payload(filename.c_str());
+      return get_binary_file_payload(path);
 }
 
 

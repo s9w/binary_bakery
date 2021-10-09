@@ -1,6 +1,8 @@
 #pragma once
 
 #include <string>
+#include <filesystem>
+namespace fs = std::filesystem;
 
 namespace bb
 {
@@ -14,6 +16,6 @@ namespace bb
    };
 
 
-   [[nodiscard]] auto read_config_from_toml(const char* filename) -> config;
+   [[nodiscard]] auto read_config_from_toml(const fs::path& path) -> config;
 
 }

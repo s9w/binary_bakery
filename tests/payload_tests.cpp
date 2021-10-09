@@ -18,7 +18,7 @@ namespace
 
 TEST_CASE("generic binary encoding")
 {
-   const char* path = "generic_payload.bin";
+   const fs::path path = "generic_payload.bin";
    const std::vector<uint8_t> byte_sequence = get_byte_sequence(1.12, 4);
    write_binary_file(path, byte_sequence);
 
@@ -30,7 +30,7 @@ TEST_CASE("generic binary encoding")
 
 TEST_CASE("normal image encoding")
 {
-   const char* path = "test_image.png";
+   const fs::path path = "test_image.png";
    const payload pl = get_payload(path);
    CHECK(std::holds_alternative<naive_image_type>(pl.m_meta));
    const naive_image_type image_meta = std::get<naive_image_type>(pl.m_meta);
@@ -42,7 +42,7 @@ TEST_CASE("normal image encoding")
 
 TEST_CASE("dual image encoding")
 {
-   const char* path = "dual_24bit.png";
+   const fs::path path = "dual_24bit.png";
    const payload pl = get_payload(path);
    CHECK(std::holds_alternative<dual_image_type<3>>(pl.m_meta));
    const dual_image_type<3> image_meta = std::get<dual_image_type<3>>(pl.m_meta);

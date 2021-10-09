@@ -5,6 +5,9 @@
 #include <string>
 #include <format>
 #include <optional>
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 #include "color.h"
 #include "tools.h"
@@ -35,7 +38,7 @@ namespace bb
    };
 
    template<int bpp>
-   [[nodiscard]] auto get_image(const std::string& filename) -> image<bpp>;
+   [[nodiscard]] auto get_image(const fs::path& path) -> image<bpp>;
 
    template<int bpp>
    [[nodiscard]] auto get_color_pair(const image<bpp>& image) -> std::optional<color_pair<bpp>>;
@@ -119,13 +122,13 @@ namespace bb::detail
 
 
 template<int bpp>
-auto bb::get_image(const std::string& filename) -> image<bpp>
+auto bb::get_image(const fs::path& path) -> image<bpp>
 {
    stbi_set_flip_vertically_on_load(true);
    int width, height, components;
-   unsigned char* data = stbi_load(filename.c_str(), &width, &height, &components, 0);
+   unsigned char* data = stbi_load(path.string().c_str(), &width, &height, &components, 0);
    if (data == nullptr) {
-      const std::string msg = std::format("Couldn't open file {}", filename);
+      const std::string msg = std::format("Couldn't open file {}", path.string());
       throw std::runtime_error(msg);
    }
    if (components != bpp) {

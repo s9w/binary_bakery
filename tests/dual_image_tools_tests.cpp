@@ -9,7 +9,7 @@ namespace
 {
    template<int bpp>
    auto check_color_pair(
-      const char* path
+      const fs::path& path
    ) -> void
    {
       const std::optional<color_pair<bpp>> pair = get_color_pair(get_image<bpp>(path));
@@ -19,7 +19,7 @@ namespace
 
    template<int bpp>
    auto check_color_pair(
-      const char* path,
+      const fs::path& path,
       const color<bpp>& first,
       const color<bpp>& second
    ) -> void
@@ -33,7 +33,7 @@ namespace
 
    template<int bpp>
    auto check_indexing_result(
-      const char* path,
+      const fs::path& path,
       const std::vector<dual_color_name>& expected
    ) -> void
    {

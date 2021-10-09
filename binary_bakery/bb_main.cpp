@@ -7,7 +7,7 @@ namespace bb {
 
    auto run() -> void
    {
-      const char* path = R"(C:/Dropbox/code/binary_inliner/x64/Debug/binary_bakery.toml)";
+      const fs::path path = R"(C:/Dropbox/code/binary_inliner/x64/Debug/binary_bakery.toml)";
       const auto config = read_config_from_toml(path);
    }
 
