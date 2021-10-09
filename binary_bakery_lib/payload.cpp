@@ -187,8 +187,14 @@ auto bb::write_payload_to_file(
          in_line_count = 0;
       }
    }
-   
-   filestream << std::format("constexpr uint64_t {0}[]{{\n{1}{2}\n}};\n", get_variable_name(pl.m_name), indentation_str, content);
+
+   filestream << "constexpr uint64_t";
+   filestream << get_variable_name(pl.m_name);
+   filestream << "[]{\n";
+   filestream << indentation_str;
+   filestream << content;
+   filestream << "\n};\n";
+   //filestream << std::format("constexpr uint64_t {0}[]{{\n{1}{2}\n}};\n", get_variable_name(pl.m_name), indentation_str, content);
 }
 
 
