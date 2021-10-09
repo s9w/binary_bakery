@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "binary_bakery_lib", "binary
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "binary_bakery", "binary_bakery\binary_bakery.vcxproj", "{36FF9F00-2C70-4772-BEAB-6C4CF64668AF}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "decoder_example", "decoder_example\decoder_example.vcxproj", "{BD1207F7-F492-495D-9607-0438334E963D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -27,6 +29,10 @@ Global
 		{36FF9F00-2C70-4772-BEAB-6C4CF64668AF}.Debug|x64.Build.0 = Debug|x64
 		{36FF9F00-2C70-4772-BEAB-6C4CF64668AF}.Release|x64.ActiveCfg = Release|x64
 		{36FF9F00-2C70-4772-BEAB-6C4CF64668AF}.Release|x64.Build.0 = Release|x64
+		{BD1207F7-F492-495D-9607-0438334E963D}.Debug|x64.ActiveCfg = Debug|x64
+		{BD1207F7-F492-495D-9607-0438334E963D}.Debug|x64.Build.0 = Debug|x64
+		{BD1207F7-F492-495D-9607-0438334E963D}.Release|x64.ActiveCfg = Release|x64
+		{BD1207F7-F492-495D-9607-0438334E963D}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

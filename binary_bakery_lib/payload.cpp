@@ -31,6 +31,7 @@ namespace {
       std::vector<uint8_t> file_content = get_binary_file(path);
       constexpr generic_binary meta{};
       const bit_count bits = detail::get_content_bit_count(meta, file_content);
+      const auto test = path.filename();
       return { std::move(file_content), meta, bits, path.filename().string() };
    }
 
@@ -127,6 +128,16 @@ namespace {
       }();
    }
 
+
+   auto get_variable_name(
+      const std::string& filename
+   ) -> std::string
+   {
+      std::string result = filename;
+      result = get_replaced_str(result, ".", "_");
+      return result;
+   }
+
 } // namespace {}
 
 
@@ -140,27 +151,22 @@ auto bb::get_payload(const fs::path& path) -> payload
 
 
 auto bb::write_payload_to_file(
-   const std::string& filename,
-   const std::string& variable_name,
    const config& cfg,
-   const payload& pl
+   payload&& pl
 ) -> void
 {
-   std::vector<uint8_t> target_bytes; // TODO reserve
-   for (const uint8_t byte : meta_and_size_to_header_stream(pl.m_meta, pl.m_bit_count))
-      target_bytes.emplace_back(byte);
-   append_copy(target_bytes, pl.m_content_data);
+   const auto data_source = detail::get_final_bytestream(std::move(pl));
 
-   std::ofstream filestream(filename, std::ios::out);
+   std::ofstream filestream(cfg.group_header_name, std::ios::out);
    if (!filestream.good())
    {
-      std::cout << std::format("Couldn't open {} for writing\n", filename);
+      std::cout << std::format("Couldn't open {} for writing\n", cfg.group_header_name);
       return;
    }
+
    std::string content;
-   // TODO think about good reserve estimate
-   const int symbol_count = get_symbol_count<uint64_t>(byte_count{ target_bytes.size() });
-   const uint64_t* ui64_ptr = reinterpret_cast<const uint64_t*>(target_bytes.data());
+   const int symbol_count = get_symbol_count<uint64_t>(byte_count{ data_source.size() });
+   const uint64_t* ui64_ptr = reinterpret_cast<const uint64_t*>(data_source.data());
 
    const int groups_per_line = (cfg.max_columns - cfg.indentation_size) / (2 + 16 + 2);
    int in_line_count = 0;
@@ -181,6 +187,19 @@ auto bb::write_payload_to_file(
       }
    }
    
-   filestream << std::format("constexpr uint64_t {0}[]{{\n{1}{2}\n}};\n", variable_name, indentation_str, content);
+   filestream << std::format("constexpr uint64_t {0}[]{{\n{1}{2}\n}};\n", get_variable_name(pl.m_name), indentation_str, content);
 }
 
+
+auto detail::get_final_bytestream(payload&& pl) -> std::vector<uint8_t>
+{
+   std::vector<uint8_t> result(24);
+   result.reserve(24 + pl.m_content_data.size());
+
+   const std::array<uint8_t, 24> header_stream = meta_and_size_to_header_stream(pl.m_meta, pl.m_bit_count);
+   std::copy(header_stream.begin(), header_stream.end(), result.data());
+
+   append_moved(result, pl.m_content_data);
+
+   return result;
+}

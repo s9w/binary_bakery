@@ -63,9 +63,9 @@ TEST_CASE("hex strings")
 
 TEST_CASE("payload writing")
 {
-   const payload pl = get_payload("rgb_example.png");
+   payload pl = get_payload("rgb_example.png");
    const config default_cfg{};
-   write_payload_to_file("rgb_example.h", "rgb_example", default_cfg, pl);
+   write_payload_to_file(default_cfg, std::move(pl));
 }
 
 

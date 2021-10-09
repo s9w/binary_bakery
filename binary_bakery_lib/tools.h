@@ -13,6 +13,8 @@ namespace bb {
    template<typename color_type>
    [[nodiscard]] constexpr auto get_symbol_count(const byte_count count) -> int;
 
+   [[nodiscard]] auto get_replaced_str(const std::string& source, const std::string& from, const std::string& to) -> std::string;
+
    template <class T>
    auto append_copy(std::vector<T>& dst, const std::vector<T>& src) -> void;
 
