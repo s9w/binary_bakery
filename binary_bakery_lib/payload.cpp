@@ -9,7 +9,7 @@
 #include "file_tools.h"
 #include "image.h"
 
-#include "stb_image.h"
+#include <stb/stb_image.h>
 
 
 namespace {

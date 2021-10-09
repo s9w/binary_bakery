@@ -1,6 +1,6 @@
 #include <doctest/doctest.h>
 
-#include "../binary_bakery_lib/content_meta.h"
+#include <binary_bakery_lib/content_meta.h>
 
 using namespace bb;
 

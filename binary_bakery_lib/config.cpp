@@ -4,7 +4,7 @@
 #include <format>
 #include <fstream>
 
-#include <toml++/toml.h>
+#include <tomlplusplus/toml.hpp>
 
 namespace
 {

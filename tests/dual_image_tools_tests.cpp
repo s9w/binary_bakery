@@ -1,6 +1,6 @@
 #include <doctest/doctest.h>
 
-#include "../binary_bakery_lib/image.h"
+#include <binary_bakery_lib/image.h>
 // TODO: merge these tests into image
 
 using namespace bb;

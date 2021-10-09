@@ -10,7 +10,7 @@
 #include "tools.h"
 #include "content_meta.h"
 
-#include "stb_image.h"
+#include <stb/stb_image.h>
 
 namespace bb
 {

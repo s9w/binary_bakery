@@ -1,7 +1,7 @@
 
 #define BAKERY_PROVIDE_VECTOR
 #define BAKERY_PROVIDE_STD_ARRAY
-#include "../decoder.h"
+#include <decoder.h>
 
 #include <compare>
 

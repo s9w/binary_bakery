@@ -2,8 +2,8 @@
 #include <string>
 
 #include "test_tools.h"
-#include "../binary_bakery_lib/payload.h"
-#include "../binary_bakery_lib/config.h"
+#include <binary_bakery_lib/payload.h>
+#include <binary_bakery_lib/config.h>
 
 #include <doctest/doctest.h>
 
