@@ -174,7 +174,7 @@ auto bb::write_payload_to_file(
    for (int i = 0; i < symbol_count; ++i)
    {
       const bool is_last = i == (symbol_count - 1);
-      content += get_ui64_str(ui64_ptr[i]);
+      write_ui64_str(ui64_ptr[i], content);
       if (is_last == false)
       {
          content += ", ";

@@ -30,7 +30,10 @@ auto bb::get_replaced_str(
 }
 
 
-auto bb::get_ui64_str(const uint64_t value) -> std::string
+auto bb::write_ui64_str(
+   const uint64_t value,
+   std::string& target
+) -> void
 {
-   return std::format("{:#018x}", value);
+   std::format_to(std::back_inserter(target), "{:#018x}", value);
 }
