@@ -6,9 +6,9 @@ using namespace bb;
 
 TEST_CASE("color type")
 {
-   color red{255, 0, 0};
-   color another_red{255, 0, 0};
-   color green{0, 255, 0};
+   constexpr color red{255, 0, 0};
+   constexpr color another_red{255, 0, 0};
+   constexpr color green{0, 255, 0};
    CHECK_EQ(red, another_red);
    CHECK_NE(red, green);
 }

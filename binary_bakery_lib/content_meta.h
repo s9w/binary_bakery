@@ -12,8 +12,8 @@ namespace bb {
    struct generic_binary {};
 
    struct naive_image_type {
-      int width = 0;
-      int height = 0;
+      int m_width = 0;
+      int m_height = 0;
       int m_bpp = 0;
    };
 
@@ -22,15 +22,15 @@ namespace bb {
    struct dual_image_type {
       static constexpr int m_bpp = bpp;
 
-      int width = 0;
-      int height = 0;
-      color<bpp> color0;
-      color<bpp> color1;
+      int m_width = 0;
+      int m_height = 0;
+      color<bpp> m_color0;
+      color<bpp> m_color1;
    };
 
    template<typename T>
    concept dual_image_type_c = requires(T t) {
-      t.color0;
+      t.m_color0;
    };
 
    template<typename T>

@@ -10,7 +10,8 @@ auto bb::write_binary_file(
 ) -> void
 {
    std::ofstream file(path, std::ios::out | std::ios::binary);
-   file.write(reinterpret_cast<const char*>(byte_sequence.data()), byte_sequence.size());
+   const auto byte_size = static_cast<std::streamsize>(byte_sequence.size());
+   file.write(reinterpret_cast<const char*>(byte_sequence.data()), byte_size);
 }
 
 
@@ -28,6 +29,9 @@ auto bb::get_binary_file(const char* path) -> std::vector<uint8_t>
    std::vector<uint8_t> buffer(byte_count);
 
    file.seekg(0);
-   file.read(reinterpret_cast<char*>(buffer.data()), byte_count);
+   file.read(
+      reinterpret_cast<char*>(buffer.data()),
+      static_cast<std::streamsize>(byte_count)
+   );
    return buffer;
 }

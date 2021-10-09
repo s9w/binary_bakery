@@ -31,6 +31,7 @@ namespace bb
       [[nodiscard]] auto operator[](const int index) -> color_type&;
       [[nodiscard]] auto begin() const -> auto;
       [[nodiscard]] auto end() const -> auto;
+      auto operator<=>(const image<bpp>&) const = default;
    };
 
    template<int bpp>
@@ -65,7 +66,7 @@ namespace bb::detail
       const image<bpp>& im
    ) -> std::optional<color_pair<bpp>>
    {
-      using color_type = image<bpp>::color_type;
+      using color_type = typename image<bpp>::color_type;
 
       color_type color_A = im[0];
       std::optional<color_type> color_B;
@@ -102,11 +103,11 @@ namespace bb::detail
       const color_pair<bpp>& pair
    ) -> dual_color_name
    {
-      if (color == pair.color0)
+      if (color == pair.m_color0)
       {
          return dual_color_name::first;
       }
-      else if (color == pair.color1)
+      else if (color == pair.m_color1)
       {
          return dual_color_name::second;
       }
@@ -123,7 +124,7 @@ auto bb::get_image(const std::string& filename) -> image<bpp>
    stbi_set_flip_vertically_on_load(true);
    int width, height, components;
    unsigned char* data = stbi_load(filename.c_str(), &width, &height, &components, 0);
-   if (data == NULL) {
+   if (data == nullptr) {
       const std::string msg = std::format("Couldn't open file {}", filename);
       throw std::runtime_error(msg);
    }
@@ -219,7 +220,7 @@ namespace bb::detail {
    ) -> std::vector<uint8_t>
    {
       //return {};
-      const color_pair<bpp> pair{ meta.color0, meta.color1 };
+      const color_pair<bpp> pair{ meta.m_color0, meta.m_color1 };
       return get_image_bytestream_dual(image, pair);
    }
 
@@ -304,5 +305,5 @@ auto bb::get_indexed_dual_image(
    {
       result.emplace_back(detail::get_indexed_color(color, pair));
    }
-   return result;;
+   return result;
 }

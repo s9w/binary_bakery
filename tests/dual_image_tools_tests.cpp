@@ -26,8 +26,8 @@ namespace
    {
       const std::optional<color_pair<bpp>> pair = get_color_pair(get_image<bpp>(path));
       CHECK(pair.has_value());
-      CHECK_EQ(pair.value().color0, first);
-      CHECK_EQ(pair.value().color1, second);
+      CHECK_EQ(pair.value().m_color0, first);
+      CHECK_EQ(pair.value().m_color1, second);
    }
 
 

@@ -48,7 +48,7 @@ namespace bb::detail
    {
       if constexpr (dual_image_type_c<meta_type>)
       {
-         const int pixel_count = meta.width * meta.height;
+         const int pixel_count = meta.m_width * meta.m_height;
          return bit_count{ pixel_count };
       }
       else

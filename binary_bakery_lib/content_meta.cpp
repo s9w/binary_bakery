@@ -47,8 +47,8 @@ namespace
       if constexpr (image_type_c<meta_type>)
       {
          return {
-            static_cast<uint16_t>(meta.width),
-            static_cast<uint16_t>(meta.height)
+            static_cast<uint16_t>(meta.m_width),
+            static_cast<uint16_t>(meta.m_height)
          };
       }
       else
@@ -66,8 +66,8 @@ namespace
       if constexpr (dual_image_type_c<meta_type>)
       {
          return {
-            meta.color0.get_4byte_padded(),
-            meta.color1.get_4byte_padded()
+            meta.m_color0.get_4byte_padded(),
+            meta.m_color1.get_4byte_padded()
          };
       }
       else

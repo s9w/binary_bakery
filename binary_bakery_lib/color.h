@@ -30,8 +30,8 @@ namespace bb {
 
    template<int bpp>
    struct color_pair {
-      color<bpp> color0;
-      color<bpp> color1;
+      color<bpp> m_color0;
+      color<bpp> m_color1;
    };
 }
 

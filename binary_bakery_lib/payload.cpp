@@ -73,8 +73,8 @@ namespace {
          return dual_image_type<bpp>{
             image.m_width,
                image.m_height,
-               color_pair.value().color0,
-               color_pair.value().color1
+               color_pair.value().m_color0,
+               color_pair.value().m_color1
          };
       }
       else
@@ -121,7 +121,7 @@ namespace {
          default:
             std::cout << "unexpected\n";
             std::terminate();
-         };
+         }
       }();
    }
 
