@@ -1,7 +1,5 @@
 #include "tools.h"
 
-#include <format>
-
 
 auto bb::get_replaced_str(
    const std::string& source,
@@ -35,5 +33,15 @@ auto bb::write_ui64_str(
    std::string& target
 ) -> void
 {
-   std::format_to(std::back_inserter(target), "{:#018x}", value);
+   target += "0x";
+   for (int i = 0; i < 16; ++i)
+   {
+      const int shift_amount = 60 - 4 * i;
+      const uint64_t mask = 15ui64 << shift_amount;
+      const uint8_t part = static_cast<uint8_t>((value & mask) >> shift_amount);
+      if (part < 10)
+         target += static_cast<char>('0' + part);
+      else
+         target += static_cast<char>('a' + part - 10);
+   }
 }
