@@ -36,10 +36,6 @@ namespace bb {
    template<typename enum_type>
    [[nodiscard]] auto get_bit_encoded(const std::vector<enum_type>& enums, const enum_type one_value) -> std::vector<uint8_t>;
 
-   // TODO this only needs to live in user-facing decoder.h
-   template<int bit_count, typename T>
-   [[nodiscard]] auto get_bit_decoded(const std::vector<uint8_t>& enums, const T& value0, const T& value1) -> std::array<T, bit_count>;
-
    template<int byte_count>
    struct binary_sequencer {
       std::array<uint8_t, byte_count> m_sequence;
@@ -161,8 +157,8 @@ auto bb::get_byte_sequence(
    const int byte_count = actual_sizeof<Ts...>;
    binary_sequencer<byte_count> sequencer;
    (sequencer.add(value), ...);
-   std::vector<uint8_t> result;
 
+   std::vector<uint8_t> result;
    result.reserve(byte_count);
    for (const uint8_t byte : sequencer.m_sequence)
       result.emplace_back(byte);
@@ -200,26 +196,6 @@ auto bb::get_bit_encoded(
       const int left_shift_amount = 7 - bit_index; // 7 is leftest bit
       const uint8_t new_bits = binary_value << left_shift_amount;
       result[byte_index] = result[byte_index] | new_bits;
-   }
-   return result;
-}
-
-
-template<int bit_count, typename T>
-auto bb::get_bit_decoded(
-   const std::vector<uint8_t>& enums,
-   const T& value0,
-   const T& value1
-) -> std::array<T, bit_count>
-{
-   std::array<T, bit_count> result;
-   for (int i = 0; i < bit_count; ++i)
-   {
-      const auto [source_byte_index, source_bit_index] = std::div(i, 8);
-      const int left_shift_amount = 7 - source_bit_index; // 7 is leftest bit
-      const uint8_t mask = 1ui8 << left_shift_amount;
-      const bool binary_value = static_cast<bool>((enums[source_byte_index] & mask) >> left_shift_amount);
-      result[i] = binary_value ? value1 : value0;
    }
    return result;
 }

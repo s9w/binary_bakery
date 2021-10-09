@@ -6,25 +6,25 @@ using namespace bb;
 
 namespace
 {
-   template<typename T, int array_size>
-   auto are_equivalent(
-      const std::vector<T>& vec,
-      const std::array<T, array_size>& array
-   ) -> bool
-   {
-      if (vec.size() != array_size)
-      {
-         return false;
-      }
-      for (int i = 0; i < array_size; ++i)
-      {
-         if (vec[i] != array[i])
-         {
-            return false;
-         }
-      }
-      return true;
-   }
+   //template<typename T, int array_size>
+   //auto are_equivalent(
+   //   const std::vector<T>& vec,
+   //   const std::array<T, array_size>& array
+   //) -> bool
+   //{
+   //   if (vec.size() != array_size)
+   //   {
+   //      return false;
+   //   }
+   //   for (int i = 0; i < array_size; ++i)
+   //   {
+   //      if (vec[i] != array[i])
+   //      {
+   //         return false;
+   //      }
+   //   }
+   //   return true;
+   //}
 }
 
 
@@ -37,8 +37,6 @@ TEST_CASE("get_bit_encoded()")
       const std::vector<uint8_t> encoded = get_bit_encoded(source, some_enum::second);
       const std::vector<uint8_t> expectation{ 64ui8 + 32ui8 };
       CHECK_EQ(encoded, expectation);
-      const auto reconstructed = get_bit_decoded<3>(encoded, some_enum::first, some_enum::second);
-      CHECK(are_equivalent(source, reconstructed));
    }
    {
       const std::vector<some_enum> source{
@@ -49,7 +47,5 @@ TEST_CASE("get_bit_encoded()")
       const std::vector<uint8_t> encoded = get_bit_encoded(source, some_enum::second);
       const std::vector<uint8_t> expectation{ 128ui8 + 1ui8 , 128ui8 };
       CHECK_EQ(encoded, expectation);
-      const auto reconstructed = get_bit_decoded<9>(encoded, some_enum::first, some_enum::second);
-      CHECK(are_equivalent(source, reconstructed));
    }
 }

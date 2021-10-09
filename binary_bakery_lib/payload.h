@@ -38,7 +38,7 @@ namespace bb {
 namespace bb::detail{
 
    template<int bpp>
-   [[nodiscard]] auto get_image_payload(
+   [[nodiscard]] auto get_image_payload_impl(
       const int width,
       const int height,
       const unsigned char* image_data_ptr
@@ -50,12 +50,12 @@ namespace bb::detail{
    // Ugly, but MSVC bug, see
    // https://developercommunity2.visualstudio.com/t/Unnecessary-namespace-needed-for-declara/1406720
    template<bb::alternative_of<bb::content_meta> meta_type>
-   auto get_image_meta_bit_count(const meta_type meta) -> bool;
+   [[nodiscard]] auto get_image_meta_bit_count(const meta_type& meta) -> bool;
 }
 
 
 template<int bpp>
-auto bb::detail::get_image_payload(
+auto bb::detail::get_image_payload_impl(
    const int width,
    const int height,
    const unsigned char* image_data_ptr
@@ -67,7 +67,7 @@ auto bb::detail::get_image_payload(
 
    const int bit_count = std::visit([](const auto& alt) {return get_image_meta_bit_count(alt); }, meta);
 
-   return { std::move(stream), std::move(meta), bit_count };
+   return { std::move(stream), meta, bit_count };
 }
 
 
@@ -94,7 +94,7 @@ auto bb::detail::get_image_meta(
 
 
 template<bb::alternative_of<bb::content_meta> meta_type>
-auto bb::detail::get_image_meta_bit_count(const meta_type meta) -> bool
+auto bb::detail::get_image_meta_bit_count(const meta_type& meta) -> bool
 {
    if constexpr (dual_image_type_c<meta_type>)
    {
