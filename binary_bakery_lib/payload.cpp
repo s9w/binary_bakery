@@ -30,8 +30,8 @@ namespace {
    {
       std::vector<uint8_t> file_content = get_binary_file(path);
       constexpr generic_binary meta{};
-      const int bit_count = detail::get_content_bit_count(meta, file_content);
-      return { std::move(file_content), meta, bit_count };
+      const bit_count bits = detail::get_content_bit_count(meta, file_content);
+      return { std::move(file_content), meta, bits };
    }
 
 
@@ -95,12 +95,12 @@ namespace {
       content_meta meta = get_image_meta(image);
       std::vector<uint8_t> stream = get_image_bytestream(image, meta);
 
-      const int bit_count = std::visit(
+      const bit_count bits = std::visit(
          [&](const auto& alt) {return detail::get_content_bit_count(alt, stream); },
          meta
       );
 
-      return { std::move(stream), meta, bit_count };
+      return { std::move(stream), meta, bits };
    }
 
 
@@ -145,7 +145,7 @@ auto bb::write_payload_to_file(
 ) -> void
 {
    std::vector<uint8_t> target_bytes; // TODO reserve
-   for (const uint8_t byte : meta_and_size_to_binary(pl.m_meta, pl.m_bit_count))
+   for (const uint8_t byte : meta_and_size_to_header_stream(pl.m_meta, pl.m_bit_count))
       target_bytes.emplace_back(byte);
    append_copy(target_bytes, pl.m_content_data);
 
@@ -157,7 +157,7 @@ auto bb::write_payload_to_file(
    }
    std::string content;
    // TODO think about good reserve estimate
-   const int symbol_count = get_symbol_count<uint64_t>(static_cast<int>(target_bytes.size()));
+   const int symbol_count = get_symbol_count<uint64_t>(byte_count{ target_bytes.size() });
    const uint64_t* ui64_ptr = reinterpret_cast<const uint64_t*>(target_bytes.data());
 
    const int groups_per_line = (cfg.max_columns - cfg.indentation_size) / (2 + 16 + 2);

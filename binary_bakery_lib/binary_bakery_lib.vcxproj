@@ -94,6 +94,7 @@
     <ClInclude Include="image.h" />
     <ClInclude Include="content_meta.h" />
     <ClInclude Include="tools.h" />
+    <ClInclude Include="universal.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="config.cpp" />

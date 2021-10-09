@@ -23,6 +23,6 @@ TEST_CASE("meta_to_binary")
    //   0ui8, 255ui8, 0ui8,
    //   byte_count
    //);
-   //const std::vector<uint8_t> result = meta_and_size_to_binary(payload{ {}, dual_meta }, byte_count);
+   //const std::vector<uint8_t> result = meta_and_size_to_header_stream(payload{ {}, dual_meta }, byte_count);
    //CHECK_EQ(result, expected);
 }

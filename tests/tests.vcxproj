@@ -97,6 +97,7 @@
     <ClCompile Include="content_meta_tests.cpp" />
     <ClCompile Include="tests.cpp" />
     <ClCompile Include="tools_test.cpp" />
+    <ClCompile Include="universal_tests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\binary_bakery_lib\binary_bakery_lib.vcxproj">

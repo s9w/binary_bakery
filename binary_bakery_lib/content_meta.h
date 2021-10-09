@@ -4,6 +4,7 @@
 #include <variant>
 
 #include "color.h"
+#include "universal.h"
 
 
 namespace bb {
@@ -43,6 +44,9 @@ namespace bb {
       dual_image_type<1>, dual_image_type<2>, dual_image_type<3>, dual_image_type<4>
    >;
 
-   [[nodiscard]] auto meta_and_size_to_binary(const content_meta& meta, const uint32_t data_bit_count) -> std::array<uint8_t, 24>;
+   [[nodiscard]] auto meta_and_size_to_header_stream(
+      const content_meta& meta,
+      const bit_count data_bit_count
+   ) -> std::array<uint8_t, 24>;
 
 }

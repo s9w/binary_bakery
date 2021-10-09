@@ -128,7 +128,7 @@ namespace bb::detail {
 
 
    struct div_t { int quot; int rem; };
-   constexpr auto div(const int x, const int y) -> div_t
+   [[nodiscard]] constexpr auto div(const int x, const int y) -> div_t
    {
       return {x/y, x%y};
    }

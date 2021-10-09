@@ -78,9 +78,9 @@ namespace
 } // namespace {}
 
 
-auto bb::meta_and_size_to_binary(
+auto bb::meta_and_size_to_header_stream(
    const content_meta& meta,
-   const uint32_t data_bit_count
+   const bit_count data_bit_count
 ) -> std::array<uint8_t, 24>
 {
    header_sequencer sequencer;
@@ -101,7 +101,7 @@ auto bb::meta_and_size_to_binary(
    sequencer.add<uint16_t>(0ui16);
 
    // binary bit count
-   sequencer.add<uint32_t>(data_bit_count);
+   sequencer.add<uint32_t>(data_bit_count.m_value); // TODO cast
 
    // Dimensions
    std::visit(

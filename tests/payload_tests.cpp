@@ -73,19 +73,16 @@ TEST_CASE("get_content_bit_count()")
    SUBCASE("dual dual_image_type") {
       constexpr dual_image_type<2> meta{ 3, 2, color<2>::black(), color<2>::black() };
       const std::vector<uint8_t> stream(33);
-      const int bit_count = detail::get_content_bit_count(meta, stream);
-      CHECK(bit_count == 6);
+      CHECK(detail::get_content_bit_count(meta, stream).m_value == 6);
    }
    SUBCASE("naive_image_type") {
       constexpr naive_image_type meta{ 5, 4, 2 };
       const std::vector<uint8_t> stream(33);
-      const int bit_count = detail::get_content_bit_count(meta, stream);
-      CHECK(bit_count == 33*8);
+      CHECK(detail::get_content_bit_count(meta, stream).m_value == 33*8);
    }
    SUBCASE("generic_binary") {
       constexpr generic_binary meta{};
       const std::vector<uint8_t> stream(33);
-      const int bit_count = detail::get_content_bit_count(meta, stream);
-      CHECK(bit_count == 33 * 8);
+      CHECK(detail::get_content_bit_count(meta, stream).m_value == 33 * 8);
    }
 }

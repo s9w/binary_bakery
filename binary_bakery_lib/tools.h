@@ -6,12 +6,14 @@
 #include <string>
 #include <variant>
 
+#include "universal.h"
+
 namespace bb {
 
    struct no_init {};
 
    template<typename color_type>
-   [[nodiscard]] constexpr auto get_symbol_count(const int byte_count) -> int;
+   [[nodiscard]] constexpr auto get_symbol_count(const byte_count count) -> int;
 
    template<typename T>
    concept numerical = (std::integral<T> && !std::is_same_v<T, bool>) || std::floating_point<T>;
@@ -36,14 +38,14 @@ namespace bb {
    template<typename enum_type>
    [[nodiscard]] auto get_bit_encoded(const std::vector<enum_type>& enums, const enum_type one_value) -> std::vector<uint8_t>;
 
-   template<int byte_count>
+   template<byte_count bytes>
    struct binary_sequencer {
-      std::array<uint8_t, byte_count> m_sequence;
+      std::array<uint8_t, bytes.m_value> m_sequence;
       int m_position = 0;
 
       explicit binary_sequencer() = default;
       ~binary_sequencer() {
-         const int target_position = byte_count;
+         const int target_position = bytes.m_value;
          if (m_position != target_position) {
             std::terminate();
          }
@@ -52,12 +54,7 @@ namespace bb {
       template<class T>
       auto add(const T value) -> void;
    };
-   using header_sequencer = binary_sequencer<24>;
-
-   template<typename... Ts>
-   constexpr unsigned int actual_sizeof = (0 + ... + sizeof(Ts));
-   static_assert(actual_sizeof<double, int> == 12);
-
+   using header_sequencer = binary_sequencer<byte_count{24}>;
 
    template<typename T>
    struct is_variant : std::false_type {};
@@ -90,10 +87,10 @@ namespace bb {
 
 
 template<typename color_type>
-constexpr auto bb::get_symbol_count(const int byte_count) -> int
+constexpr auto bb::get_symbol_count(const byte_count count) -> int
 {
-   const int complete_symbols = byte_count / sizeof(color_type);
-   const int leftover_bytes = byte_count % sizeof(color_type);
+   const int complete_symbols = count.m_value / sizeof(color_type);
+   const int leftover_bytes = count.m_value % sizeof(color_type);
 
    int symbol_count = complete_symbols;
    if (leftover_bytes > 0)
@@ -154,21 +151,21 @@ auto bb::get_byte_sequence(
    const Ts... value
 ) -> std::vector<uint8_t>
 {
-   const int byte_count = actual_sizeof<Ts...>;
-   binary_sequencer<byte_count> sequencer;
+   constexpr byte_count bytes = byte_sizeof<Ts...>;
+   binary_sequencer<bytes> sequencer;
    (sequencer.add(value), ...);
 
    std::vector<uint8_t> result;
-   result.reserve(byte_count);
+   result.reserve(bytes.m_value);
    for (const uint8_t byte : sequencer.m_sequence)
       result.emplace_back(byte);
    return result;
 }
 
 
-template<int byte_count>
+template<bb::byte_count bytes>
 template<class T>
-auto bb::binary_sequencer<byte_count>::add(const T value) -> void
+auto bb::binary_sequencer<bytes>::add(const T value) -> void
 {
    uint8_t* target = &m_sequence[m_position];
    std::memcpy(target, &value, sizeof(T));

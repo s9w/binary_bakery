@@ -15,13 +15,13 @@ namespace bb {
    struct payload {
       std::vector<uint8_t> m_content_data;
       content_meta m_meta;
-      int m_bit_count;
+      bit_count m_bit_count;
 
       // Making sure no one is left behind during init
-      payload(std::vector<uint8_t>&& p_content, const content_meta& p_meta, int p_bit_count)
-         : m_content_data(std::move(p_content))
-         , m_meta(p_meta)
-         , m_bit_count(p_bit_count)
+      payload(std::vector<uint8_t>&& content, const content_meta& meta, bit_count bit_count)
+         : m_content_data(std::move(content))
+         , m_meta(meta)
+         , m_bit_count(bit_count)
       {}
    };
 
@@ -44,17 +44,17 @@ namespace bb::detail
    [[nodiscard]] auto get_content_bit_count(
       const meta_type& meta,
       const std::vector<uint8_t>& stream
-   ) -> int
+   ) -> bit_count
    {
       if constexpr (dual_image_type_c<meta_type>)
       {
          const int pixel_count = meta.width * meta.height;
-         return pixel_count;
+         return bit_count{ pixel_count };
       }
       else
       {
-         const int byte_size = static_cast<int>(stream.size());
-         return 8 * byte_size;
+         const byte_count bytes{ stream.size() };
+         return bytes.get_bit_count();
       }
    }
 
