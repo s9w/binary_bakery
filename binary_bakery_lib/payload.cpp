@@ -132,7 +132,7 @@ namespace {
       const fs::path& path
    ) -> std::string
    {
-      std::string result = "stream_" + path.filename().string();
+      std::string result = "bb_" + path.filename().string();
       result = get_replaced_str(result, ".", "_");
       return result;
    }
