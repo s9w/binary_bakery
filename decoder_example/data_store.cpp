@@ -1,6 +1,6 @@
 #include "data_store.h"
 
-#include "C:\Dropbox\code\binary_inliner\input_tests\bb_collection.h"
+#include "C:\Dropbox\code\binary_inliner\input_tests\bb_payload.h"
 
 auto example::decode_to_vector(const char* name) -> std::vector<example::user_type>
 {

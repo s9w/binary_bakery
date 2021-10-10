@@ -53,7 +53,7 @@
     <ClInclude Include="test_tools.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\decoder.h">
+    <ClInclude Include="..\bb_decoder.h">
       <Filter>binary_bakery</Filter>
     </ClInclude>
   </ItemGroup>

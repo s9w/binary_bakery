@@ -106,7 +106,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\decoder.h" />
+    <ClInclude Include="..\bb_decoder.h" />
     <ClInclude Include="test_tools.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

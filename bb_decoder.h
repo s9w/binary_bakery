@@ -20,7 +20,7 @@ namespace bb {
                                // 1: Image
                                // 2: Dual-image
       uint8_t  bpp = 0;        // Number of channels [1-4]
-      uint8_t  padding0[2]{ 0, 0 }; // Padding, maybe embed version. TODO
+      uint8_t  padding0[2]{ 0, 0 }; // Padding, maybe embed version, compression? TODO
       uint32_t bit_count = 0;  // Number of bits stored
       
 
@@ -28,8 +28,8 @@ namespace bb {
       uint16_t height = 0;     // Height in pixels
       uint16_t padding1[2]{0, 0};
 
-      uint32_t color0 = 0;     // Replacement colors
-      uint32_t color1 = 0;     // Replacement colors
+      uint32_t color0 = 0;     // Replacement colors for indexed images
+      uint32_t color1 = 0;     // Replacement colors for indexed images
    };
    static_assert(sizeof(header) == 24);
 

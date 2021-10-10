@@ -1,7 +1,7 @@
 
 #define BAKERY_PROVIDE_VECTOR
 #define BAKERY_PROVIDE_STD_ARRAY
-#include <decoder.h>
+#include <bb_decoder.h>
 
 #include <compare>
 
@@ -14,7 +14,7 @@ namespace user
       auto operator<=>(const user_type&) const = default;
    };
 
-#include "..\binary_bakery/bb_collection.h"
+#include "..\binary_bakery/bb_payload.h"
 
    auto user_fun()
    {
