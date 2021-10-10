@@ -33,17 +33,10 @@ namespace bb {
    };
    static_assert(sizeof(header) == 24);
 
-   template<int array_size>
-   [[nodiscard]] constexpr auto get_header(const uint64_t(&source)[array_size]) -> header;
-
-   template<int array_size>
-   [[nodiscard]] constexpr auto is_image  (const uint64_t(&source)[array_size]) -> bool;
-
-   template<int array_size>
-   [[nodiscard]] constexpr auto get_width (const uint64_t(&source)[array_size]) -> int;
-
-   template<int array_size>
-   [[nodiscard]] constexpr auto get_height(const uint64_t(&source)[array_size]) -> int;
+   [[nodiscard]] constexpr auto get_header(const uint64_t* source) -> header;
+   [[nodiscard]] constexpr auto is_image  (const uint64_t* source) -> bool;
+   [[nodiscard]] constexpr auto get_width (const uint64_t* source) -> int;
+   [[nodiscard]] constexpr auto get_height(const uint64_t* source) -> int;
 
    // These methods provide easy access to the number of elements in the dataset. In images, that equates to the number
    // of pixels. In generic binaries, that's the number of elements of the target type.
@@ -56,11 +49,10 @@ namespace bb {
    template<typename user_type>
    [[nodiscard]] constexpr auto get_element_count(const header& head) -> int;
 
-   template<int array_size>
-   [[nodiscard]] constexpr auto get_element_count(const uint64_t(&source)[array_size]) -> int;
+   [[nodiscard]] constexpr auto get_element_count(const uint64_t* source) -> int;
 
-   template<typename user_type, int array_size>
-   [[nodiscard]] constexpr auto get_element_count(const uint64_t(&source)[array_size]) -> int;
+   template<typename user_type>
+   [[nodiscard]] constexpr auto get_element_count(const uint64_t* source) -> int;
 
 
 #ifdef    BAKERY_PROVIDE_STD_ARRAY
@@ -71,14 +63,14 @@ namespace bb {
 #endif // BAKERY_PROVIDE_STD_ARRAY
 
 #ifdef    BAKERY_PROVIDE_VECTOR
-   template<typename user_type, int source_size>
-   [[nodiscard]] auto decode_to_vector(const uint64_t(&source)[source_size]) -> std::vector<user_type>;
+   template<typename user_type>
+   [[nodiscard]] auto decode_to_vector(const uint64_t* source) -> std::vector<user_type>;
 #endif // BAKERY_PROVIDE_VECTOR
 
 
-   template<typename user_type, int source_size>
+   template<typename user_type>
    auto decode_into_pointer(
-      const uint64_t(&source)[source_size],
+      const uint64_t* source,
       user_type* dst
    ) -> void;
 
@@ -177,9 +169,8 @@ constexpr auto bb::detail::better_array<T, size>::operator[](
 }
 
 
-template<int array_size>
 constexpr auto bb::get_header(
-   const uint64_t(&source)[array_size]
+   const uint64_t* source
 ) -> header
 {
    header result;
@@ -215,9 +206,8 @@ constexpr auto bb::get_header(
 }
 
 
-template<int array_size>
 constexpr auto bb::is_image(
-   const uint64_t(&source)[array_size]
+   const uint64_t* source
 ) -> bool
 {
    const auto temp0 = std::bit_cast<detail::better_array<uint8_t, 8>>(source[0]);
@@ -226,9 +216,8 @@ constexpr auto bb::is_image(
 }
 
 
-template<int array_size>
 constexpr auto bb::get_width(
-   const uint64_t(&source)[array_size]
+   const uint64_t* source
 ) -> int
 {
    if (is_image(source) == false)
@@ -240,9 +229,8 @@ constexpr auto bb::get_width(
 }
 
 
-template<int array_size>
 constexpr auto bb::get_height(
-   const uint64_t(&source)[array_size]
+   const uint64_t* source
 ) -> int
 {
    if (is_image(source) == false)
@@ -288,9 +276,9 @@ constexpr auto bb::decode_to_array(
 
 
 #ifdef BAKERY_PROVIDE_VECTOR
-template<typename user_type, int source_size>
+template<typename user_type>
 auto bb::decode_to_vector(
-   const uint64_t(&source)[source_size]
+   const uint64_t* source
 ) -> std::vector<user_type>
 {
    const header head = bb::get_header(source);
@@ -314,9 +302,9 @@ auto bb::decode_to_vector(
 #endif // BAKERY_PROVIDE_VECTOR
 
 
-template<typename user_type, int source_size>
+template<typename user_type>
 auto bb::decode_into_pointer(
-   const uint64_t(&source)[source_size],
+   const uint64_t* source,
    user_type* dst
 ) -> void
 {
@@ -372,9 +360,9 @@ constexpr auto bb::get_element_count(
 }
 
 
-template<typename user_type, int array_size>
+template<typename user_type>
 constexpr auto bb::get_element_count(
-   const uint64_t(&source)[array_size]
+   const uint64_t* source
 ) -> int
 {
    const header head = bb::get_header(source);
@@ -382,9 +370,8 @@ constexpr auto bb::get_element_count(
 }
 
 
-template<int array_size>
 constexpr auto bb::get_element_count(
-   const uint64_t(&source)[array_size]
+   const uint64_t* source
 ) -> int
 {
    const header head = bb::get_header(source);
