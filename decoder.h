@@ -33,9 +33,13 @@ namespace bb {
    };
    static_assert(sizeof(header) == 24);
 
+   [[nodiscard]] constexpr auto get_header(const char* name) -> header;
    [[nodiscard]] constexpr auto get_header(const uint64_t* source) -> header;
+   [[nodiscard]] constexpr auto is_image  (const char* name) -> bool;
    [[nodiscard]] constexpr auto is_image  (const uint64_t* source) -> bool;
+   [[nodiscard]] constexpr auto get_width (const char* name) -> int;
    [[nodiscard]] constexpr auto get_width (const uint64_t* source) -> int;
+   [[nodiscard]] constexpr auto get_height(const char* name) -> int;
    [[nodiscard]] constexpr auto get_height(const uint64_t* source) -> int;
 
    // These methods provide easy access to the number of elements in the dataset. In images, that equates to the number
@@ -44,18 +48,23 @@ namespace bb {
    // dataset is an image, otherwise the target type has to be provided as template parameter. Throws if that
    // assumption is violated.
    // Every function is constexpr.
-   [[nodiscard]] constexpr auto get_element_count(const header& head) -> int;
+   
 
    template<typename user_type>
-   [[nodiscard]] constexpr auto get_element_count(const header& head) -> int;
-
-   [[nodiscard]] constexpr auto get_element_count(const uint64_t* source) -> int;
-
+   [[nodiscard]] constexpr auto get_element_count(const char* name) -> int;
+   [[nodiscard]] constexpr auto get_element_count(const char* name) -> int;
+   
    template<typename user_type>
    [[nodiscard]] constexpr auto get_element_count(const uint64_t* source) -> int;
+   [[nodiscard]] constexpr auto get_element_count(const uint64_t* source) -> int;
+
+
 
 
 #ifdef    BAKERY_PROVIDE_STD_ARRAY
+   // Returns an std::array of provided type. This is constexpr. Warning: Arrays allocate the
+   // memory on the stack. This will quickly be exhausted and is often limited to as little as 1MB.
+   // Don't use this interface unless you know what you're doing.
    template<typename user_type, header head, int array_size, int element_count = get_element_count<user_type>(head)>
    [[nodiscard]] constexpr auto decode_to_array(
       const uint64_t(&source)[array_size]
@@ -63,16 +72,21 @@ namespace bb {
 #endif // BAKERY_PROVIDE_STD_ARRAY
 
 #ifdef    BAKERY_PROVIDE_VECTOR
+   // Returns an std::vector of provided type.
    template<typename user_type>
    [[nodiscard]] auto decode_to_vector(const uint64_t* source) -> std::vector<user_type>;
+   template<typename user_type>
+   [[nodiscard]] auto decode_to_vector(const char* name) -> std::vector<user_type>;
 #endif // BAKERY_PROVIDE_VECTOR
 
-
+   // This writes into an arbitrary container-pointer. No memory management - needs to be allocated!
    template<typename user_type>
-   auto decode_into_pointer(
-      const uint64_t* source,
-      user_type* dst
-   ) -> void;
+   auto decode_into_pointer(const uint64_t* source, user_type* dst) -> void;
+   template<typename user_type>
+   auto decode_into_pointer(const char* name, user_type* dst) -> void;
+
+   // This is defined in the payload header
+   [[nodiscard]] constexpr auto get(const char* name) -> const uint64_t*;
 
 } // namespace bb
 
@@ -156,6 +170,10 @@ namespace bb::detail {
          ++byte_count;
       return byte_count;
    }
+
+   template<typename user_type>
+   [[nodiscard]] constexpr auto get_element_count(const header& head) -> int;
+   [[nodiscard]] constexpr auto get_element_count(const header& head) -> int;
    
 } // namespace bb::detail
 
@@ -206,6 +224,14 @@ constexpr auto bb::get_header(
 }
 
 
+constexpr auto bb::get_header(
+   const char* name
+) -> header
+{
+   return get_header(get(name));
+}
+
+
 constexpr auto bb::is_image(
    const uint64_t* source
 ) -> bool
@@ -213,6 +239,13 @@ constexpr auto bb::is_image(
    const auto temp0 = std::bit_cast<detail::better_array<uint8_t, 8>>(source[0]);
    const uint8_t type = temp0[0];
    return type == 1 || type == 2;
+}
+
+constexpr auto bb::is_image(
+   const char* name
+) -> bool
+{
+   return is_image(get(name));
 }
 
 
@@ -229,6 +262,14 @@ constexpr auto bb::get_width(
 }
 
 
+constexpr auto bb::get_width(
+   const char* name
+) -> int
+{
+   return get_width(get(name));
+}
+
+
 constexpr auto bb::get_height(
    const uint64_t* source
 ) -> int
@@ -239,6 +280,14 @@ constexpr auto bb::get_height(
    }
    const auto temp = std::bit_cast<detail::better_array<uint16_t, 4>>(source[1]);
    return temp[1];
+}
+
+
+constexpr auto bb::get_height(
+   const char* name
+) -> int
+{
+   return get_height(get(name));
 }
 
 
@@ -282,7 +331,7 @@ auto bb::decode_to_vector(
 ) -> std::vector<user_type>
 {
    const header head = bb::get_header(source);
-   const int element_count = get_element_count<user_type>(head);
+   const int element_count = detail::get_element_count<user_type>(head);
    const int byte_count = element_count * sizeof(user_type);
 
    std::vector<user_type> result(element_count);
@@ -298,6 +347,12 @@ auto bb::decode_to_vector(
       std::memcpy(result.data(), data_start_ptr, byte_count);
    }
    return result;
+}
+
+template<typename user_type>
+auto bb::decode_to_vector(const char* name) -> std::vector<user_type>
+{
+   return decode_to_vector<user_type>(get(name));
 }
 #endif // BAKERY_PROVIDE_VECTOR
 
@@ -326,24 +381,52 @@ auto bb::decode_into_pointer(
 }
 
 
+template<typename user_type>
+auto bb::decode_into_pointer(
+   const char* name,
+   user_type* dst
+) -> void
+{
+   return decode_into_pointer<user_type>(get(name), dst);
+}
+
+
 constexpr auto bb::get_element_count(
-   const header& head
+   const char* name
 ) -> int
 {
-   if (head.type == 0)
-   {
-      throw "Can't be used on non-image payloads without a type.";
-   }
-   else
-   {
-      const int pixel_count = head.width * head.height;
-      return pixel_count;
-   }
+   return detail::get_element_count(get_header(get(name)));
 }
 
 
 template<typename user_type>
 constexpr auto bb::get_element_count(
+   const char* name
+) -> int
+{
+   return detail::get_element_count<user_type>(get_header(get(name)));
+}
+
+
+template<typename user_type>
+constexpr auto bb::get_element_count(
+   const uint64_t* source
+) -> int
+{
+   return detail::get_element_count<user_type>(get_header(source));
+}
+
+
+constexpr auto bb::get_element_count(
+   const uint64_t* source
+) -> int
+{
+   return detail::get_element_count(get_header(source));
+}
+
+
+template<typename user_type>
+constexpr auto bb::detail::get_element_count(
    const header& head
 ) -> int
 {
@@ -360,20 +443,17 @@ constexpr auto bb::get_element_count(
 }
 
 
-template<typename user_type>
-constexpr auto bb::get_element_count(
-   const uint64_t* source
+constexpr auto bb::detail::get_element_count(
+   const header& head
 ) -> int
 {
-   const header head = bb::get_header(source);
-   return get_element_count<user_type>(head);
-}
-
-
-constexpr auto bb::get_element_count(
-   const uint64_t* source
-) -> int
-{
-   const header head = bb::get_header(source);
-   return get_element_count(head);
+   if (head.type == 0)
+   {
+      throw "Can't be used on non-image payloads without a type.";
+   }
+   else
+   {
+      const int pixel_count = head.width * head.height;
+      return pixel_count;
+   }
 }
