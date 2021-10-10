@@ -91,7 +91,6 @@
   <ItemGroup>
     <ClCompile Include="byte_sequencer_tests.cpp" />
     <ClCompile Include="color_tests.cpp" />
-    <ClCompile Include="decoder.cpp" />
     <ClCompile Include="dual_image_tools_tests.cpp" />
     <ClCompile Include="payload_tests.cpp" />
     <ClCompile Include="file_tools_tests.cpp" />
@@ -106,7 +105,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\bb_decoder.h" />
+    <ClInclude Include="..\binary_bakery_decoder.h" />
     <ClInclude Include="test_tools.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

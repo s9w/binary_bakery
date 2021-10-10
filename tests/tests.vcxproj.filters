@@ -36,9 +36,6 @@
     <ClCompile Include="content_meta_tests.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="decoder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="tools_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -53,7 +50,7 @@
     <ClInclude Include="test_tools.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\bb_decoder.h">
+    <ClInclude Include="..\binary_bakery_decoder.h">
       <Filter>binary_bakery</Filter>
     </ClInclude>
   </ItemGroup>

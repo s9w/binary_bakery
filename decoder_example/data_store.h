@@ -6,7 +6,7 @@
 
 #define BAKERY_PROVIDE_VECTOR
 #define BAKERY_PROVIDE_STD_ARRAY
-#include "../bb_decoder.h"
+#include "../binary_bakery_decoder.h"
 
 namespace example {
    struct user_type {
