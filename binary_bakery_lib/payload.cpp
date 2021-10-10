@@ -155,6 +155,7 @@ auto bb::write_payload_to_file(
    payload&& pl
 ) -> void
 {
+   const std::string variable_name = get_variable_name(pl.m_name);
    const auto data_source = detail::get_final_bytestream(std::move(pl));
 
    std::ofstream filestream(cfg.group_header_name, std::ios::out);
@@ -166,15 +167,18 @@ auto bb::write_payload_to_file(
 
    std::string content;
    const int symbol_count = get_symbol_count<uint64_t>(byte_count{ data_source.size() });
+   content.reserve(symbol_count*21);
+   
    const uint64_t* ui64_ptr = reinterpret_cast<const uint64_t*>(data_source.data());
 
-   const int groups_per_line = (cfg.max_columns - cfg.indentation_size) / (2 + 16 + 2);
+   constexpr auto chunk_len = std::char_traits<char>::length("0x3f3ffc3f3ffc3f3f, ");
+   const int groups_per_line = (cfg.max_columns - cfg.indentation_size) / chunk_len;
    int in_line_count = 0;
    const std::string indentation_str(cfg.indentation_size, ' ');
    for (int i = 0; i < symbol_count; ++i)
    {
       const bool is_last = i == (symbol_count - 1);
-      write_ui64_str(ui64_ptr[i], content);
+      append_ui64_str(ui64_ptr[i], content);
       if (is_last == false)
       {
          content += ", ";
@@ -188,13 +192,12 @@ auto bb::write_payload_to_file(
       }
    }
 
-   filestream << "constexpr uint64_t";
-   filestream << get_variable_name(pl.m_name);
+   filestream << "constexpr uint64_t ";
+   filestream << variable_name;
    filestream << "[]{\n";
    filestream << indentation_str;
    filestream << content;
    filestream << "\n};\n";
-   //filestream << std::format("constexpr uint64_t {0}[]{{\n{1}{2}\n}};\n", get_variable_name(pl.m_name), indentation_str, content);
 }
 
 

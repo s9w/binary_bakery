@@ -28,7 +28,7 @@ auto bb::get_replaced_str(
 }
 
 
-auto bb::write_ui64_str(
+auto bb::append_ui64_str(
    const uint64_t value,
    std::string& target
 ) -> void

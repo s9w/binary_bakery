@@ -12,7 +12,12 @@ using namespace bb;
 
 namespace
 {
-
+   auto get_ui64_str(const uint64_t value) -> std::string
+   {
+      std::string result;
+      append_ui64_str(value, result);
+      return result;
+   }
 }
 
 

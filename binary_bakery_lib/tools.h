@@ -21,7 +21,7 @@ namespace bb {
    template <class T>
    auto append_moved(std::vector<T>& dst, std::vector<T>& src) -> void;
 
-   [[nodiscard]] auto write_ui64_str(const uint64_t value, std::string& target) -> void;
+   auto append_ui64_str(const uint64_t value, std::string& target) -> void;
 
    template<typename enum_type>
    [[nodiscard]] auto get_bit_encoded(const std::vector<enum_type>& enums, const enum_type one_value) -> std::vector<uint8_t>;
