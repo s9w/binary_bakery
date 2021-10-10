@@ -158,54 +158,68 @@ auto bb::get_payload(const fs::path& path) -> payload
 }
 
 
-auto bb::write_payload_to_file(
+auto bb::write_payloads_to_file(
    const config& cfg,
-   payload&& pl
+   std::vector<payload>&& payloads
 ) -> void
 {
-   const std::string variable_name = get_variable_name(pl.m_path);
-   const auto data_source = detail::get_final_bytestream(std::move(pl));
+   if (payloads.empty())
+      return;
 
-   std::ofstream filestream(get_target_path(pl.m_path, cfg.group_header_name), std::ios::out);
+   std::vector<std::string> payload_strings;
+   for (payload& pl : payloads) {
+
+      const std::string variable_name = get_variable_name(pl.m_path);
+      const auto data_source = detail::get_final_bytestream(std::move(pl));
+
+      std::string content;
+      const int symbol_count = get_symbol_count<uint64_t>(byte_count{ data_source.size() });
+      content.reserve(symbol_count * 21);
+
+      const uint64_t* ui64_ptr = reinterpret_cast<const uint64_t*>(data_source.data());
+
+      constexpr auto chunk_len = std::char_traits<char>::length("0x3f3ffc3f3ffc3f3f, ");
+      const int groups_per_line = (cfg.max_columns - cfg.indentation_size) / chunk_len;
+      int in_line_count = 0;
+      const std::string indentation_str(cfg.indentation_size, ' ');
+      for (int i = 0; i < symbol_count; ++i)
+      {
+         const bool is_last = i == (symbol_count - 1);
+         append_ui64_str(ui64_ptr[i], content);
+         if (is_last == false)
+         {
+            content += ", ";
+         }
+         ++in_line_count;
+         if (in_line_count == groups_per_line && is_last == false)
+         {
+            content += "\n";
+            content += indentation_str;
+            in_line_count = 0;
+         }
+      }
+
+      std::string payload_str;
+      payload_str += "constexpr uint64_t ";
+      payload_str += variable_name;
+      payload_str += "[]{\n";
+      payload_str += indentation_str;
+      payload_str += content;
+      payload_str += "\n};\n";
+      payload_strings.emplace_back(std::move(payload_str));
+   }
+
+   std::ofstream filestream(get_target_path(payloads[0].m_path, cfg.group_header_name), std::ios::out);
    if (!filestream.good())
    {
       std::cout << std::format("Couldn't open {} for writing\n", cfg.group_header_name);
       return;
    }
 
-   std::string content;
-   const int symbol_count = get_symbol_count<uint64_t>(byte_count{ data_source.size() });
-   content.reserve(symbol_count*21);
-   
-   const uint64_t* ui64_ptr = reinterpret_cast<const uint64_t*>(data_source.data());
-
-   constexpr auto chunk_len = std::char_traits<char>::length("0x3f3ffc3f3ffc3f3f, ");
-   const int groups_per_line = (cfg.max_columns - cfg.indentation_size) / chunk_len;
-   int in_line_count = 0;
-   const std::string indentation_str(cfg.indentation_size, ' ');
-   for (int i = 0; i < symbol_count; ++i)
+   for(std::string& payload_string : payload_strings)
    {
-      const bool is_last = i == (symbol_count - 1);
-      append_ui64_str(ui64_ptr[i], content);
-      if (is_last == false)
-      {
-         content += ", ";
-      }
-      ++in_line_count;
-      if(in_line_count == groups_per_line && is_last == false)
-      {
-         content += "\n";
-         content += indentation_str;
-         in_line_count = 0;
-      }
+      filestream << payload_string;
    }
-
-   filestream << "constexpr uint64_t ";
-   filestream << variable_name;
-   filestream << "[]{\n";
-   filestream << indentation_str;
-   filestream << content;
-   filestream << "\n};\n";
 }
 
 

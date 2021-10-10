@@ -35,9 +35,9 @@ namespace bb {
    // TODO maybe make this optional and deal with exception from file opening, parsing errors etc
    [[nodiscard]] auto get_payload(const fs::path& path) -> payload;
 
-   auto write_payload_to_file(
+   auto write_payloads_to_file(
       const config& cfg,
-      payload&& pl
+      std::vector<payload>&& payloads
    ) -> void;
 }
 
