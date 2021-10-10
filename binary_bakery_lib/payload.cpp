@@ -146,6 +146,49 @@ namespace {
       return input_path.parent_path() / group_header_name;
    }
 
+
+   auto write_string_compare_fun(
+      std::ofstream& out
+   ) -> void
+   {
+      out << R"([[nodiscard]] constexpr auto is_equal_c_string(
+   char const* first,
+   char const* second
+) -> bool
+{
+   return *first == *second &&
+      (*first == '\0' || is_equal_c_string(&first[1], &second[1]));
+}
+)";
+   }
+
+
+   auto write_bb_get_fun(
+      std::ofstream& out,
+      const std::vector<payload>& payloads
+   ) -> void
+   {
+      out << R"([[nodiscard]] constexpr auto get(
+   const char* name
+) -> const uint64_t*
+{
+)";
+      bool first = true;
+      for (const payload& pl : payloads)
+      {
+         const std::string conditional_keyword = first ? "if" : "else if";
+         out << std::format(
+            "   {}(is_equal_c_string(name, \"{}\"))\n      return {};\n",
+            conditional_keyword, pl.m_path.filename().string(), get_variable_name(pl.m_path)
+         );
+         first = false;
+      }
+      out << R"(   else
+      return nullptr;
+}
+)";
+   }
+
 } // namespace {}
 
 
@@ -167,10 +210,9 @@ auto bb::write_payloads_to_file(
       return;
 
    std::vector<std::string> payload_strings;
-   for (payload& pl : payloads) {
-
-      const std::string variable_name = get_variable_name(pl.m_path);
-      const auto data_source = detail::get_final_bytestream(std::move(pl));
+   for (payload& pl : payloads)
+   {
+      const auto data_source = detail::get_final_bytestream(pl);
 
       std::string content;
       const int symbol_count = get_symbol_count<uint64_t>(byte_count{ data_source.size() });
@@ -201,7 +243,7 @@ auto bb::write_payloads_to_file(
 
       std::string payload_str;
       payload_str += "constexpr uint64_t ";
-      payload_str += variable_name;
+      payload_str += get_variable_name(pl.m_path);
       payload_str += "[]{\n";
       payload_str += indentation_str;
       payload_str += content;
@@ -216,14 +258,21 @@ auto bb::write_payloads_to_file(
       return;
    }
 
+   filestream << "namespace bb{\n";
    for(std::string& payload_string : payload_strings)
    {
       filestream << payload_string;
    }
+
+   filestream << '\n';
+   write_string_compare_fun(filestream);
+   filestream << '\n';
+   write_bb_get_fun(filestream, payloads);
+   filestream << "\n} // namespace bb\n";
 }
 
 
-auto detail::get_final_bytestream(payload&& pl) -> std::vector<uint8_t>
+auto detail::get_final_bytestream(payload& pl) -> std::vector<uint8_t>
 {
    std::vector<uint8_t> result(24);
    result.reserve(24 + pl.m_content_data.size());

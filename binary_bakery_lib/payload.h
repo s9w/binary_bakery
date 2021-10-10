@@ -44,7 +44,7 @@ namespace bb {
 
 namespace bb::detail
 {
-   [[nodiscard]] auto get_final_bytestream(payload&& pl) -> std::vector<uint8_t>;
+   [[nodiscard]] auto get_final_bytestream(payload& pl) -> std::vector<uint8_t>;
 
    template<alternative_of<content_meta> meta_type>
    [[nodiscard]] auto get_content_bit_count(
