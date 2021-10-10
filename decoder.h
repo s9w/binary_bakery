@@ -85,7 +85,7 @@ namespace bb {
    template<typename user_type>
    auto decode_into_pointer(const char* name, user_type* dst) -> void;
 
-   // This is defined in the payload header
+   // This is defined in the payload header. Returns nullptr if the name isn't in the dataset.
    [[nodiscard]] constexpr auto get(const char* name) -> const uint64_t*;
 
 } // namespace bb
