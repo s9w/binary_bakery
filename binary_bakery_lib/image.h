@@ -13,8 +13,6 @@ namespace fs = std::filesystem;
 #include "tools.h"
 #include "content_meta.h"
 
-#include <stb/stb_image.h>
-
 namespace bb
 {
 
@@ -118,27 +116,6 @@ namespace bb::detail
          throw std::runtime_error("Color doesn't belong to pair. This shouldn't happen.");
       }
    }
-}
-
-
-template<int bpp>
-auto bb::get_image(const fs::path& path) -> image<bpp>
-{
-   stbi_set_flip_vertically_on_load(true);
-   int width, height, components;
-   unsigned char* data = stbi_load(path.string().c_str(), &width, &height, &components, 0);
-   if (data == nullptr) {
-      const std::string msg = std::format("Couldn't open file {}", path.string());
-      throw std::runtime_error(msg);
-   }
-   if (components != bpp) {
-      const std::string msg = std::format("wrong bpp count. Expected {}, got {}", bpp, components);
-      throw std::runtime_error(msg);
-   }
-
-   const image<bpp> result{ width, height, data };
-   stbi_image_free(data);
-   return result;
 }
 
 

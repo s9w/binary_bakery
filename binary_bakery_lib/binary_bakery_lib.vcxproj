@@ -99,6 +99,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="config.cpp" />
+    <ClCompile Include="image.cpp" />
     <ClCompile Include="payload.cpp" />
     <ClCompile Include="file_tools.cpp" />
     <ClCompile Include="implementations.cpp" />
