@@ -19,14 +19,14 @@ namespace bb {
       std::vector<uint8_t> m_content_data;
       content_meta m_meta;
       bit_count m_bit_count;
-      std::string m_name;
+      fs::path m_path;
 
       // Making sure no one is left behind during init
-      payload(std::vector<uint8_t>&& content, const content_meta& meta, const bit_count& bit_count, std::string name)
+      payload(std::vector<uint8_t>&& content, const content_meta& meta, const bit_count& bit_count, const fs::path& path)
          : m_content_data(std::move(content))
          , m_meta(meta)
          , m_bit_count(bit_count)
-         , m_name(std::move(name))
+         , m_path(path)
       {
          
       }

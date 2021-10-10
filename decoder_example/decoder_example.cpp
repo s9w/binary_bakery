@@ -13,15 +13,15 @@ struct user_type {
 
 int main()
 {
-   constexpr bb::header decoded_header = bb::get_header(stress_test_png);
+   //constexpr bb::header decoded_header = bb::get_header(stress_test_png);
 
-   printf("data size: %iKB\n", decoded_header.bit_count/8/1024);
+   //printf("data size: %iKB\n", decoded_header.bit_count/8/1024);
 
    //const auto decoded_array = bb::decode_to_array<user_type, decoded_header>(stress_test_png);
    //constexpr auto decoded_array = bb::decode_to_array<user_type, decoded_header>(stress_test_png);
    //printf("%i\n", decoded_array[0].r);
 
-   const std::vector<user_type> vec = bb::decode_to_vector<user_type>(stress_test_png);
+   //const std::vector<user_type> vec = bb::decode_to_vector<user_type>(stress_test_png);
    //printf("%i bytes\n", vec.size());
    
 

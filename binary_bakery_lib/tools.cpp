@@ -1,5 +1,9 @@
 #include "tools.h"
 
+#include <format>
+
+#include <stb/stb_image.h>
+
 
 auto bb::get_replaced_str(
    const std::string& source,
@@ -44,4 +48,37 @@ auto bb::append_ui64_str(
       else
          target += static_cast<char>('a' + part - 10);
    }
+}
+
+
+auto bb::get_human_readable_size(byte_count bytes) -> std::string
+{
+   const double kb = bytes.m_value / 1024.0;
+   const double mb = bytes.m_value / (1024.0 * 1024.0);
+   if(mb >= 1.0)
+   {
+      return std::format("{:.2f} MB", mb);
+   }
+   else if(kb >= 1.0)
+   {
+      return std::format("{:.2f} KB", kb);
+   }
+   else
+   {
+      return std::format("{} bytes", bytes.m_value);
+   }
+}
+
+
+[[nodiscard]] auto bb::get_file_memory_footprint(
+   const fs::path& path
+) -> byte_count
+{
+   int x, y, n;
+   const int ok = stbi_info(path.string().c_str(), &x, &y, &n);
+   if (ok == 1)
+   {
+      return byte_count{ x * y * n };
+   }
+   return byte_count{ fs::file_size(path) };
 }

@@ -90,7 +90,7 @@ namespace {
       const int width,
       const int height,
       const unsigned char* image_data_ptr,
-      const std::string& name
+      const fs::path& path
    ) -> payload
    {
       const image<bpp> image{ width, height, image_data_ptr };
@@ -102,25 +102,24 @@ namespace {
          meta
       );
 
-      return { std::move(stream), meta, bits, name };
+      return { std::move(stream), meta, bits, path };
    }
 
 
    [[nodiscard]] auto get_image_payload(const fs::path& path) -> payload
    {
       const stbi_loader loader(path);
-      const std::string name = path.filename().string();
 
       return [&]() {
          switch (loader.m_components) {
          case 1:
-            return get_image_payload_impl<1>(loader.m_width, loader.m_height, loader.m_data, name);
+            return get_image_payload_impl<1>(loader.m_width, loader.m_height, loader.m_data, path);
          case 2:
-            return get_image_payload_impl<2>(loader.m_width, loader.m_height, loader.m_data, name);
+            return get_image_payload_impl<2>(loader.m_width, loader.m_height, loader.m_data, path);
          case 3:
-            return get_image_payload_impl<3>(loader.m_width, loader.m_height, loader.m_data, name);
+            return get_image_payload_impl<3>(loader.m_width, loader.m_height, loader.m_data, path);
          case 4:
-            return get_image_payload_impl<4>(loader.m_width, loader.m_height, loader.m_data, name);
+            return get_image_payload_impl<4>(loader.m_width, loader.m_height, loader.m_data, path);
          default:
             std::cout << "unexpected\n";
             std::terminate();
@@ -130,12 +129,21 @@ namespace {
 
 
    auto get_variable_name(
-      const std::string& filename
+      const fs::path& path
    ) -> std::string
    {
-      std::string result = filename;
+      std::string result = "stream_" + path.filename().string();
       result = get_replaced_str(result, ".", "_");
       return result;
+   }
+
+
+   [[nodiscard]] auto get_target_path(
+      const fs::path& input_path,
+      const std::string& group_header_name
+   ) -> fs::path
+   {
+      return input_path.parent_path() / group_header_name;
    }
 
 } // namespace {}
@@ -155,10 +163,10 @@ auto bb::write_payload_to_file(
    payload&& pl
 ) -> void
 {
-   const std::string variable_name = get_variable_name(pl.m_name);
+   const std::string variable_name = get_variable_name(pl.m_path);
    const auto data_source = detail::get_final_bytestream(std::move(pl));
 
-   std::ofstream filestream(cfg.group_header_name, std::ios::out);
+   std::ofstream filestream(get_target_path(pl.m_path, cfg.group_header_name), std::ios::out);
    if (!filestream.good())
    {
       std::cout << std::format("Couldn't open {} for writing\n", cfg.group_header_name);
@@ -209,7 +217,7 @@ auto detail::get_final_bytestream(payload&& pl) -> std::vector<uint8_t>
    const std::array<uint8_t, 24> header_stream = meta_and_size_to_header_stream(pl.m_meta, pl.m_bit_count);
    std::copy(header_stream.begin(), header_stream.end(), result.data());
 
-   append_moved(result, pl.m_content_data);
+   append_moved(result, std::move(pl.m_content_data));
 
    return result;
 }

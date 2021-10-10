@@ -49,3 +49,11 @@ TEST_CASE("get_bit_encoded()")
       CHECK_EQ(encoded, expectation);
    }
 }
+
+
+TEST_CASE("get_human_readable_size")
+{
+   CHECK_EQ(get_human_readable_size(byte_count{ 1024 * 1024 }), "1.00 MB");
+   CHECK_EQ(get_human_readable_size(byte_count{ 1024 }), "1.00 KB");
+   CHECK_EQ(get_human_readable_size(byte_count{ 1000 }), "1000 bytes");
+}

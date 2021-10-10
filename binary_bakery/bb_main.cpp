@@ -19,8 +19,8 @@ namespace bb {
          const double ms = us / 1000.0;
          printf("time: %fms\n", ms);
       }
-
    };
+
 
    auto run(
       int argc,
@@ -30,12 +30,22 @@ namespace bb {
       const fs::path path = R"(C:/Dropbox/code/binary_inliner/x64/Debug/binary_bakery.toml)";
       const auto config = read_config_from_toml(path);
 
-      // TODO Check if params are valid files
       for (int i = 0; i < argc; ++i)
       {
-         std::cout << std::format("{}: {}\n", i, argv[i]);
          if (i >= 1)
          {
+            if(std::filesystem::exists(argv[i]) == false)
+            {
+               std::cout << std::format("File doesn't exist: {} -> skipping.\n", argv[i]);
+               continue;
+            }
+            const byte_count file_size{ fs::file_size(argv[i]) };
+            std::cout << std::format(
+               "Packing file {}. File size: {}, memory footprint: {}.\n",
+               argv[i],
+               get_human_readable_size(file_size),
+               get_human_readable_size(get_file_memory_footprint(argv[i]))
+            );
             timer t;
             auto payload = get_payload(argv[i]);
             write_payload_to_file(config, std::move(payload));
