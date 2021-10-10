@@ -192,6 +192,8 @@ constexpr auto bb::get_header(
 ) -> header
 {
    header result;
+   if (source == nullptr)
+      return result;
 
    {
       struct front_decoder {
@@ -236,6 +238,8 @@ constexpr auto bb::is_image(
    const uint64_t* source
 ) -> bool
 {
+   if (source == nullptr)
+      return false;
    const auto temp0 = std::bit_cast<detail::better_array<uint8_t, 8>>(source[0]);
    const uint8_t type = temp0[0];
    return type == 1 || type == 2;
@@ -253,6 +257,8 @@ constexpr auto bb::get_width(
    const uint64_t* source
 ) -> int
 {
+   if (source == nullptr)
+      return 0;
    if (is_image(source) == false)
    {
       return -1;
@@ -274,6 +280,8 @@ constexpr auto bb::get_height(
    const uint64_t* source
 ) -> int
 {
+   if (source == nullptr)
+      return 0;
    if (is_image(source) == false)
    {
       return -1;
@@ -330,6 +338,9 @@ auto bb::decode_to_vector(
    const uint64_t* source
 ) -> std::vector<user_type>
 {
+   if (source == nullptr)
+      return {};
+
    const header head = bb::get_header(source);
    const int element_count = detail::get_element_count<user_type>(head);
    const int byte_count = element_count * sizeof(user_type);
@@ -363,6 +374,8 @@ auto bb::decode_into_pointer(
    user_type* dst
 ) -> void
 {
+   if (source == nullptr || dst == nullptr)
+      return;
    const header head = bb::get_header(source);
    const int element_count = get_element_count<user_type>(head);
    const int byte_count = element_count * sizeof(user_type);
@@ -395,7 +408,10 @@ constexpr auto bb::get_element_count(
    const char* name
 ) -> int
 {
-   return detail::get_element_count(get_header(get(name)));
+   const uint64_t* source = get(name);
+   if (source == nullptr)
+      return 0;
+   return detail::get_element_count(get_header(source));
 }
 
 
@@ -404,7 +420,10 @@ constexpr auto bb::get_element_count(
    const char* name
 ) -> int
 {
-   return detail::get_element_count<user_type>(get_header(get(name)));
+   const uint64_t* source = get(name);
+   if (source == nullptr)
+      return 0;
+   return detail::get_element_count<user_type>(get_header(source));
 }
 
 
@@ -413,6 +432,8 @@ constexpr auto bb::get_element_count(
    const uint64_t* source
 ) -> int
 {
+   if (source == nullptr)
+      return 0;
    return detail::get_element_count<user_type>(get_header(source));
 }
 
@@ -421,6 +442,8 @@ constexpr auto bb::get_element_count(
    const uint64_t* source
 ) -> int
 {
+   if (source == nullptr)
+      return 0;
    return detail::get_element_count(get_header(source));
 }
 
