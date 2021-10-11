@@ -17,7 +17,6 @@
 namespace bb {
 
    struct header {
-      // TODO these could be packed together
       uint8_t  type = 0;        // 0: Generic binary
                                 // 1: Image
       
@@ -26,14 +25,14 @@ namespace bb {
                                 // 1: zstd
       uint8_t  version = 0;     // Version of the payload format. If everything goes well, this stays at 0.
       uint8_t  bpp = 0;         // For images: Number of channels [1-4]
-      uint16_t width = 0;       // For images: Width in pixels
-      uint16_t height = 0;      // For images: Height in pixels
+      uint16_t width = 0;       // For images: Width in pixels [0-65535]
+      uint16_t height = 0;      // For images: Height in pixels [0-65535]
       
-      
-      // word border
+      // Word border
 
-      uint32_t decompressed_size = 0; // Size of the actual data stream (without this header)
+      uint32_t decompressed_size = 0; // Size of the data stream (without this header)
       uint32_t compressed_size   = 0; // Without compression, this is equal to the uncompressed_size
+                                      // range: [0-4096 MB]
    };
    static_assert(sizeof(header) == 16);
 
@@ -207,7 +206,7 @@ constexpr auto bb::get_header(
    const char* name
 ) -> header
 {
-   return get_header(get(name));
+   return get_header(bb::get(name));
 }
 
 
@@ -226,7 +225,7 @@ constexpr auto bb::is_image(
    const char* name
 ) -> bool
 {
-   return is_image(get(name));
+   return is_image(bb::get(name));
 }
 
 
@@ -249,7 +248,7 @@ constexpr auto bb::get_width(
    const char* name
 ) -> int
 {
-   return get_width(get(name));
+   return get_width(bb::get(name));
 }
 
 
@@ -272,7 +271,7 @@ constexpr auto bb::get_height(
    const char* name
 ) -> int
 {
-   return get_height(get(name));
+   return get_height(bb::get(name));
 }
 
 
@@ -322,13 +321,14 @@ auto bb::decode_to_vector(
    return result;
 }
 
+
 template<typename user_type>
 auto bb::decode_to_vector(
    const char* name,
    decompression_fun_type decomp_fun
 ) -> std::vector<user_type>
 {
-   return decode_to_vector<user_type>(get(name), decomp_fun);
+   return decode_to_vector<user_type>(bb::get(name), decomp_fun);
 }
 #endif // BAKERY_PROVIDE_VECTOR
 
@@ -358,7 +358,7 @@ auto bb::decode_into_pointer(
    user_type* dst
 ) -> void
 {
-   return decode_into_pointer<user_type>(get(name), dst);
+   return decode_into_pointer<user_type>(bb::get(name), dst);
 }
 
 
@@ -366,7 +366,7 @@ constexpr auto bb::get_element_count(
    const char* name
 ) -> int
 {
-   const uint64_t* source = get(name);
+   const uint64_t* source = bb::get(name);
    if (source == nullptr)
       return 0;
    return detail::get_element_count(get_header(source));
@@ -378,7 +378,7 @@ constexpr auto bb::get_element_count(
    const char* name
 ) -> int
 {
-   const uint64_t* source = get(name);
+   const uint64_t* source = bb::get(name);
    if (source == nullptr)
       return 0;
    return detail::get_element_count<user_type>(get_header(source));

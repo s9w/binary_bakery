@@ -2,3 +2,5 @@
 x64
 libs/
 *.user
+compile_metrics/generating/*
+compile_metrics/*.txt
