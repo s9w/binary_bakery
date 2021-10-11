@@ -14,7 +14,7 @@ namespace bb
       int indentation_size = 3;
       int max_columns = 100;
       bool smart_mode = true;
-      compression_mode compression = compression_mode::zstd;
+      compression_mode compression = compression_mode::lz4;
    };
 
 

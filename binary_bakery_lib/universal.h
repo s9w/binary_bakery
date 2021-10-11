@@ -26,7 +26,7 @@ namespace bb
 
    struct no_init {};
 
-   enum class compression_mode { none, zstd };
+   enum class compression_mode { none, zstd, lz4 };
 
    template<typename T>
    concept numerical = (std::integral<T> && !std::is_same_v<T, bool>) || std::floating_point<T>;

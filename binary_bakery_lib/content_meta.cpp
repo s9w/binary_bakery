@@ -53,12 +53,20 @@ namespace
       const compression_mode compression
    ) -> uint8_t
    {
-      if (compression == compression_mode::none)
+      switch (compression) {
+      case compression_mode::none:
          return 0ui8;
-      else if (compression == compression_mode::zstd)
+         break;
+      case compression_mode::zstd:
          return 1ui8;
-      else
+         break;
+      case compression_mode::lz4:
+         return 2ui8;
+         break;
+      default:
          std::terminate();
+         break;
+      }
    }
 
 } // namespace {}

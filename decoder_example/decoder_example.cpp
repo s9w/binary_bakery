@@ -1,13 +1,5 @@
-#include <bit>     // For std::bit_cast
-#include <cstdint> // For sized types
-#include <string>  // For std::memcpy
-#include <vector>
-#include <array>
-
-
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
-#include <zstd_1.5.0/zstd.h>
 
 #include <chrono>
 #include <iostream>
@@ -37,21 +29,6 @@ namespace example {
       std::vector<user_type> result(pixel_count);
       std::memcpy(result.data(), data, byte_count);
       return result;
-   }
-
-
-   auto zstd_decompression(
-      const void* src,
-      const size_t srcSize, 
-      void* dst,
-      const size_t dst_capacity
-   ) -> void
-   {
-      const auto decompressed_bytes = ZSTD_decompress(dst, dst_capacity, src, srcSize);
-      if (decompressed_bytes != dst_capacity)
-      {
-         std::terminate();
-      }
    }
 
 
@@ -86,7 +63,7 @@ namespace example {
       std::vector<user_type> vec;
 
       std::string path = R"(C:\Dropbox\code\binary_inliner\input_tests\)" + filename;
-      const time_result binary_times = repeat([&]() {return example::decode_to_vector(filename.c_str(), zstd_decompression); }, vec);
+      const time_result binary_times = repeat([&]() {return example::decode_to_vector(filename.c_str()); }, vec);
       const time_result stb_times = repeat([&]() {return from_stb_image(path.c_str()); }, vec);
       filestream << binary_times.avg << ", " << binary_times.std << ", " << stb_times.avg << ", " << stb_times.std << "\n";
    }
@@ -96,7 +73,7 @@ namespace example {
 int main()
 {
    using namespace example;
-   std::ofstream filestream("decode_speed_data.txt");
+   std::ofstream filestream("data_ RENAME .txt");
    for (const int size : {192, 3072, 49152, 240000, 480000, 3145728})
    {
       filestream << size << ", ";

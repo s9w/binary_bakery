@@ -23,6 +23,7 @@ namespace bb {
       uint8_t  compression = 0; // Compression mode
                                 // 0: No compression
                                 // 1: zstd
+                                // 2: lz4
       uint8_t  version = 0;     // Version of the payload format. If everything goes well, this stays at 0.
       uint8_t  bpp = 0;         // For images: Number of channels [1-4]
       uint16_t width = 0;       // For images: Width in pixels [0-65535]

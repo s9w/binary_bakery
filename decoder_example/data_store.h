@@ -14,5 +14,5 @@ namespace example {
       auto operator<=>(const user_type&) const = default;
    };
 
-   auto decode_to_vector(const char* name, bb::decompression_fun_type decomp_fun) -> std::vector<user_type>;
+   auto decode_to_vector(const char* name) -> std::vector<user_type>;
 }

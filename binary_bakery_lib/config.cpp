@@ -39,6 +39,8 @@ namespace
          return compression_mode::none;
       else if (value.value() == "zstd")
          return compression_mode::zstd;
+      else if (value.value() == "lz4")
+         return compression_mode::lz4;
       else
       {
          std::cout << std::format("compression_mode value \"{}\" not recognized. Using no compression.\n", value.value());

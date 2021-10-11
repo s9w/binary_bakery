@@ -275,6 +275,9 @@ auto detail::get_final_bytestream(
    case compression_mode::zstd:
       compressed_stream.emplace(get_zstd_compressed(pl.m_content_data));
       break;
+   case compression_mode::lz4:
+      compressed_stream.emplace(get_lz4_compressed(pl.m_content_data));
+      break;
    default:
       break;
    }

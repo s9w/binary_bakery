@@ -1,6 +1,7 @@
 #include "compression.h"
 
 #include <zstd_1.5.0/zstd.h>
+#include <lz4/lz4.h>
 
 auto bb::get_zstd_compressed(
    const std::vector<uint8_t>& input
@@ -30,3 +31,25 @@ auto bb::get_zstd_compressed(
    destination.resize(written_comp_size);
    return destination;
 }
+
+
+auto bb::get_lz4_compressed(
+   const std::vector<uint8_t>& input
+) -> std::vector<uint8_t>
+{
+   std::vector<uint8_t> result(input.size());
+   const int compressed_size = LZ4_compress_default(
+      std::bit_cast<const char*>(input.data()),
+      std::bit_cast<char*>(result.data()),
+      static_cast<int>(input.size()),
+      static_cast<int>(result.size())
+   );
+   if (compressed_size == 0)
+   {
+      // error
+   }
+
+   result.resize(compressed_size);
+   return result;
+}
+
