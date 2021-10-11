@@ -112,11 +112,18 @@ namespace {
 
 
    [[nodiscard]] auto get_target_path(
-      const fs::path& input_path,
+      const std::vector<payload>& payloads,
+      const fs::path& working_dir,
       const std::string& group_header_name
    ) -> fs::path
    {
-      return input_path.parent_path() / group_header_name;
+      fs::path target_dir = working_dir;
+      if (payloads.empty() == false)
+      {
+         target_dir = payloads[0].m_path.parent_path();
+      }
+
+      return target_dir / group_header_name;
    }
 
 
@@ -142,7 +149,7 @@ namespace {
    ) -> void
    {
       out << R"([[nodiscard]] constexpr auto get(
-   const char* name
+   [[maybe_unused]] const char* name
 ) -> const uint64_t*
 {
 )";
@@ -156,10 +163,15 @@ namespace {
          );
          first = false;
       }
-      out << R"(   else
-      return nullptr;
-}
-)";
+      if (payloads.empty() == false)
+      {
+         out << "   else\n      return nullptr;\n";
+      }
+      else
+      {
+         out << "   return nullptr;\n";
+      }
+      out << "}\n";
    }
 
 } // namespace {}
@@ -176,12 +188,10 @@ auto bb::get_payload(const fs::path& path) -> payload
 
 auto bb::write_payloads_to_file(
    const config& cfg,
-   std::vector<payload>&& payloads
+   std::vector<payload>&& payloads,
+   const fs::path& working_dir
 ) -> void
 {
-   if (payloads.empty())
-      return;
-
    std::vector<std::string> payload_strings;
    for (payload& pl : payloads)
    {
@@ -224,7 +234,7 @@ auto bb::write_payloads_to_file(
       payload_strings.emplace_back(std::move(payload_str));
    }
 
-   std::ofstream filestream(get_target_path(payloads[0].m_path, cfg.group_header_name), std::ios::out);
+   std::ofstream filestream(get_target_path(payloads, working_dir, cfg.group_header_name), std::ios::out);
    if (!filestream.good())
    {
       std::cout << std::format("Couldn't open {} for writing\n", cfg.group_header_name);

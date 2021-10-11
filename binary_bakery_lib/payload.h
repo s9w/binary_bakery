@@ -35,7 +35,8 @@ namespace bb {
 
    auto write_payloads_to_file(
       const config& cfg,
-      std::vector<payload>&& payloads
+      std::vector<payload>&& payloads,
+      const fs::path& working_dir
    ) -> void;
 }
 

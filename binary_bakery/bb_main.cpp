@@ -31,6 +31,7 @@ namespace bb {
    {
       const fs::path path = R"(C:/Dropbox/code/binary_inliner/x64/Debug/binary_bakery.toml)";
       const auto config = read_config_from_toml(path);
+      const fs::path working_dir = fs::path(argv[0]).parent_path();
 
       std::vector<payload> payloads;
       for (int i = 0; i < argc; ++i)
@@ -53,7 +54,7 @@ namespace bb {
          payloads.emplace_back(get_payload(argv[i]));
       }
       timer t("Time to write");
-      write_payloads_to_file(config, std::move(payloads));
+      write_payloads_to_file(config, std::move(payloads), working_dir);
    }
 }
 
