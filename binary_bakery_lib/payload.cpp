@@ -8,6 +8,7 @@
 #include "tools.h"
 #include "file_tools.h"
 #include "image.h"
+#include "compression.h"
 
 #include <stb/stb_image.h>
 
@@ -30,9 +31,8 @@ namespace {
    {
       std::vector<uint8_t> file_content = get_binary_file(path);
       constexpr generic_binary meta{};
-      const bit_count bits = detail::get_content_bit_count(meta, file_content);
       const auto test = path.filename();
-      return { std::move(file_content), meta, bits, path.filename().string() };
+      return { std::move(file_content), meta, path.filename().string() };
    }
 
 
@@ -64,28 +64,6 @@ namespace {
 
 
    template<int bpp>
-   [[nodiscard]] auto get_image_meta(
-      const image<bpp>& image
-   ) -> content_meta
-   {
-      const std::optional<color_pair<bpp>> color_pair = get_color_pair<bpp>(image);
-      if (color_pair.has_value())
-      {
-         return dual_image_type<bpp>{
-            image.m_width,
-               image.m_height,
-               color_pair.value().m_color0,
-               color_pair.value().m_color1
-         };
-      }
-      else
-      {
-         return naive_image_type{ image.m_width, image.m_height, bpp };
-      }
-   }
-
-
-   template<int bpp>
    [[nodiscard]] auto get_image_payload_impl(
       const int width,
       const int height,
@@ -94,15 +72,10 @@ namespace {
    ) -> payload
    {
       const image<bpp> image{ width, height, image_data_ptr };
-      content_meta meta = get_image_meta(image);
-      std::vector<uint8_t> stream = get_image_bytestream(image, meta);
+      const naive_image_type meta{ width, height, bpp };
+      std::vector<uint8_t> stream = get_image_bytestream(image);
 
-      const bit_count bits = std::visit(
-         [&](const auto& alt) {return detail::get_content_bit_count(alt, stream); },
-         meta
-      );
-
-      return { std::move(stream), meta, bits, path };
+      return { std::move(stream), meta, path };
    }
 
 
@@ -212,7 +185,7 @@ auto bb::write_payloads_to_file(
    std::vector<std::string> payload_strings;
    for (payload& pl : payloads)
    {
-      const auto data_source = detail::get_final_bytestream(pl);
+      const auto data_source = detail::get_final_bytestream(pl, cfg);
 
       std::string content;
       const int symbol_count = get_symbol_count<uint64_t>(byte_count{ data_source.size() });
@@ -272,15 +245,45 @@ auto bb::write_payloads_to_file(
 }
 
 
-auto detail::get_final_bytestream(payload& pl) -> std::vector<uint8_t>
+auto detail::get_final_bytestream(
+   payload& pl,
+   const config& cfg
+) -> std::vector<uint8_t>
 {
-   std::vector<uint8_t> result(24);
-   result.reserve(24 + pl.m_content_data.size());
+   std::vector<uint8_t> result(16); // for header
+   result.reserve(result.size() + pl.m_content_data.size());
 
-   const std::array<uint8_t, 24> header_stream = meta_and_size_to_header_stream(pl.m_meta, pl.m_bit_count);
+   const byte_count uncompressed_size{ pl.m_content_data.size() };
+   byte_count compressed_size = uncompressed_size;
+
+   std::optional<std::vector<uint8_t>> compressed_stream;
+
+   switch (cfg.compression) {
+   case compression_mode::none:
+      // nothing
+      break;
+   case compression_mode::zstd:
+      compressed_stream.emplace(get_zstd_compressed(pl.m_content_data));
+      break;
+   default:
+      break;
+   }
+
+   if (compressed_stream.has_value())
+   {
+      compressed_size.m_value = static_cast<int>(compressed_stream.value().size());
+   }
+   const std::array<uint8_t, 16> header_stream = meta_and_size_to_header_stream(pl.m_meta, cfg.compression, uncompressed_size, compressed_size);
    std::copy(header_stream.begin(), header_stream.end(), result.data());
-
-   append_moved(result, std::move(pl.m_content_data));
+   if (compressed_stream.has_value())
+   {
+      append_moved(result, std::move(*compressed_stream));
+   }
+   else
+   {
+      append_moved(result, std::move(pl.m_content_data));
+   }
+   
 
    return result;
 }

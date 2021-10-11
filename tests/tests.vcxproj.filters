@@ -24,25 +24,13 @@
     <ClCompile Include="color_tests.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="dual_image_tools_tests.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="payload_tests.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="file_tools_tests.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="content_meta_tests.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="tools_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="universal_tests.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="byte_sequencer_tests.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

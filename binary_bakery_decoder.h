@@ -3,6 +3,7 @@
 #include <bit>     // For std::bit_cast
 #include <cstdint> // For sized types
 #include <string>  // For std::memcpy
+#include <type_traits> // for add_pointer, just to look nice
 
 #ifdef    BAKERY_PROVIDE_VECTOR
 #include <vector>
@@ -16,40 +17,42 @@
 namespace bb {
 
    struct header {
-      uint8_t  type = 0;       // 0: Generic binary
-                               // 1: Image
-                               // 2: Dual-image
-      uint8_t  bpp = 0;        // Number of channels [1-4]
-      uint8_t  padding0[2]{ 0, 0 }; // Padding, maybe embed version, compression? TODO
-      uint32_t bit_count = 0;  // Number of bits stored
+      // TODO these could be packed together
+      uint8_t  type = 0;        // 0: Generic binary
+                                // 1: Image
       
+      uint8_t  compression = 0; // Compression mode
+                                // 0: No compression
+                                // 1: zstd
+      uint8_t  version = 0;     // Version of the payload format. If everything goes well, this stays at 0.
+      uint8_t  bpp = 0;         // For images: Number of channels [1-4]
+      uint16_t width = 0;       // For images: Width in pixels
+      uint16_t height = 0;      // For images: Height in pixels
+      
+      
+      // word border
 
-      uint16_t width = 0;      // Width in pixels
-      uint16_t height = 0;     // Height in pixels
-      uint16_t padding1[2]{0, 0};
-
-      uint32_t color0 = 0;     // Replacement colors for indexed images
-      uint32_t color1 = 0;     // Replacement colors for indexed images
+      uint32_t decompressed_size = 0; // Size of the actual data stream (without this header)
+      uint32_t compressed_size   = 0; // Without compression, this is equal to the uncompressed_size
    };
-   static_assert(sizeof(header) == 24);
+   static_assert(sizeof(header) == 16);
 
+   // Retrieves the header from a payload by name or pointer.
    [[nodiscard]] constexpr auto get_header(const char* name) -> header;
    [[nodiscard]] constexpr auto get_header(const uint64_t* source) -> header;
-   [[nodiscard]] constexpr auto is_image  (const char* name) -> bool;
+
+   // Retrieves parts of the header. Just for convenience.
+   [[nodiscard]] constexpr auto is_image  (const char* name)       -> bool;
    [[nodiscard]] constexpr auto is_image  (const uint64_t* source) -> bool;
-   [[nodiscard]] constexpr auto get_width (const char* name) -> int;
+   [[nodiscard]] constexpr auto get_width (const char* name)       -> int;
    [[nodiscard]] constexpr auto get_width (const uint64_t* source) -> int;
-   [[nodiscard]] constexpr auto get_height(const char* name) -> int;
+   [[nodiscard]] constexpr auto get_height(const char* name)       -> int;
    [[nodiscard]] constexpr auto get_height(const uint64_t* source) -> int;
 
    // These methods provide easy access to the number of elements in the dataset. In images, that equates to the number
    // of pixels. In generic binaries, that's the number of elements of the target type.
-   // Can be called with a decoded header (faster), or the dataset itself. Can be called without a target type if the
-   // dataset is an image, otherwise the target type has to be provided as template parameter. Throws if that
-   // assumption is violated.
-   // Every function is constexpr.
-   
-
+   // Can be called without a target type if the dataset is an image, otherwise the target type has to be provided as
+   // template parameter. Throws if that assumption is violated.
    template<typename user_type>
    [[nodiscard]] constexpr auto get_element_count(const char* name) -> int;
    [[nodiscard]] constexpr auto get_element_count(const char* name) -> int;
@@ -58,13 +61,12 @@ namespace bb {
    [[nodiscard]] constexpr auto get_element_count(const uint64_t* source) -> int;
    [[nodiscard]] constexpr auto get_element_count(const uint64_t* source) -> int;
 
-
-
+   using decompression_fun_type = std::add_pointer_t<void(const void* src, const size_t src_size, void* dst, const size_t dst_capacity)>;
 
 #ifdef    BAKERY_PROVIDE_STD_ARRAY
    // Returns an std::array of provided type. This is constexpr. Warning: Arrays allocate the
    // memory on the stack. This will quickly be exhausted and is often limited to as little as 1MB.
-   // Don't use this interface unless you know what you're doing.
+   // Don't use this interface unless you know what you're doing. Does not work with compressed payloads.
    template<typename user_type, header head, int array_size, int element_count = get_element_count<user_type>(head)>
    [[nodiscard]] constexpr auto decode_to_array(
       const uint64_t(&source)[array_size]
@@ -74,9 +76,9 @@ namespace bb {
 #ifdef    BAKERY_PROVIDE_VECTOR
    // Returns an std::vector of provided type.
    template<typename user_type>
-   [[nodiscard]] auto decode_to_vector(const uint64_t* source) -> std::vector<user_type>;
+   [[nodiscard]] auto decode_to_vector(const uint64_t* source, decompression_fun_type decomp_fun = nullptr) -> std::vector<user_type>;
    template<typename user_type>
-   [[nodiscard]] auto decode_to_vector(const char* name) -> std::vector<user_type>;
+   [[nodiscard]] auto decode_to_vector(const char* name, decompression_fun_type decomp_fun = nullptr) -> std::vector<user_type>;
 #endif // BAKERY_PROVIDE_VECTOR
 
    // This writes into an arbitrary container-pointer. No memory management - needs to be allocated!
@@ -100,7 +102,7 @@ namespace bb::detail {
 
    template<typename user_type, int element_count>
    struct wrapper_type {
-      uint64_t filler[3];
+      uint64_t filler[2];
       alignas(user_type) std::array<user_type, element_count> m_data; // needs to be returned
       // End padding should be unnecessary because of array alignment
    };
@@ -109,28 +111,6 @@ namespace bb::detail {
    struct color_type {
       uint8_t m_components[bpp];
    };
-   template<int bpp>
-   struct color_pair_type {
-      color_type<bpp> color0;
-      color_type<bpp> color1;
-   };
-
-
-   template<int bpp>
-   [[nodiscard]] constexpr auto get_sized_color_pair(const header& head) -> color_pair_type<bpp>
-   {
-      const auto head_color0 = std::bit_cast<color_type<4>>(head.color0);
-      const auto head_color1 = std::bit_cast<color_type<4>>(head.color1);
-
-      color_type<bpp> color0{};
-      color_type<bpp> color1{};
-      for (int i = 0; i < bpp; ++i)
-      {
-         color0.m_components[i] = head_color0.m_components[i];
-         color1.m_components[i] = head_color1.m_components[i];
-      }
-      return { color0, color1 };
-   }
 
 
    struct div_t { int quot; int rem; };
@@ -197,29 +177,26 @@ constexpr auto bb::get_header(
 
    {
       struct front_decoder {
-         uint8_t  type;
-         uint8_t  bpp;
-         uint8_t  padding0[2];
-         uint32_t bit_count;
+         uint8_t  type = 0;
+         uint8_t  compression = 0; 
+         uint8_t  version = 0;
+         uint8_t  bpp = 0;
+         uint16_t width = 0;
+         uint16_t height = 0;
       };
 
       const front_decoder temp = std::bit_cast<front_decoder>(source[0]);
       result.type = temp.type;
+      result.compression = temp.compression;
+      result.version = temp.version;
       result.bpp = temp.bpp;
-      result.bit_count = temp.bit_count;
+      result.width = temp.width;
+      result.height = temp.height;
    }
-
-   if (result.type > 0)
    {
-      const auto temp = std::bit_cast<detail::better_array<uint16_t, 4>>(source[1]);
-      result.width = temp[0];
-      result.height = temp[1];
-   }
-   if (result.type == 2)
-   {
-      const auto temp = std::bit_cast<detail::better_array<uint32_t, 2>>(source[2]);
-      result.color0 = temp[0];
-      result.color1 = temp[1];
+      const auto temp = std::bit_cast<detail::better_array<uint32_t, 2>>(source[1]);
+      result.decompressed_size = temp[0];
+      result.compressed_size = temp[1];
    }
 
    return result;
@@ -305,29 +282,11 @@ constexpr auto bb::decode_to_array(
    const uint64_t(&source)[array_size]
 ) -> std::array<user_type, element_count>
 {
+   // TODO assert not compressed
    static_assert(element_count > 0, "Not enough bytes to even fill one of those types.");
 
-   if constexpr (head.type == 2)
-   {
-      static_assert(sizeof(user_type) == head.bpp, "User type has different size than bpp");
-      const auto [color0, color1] = detail::get_sized_color_pair<head.bpp>(head);
-
-      // First cast into its encoded representation
-      const int byte_count = detail::get_byte_count_from_bit_count(head.bit_count);
-      using interm_type = detail::wrapper_type<uint8_t, byte_count>;
-      const std::array<uint8_t, byte_count> interm = std::bit_cast<interm_type>(source).m_data;
-
-      // Then reconstruct the original colors
-      using target_type = std::array<user_type, element_count>;
-      target_type result;
-      detail::reconstruct<user_type>(element_count, &interm[0], result, color0, color1);
-      return result;
-   }
-   else
-   {
-      using target_type = detail::wrapper_type<user_type, element_count>;
-      return std::bit_cast<target_type>(source).m_data;
-   }
+   using target_type = detail::wrapper_type<user_type, element_count>;
+   return std::bit_cast<target_type>(source).m_data;
 }
 #endif // BAKERY_PROVIDE_STD_ARRAY
 
@@ -335,7 +294,8 @@ constexpr auto bb::decode_to_array(
 #ifdef BAKERY_PROVIDE_VECTOR
 template<typename user_type>
 auto bb::decode_to_vector(
-   const uint64_t* source
+   const uint64_t* source,
+   decompression_fun_type decomp_fun
 ) -> std::vector<user_type>
 {
    if (source == nullptr)
@@ -343,27 +303,32 @@ auto bb::decode_to_vector(
 
    const header head = bb::get_header(source);
    const int element_count = detail::get_element_count<user_type>(head);
-   const int byte_count = element_count * sizeof(user_type);
-
    std::vector<user_type> result(element_count);
-   const uint8_t* data_start_ptr = reinterpret_cast<const uint8_t*>(&source[3]);
-   if (head.type == 2)
+   
+   const uint8_t* payload_data_start_ptr = reinterpret_cast<const uint8_t*>(&source[2]);
+   if (head.compression == 0)
    {
-      constexpr int bpp = sizeof(user_type);
-      const auto [color0, color1] = detail::get_sized_color_pair<bpp>(head);
-      detail::reconstruct<user_type>(element_count, data_start_ptr, result, color0, color1);
+      
+      std::memcpy(result.data(), payload_data_start_ptr, head.decompressed_size);
    }
-   else
+   else if (head.compression == 1)
    {
-      std::memcpy(result.data(), data_start_ptr, byte_count);
+      if (decomp_fun == nullptr)
+      {
+         return {};
+      }
+      decomp_fun(payload_data_start_ptr, head.compressed_size, result.data(), head.decompressed_size);
    }
    return result;
 }
 
 template<typename user_type>
-auto bb::decode_to_vector(const char* name) -> std::vector<user_type>
+auto bb::decode_to_vector(
+   const char* name,
+   decompression_fun_type decomp_fun
+) -> std::vector<user_type>
 {
-   return decode_to_vector<user_type>(get(name));
+   return decode_to_vector<user_type>(get(name), decomp_fun);
 }
 #endif // BAKERY_PROVIDE_VECTOR
 
@@ -379,18 +344,11 @@ auto bb::decode_into_pointer(
    const header head = bb::get_header(source);
    const int element_count = get_element_count<user_type>(head);
    const int byte_count = element_count * sizeof(user_type);
-   const uint8_t* data_start_ptr = reinterpret_cast<const uint8_t*>(&source[3]);
+   const uint8_t* data_start_ptr = reinterpret_cast<const uint8_t*>(&source[2]);
 
-   if (head.type == 2)
-   {
-      constexpr int bpp = sizeof(user_type);
-      const auto [color0, color1] = detail::get_sized_color_pair<bpp>(head);
-      detail::reconstruct<user_type>(element_count, data_start_ptr, dst, color0, color1);
-   }
-   else
-   {
-      std::memcpy(dst, data_start_ptr, byte_count);
-   }
+   // TODO compression
+
+   std::memcpy(dst, data_start_ptr, byte_count);
 }
 
 
@@ -453,16 +411,7 @@ constexpr auto bb::detail::get_element_count(
    const header& head
 ) -> int
 {
-   if (head.type == 2)
-   {
-      return get_element_count(head);
-   }
-   else
-   {
-      // Byte count is exact for everything but Indexed images
-      const int byte_count = static_cast<int>(head.bit_count) / 8;
-      return byte_count / sizeof(user_type);
-   }
+   return head.decompressed_size / sizeof(user_type);
 }
 
 

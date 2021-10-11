@@ -38,85 +38,13 @@ namespace bb
    template<int bpp>
    [[nodiscard]] auto get_image(const fs::path& path) -> image<bpp>;
 
-   template<int bpp>
-   [[nodiscard]] auto get_color_pair(const image<bpp>& image) -> std::optional<color_pair<bpp>>;
-
    enum class dual_color_name { first, second };
 
    template<int bpp>
-   [[nodiscard]] auto get_indexed_dual_image(
-      const image<bpp>& im,
-      const color_pair<bpp>& pair
-   ) -> std::vector<dual_color_name>;
-
-   template<int bpp>
-   [[nodiscard]] auto get_image_bytestream_naive(const image<bpp>& image) -> std::vector<uint8_t>;
-
-   template<int bpp>
-   [[nodiscard]] auto get_image_bytestream_dual(const image<bpp>& image, const color_pair<bpp>& pair) -> std::vector<uint8_t>;
-
-   template<int bpp>
-   [[nodiscard]] auto get_image_bytestream(const image<bpp>& image, const content_meta& meta) -> std::vector<uint8_t>;
+   [[nodiscard]] auto get_image_bytestream(const image<bpp>& image) -> std::vector<uint8_t>;
 
 }
 
-namespace bb::detail
-{
-   template<int bpp>
-   [[nodiscard]] auto get_actual_color_pair(
-      const image<bpp>& im
-   ) -> std::optional<color_pair<bpp>>
-   {
-      using color_type = typename image<bpp>::color_type;
-
-      color_type color_A = im[0];
-      std::optional<color_type> color_B;
-      for (const color_type& color : im)
-      {
-         if (color == color_A)
-         {
-            continue;
-         }
-         if (color_B.has_value() && color == color_B.value())
-         {
-            continue;
-         }
-         if (color_B.has_value() == false)
-         {
-            color_B.emplace(color);
-            continue;
-         }
-         return std::nullopt;
-      }
-
-      // Only contains one color
-      if (color_B.has_value() == false)
-      {
-         color_B.emplace(color_A);
-      }
-      return color_pair<bpp>{color_A, color_B.value()};
-   }
-
-
-   template<int bpp>
-   [[nodiscard]] constexpr auto get_indexed_color(
-      const color<bpp>& color,
-      const color_pair<bpp>& pair
-   ) -> dual_color_name
-   {
-      if (color == pair.m_color0)
-      {
-         return dual_color_name::first;
-      }
-      else if (color == pair.m_color1)
-      {
-         return dual_color_name::second;
-      }
-      else {
-         throw std::runtime_error("Color doesn't belong to pair. This shouldn't happen.");
-      }
-   }
-}
 
 
 template <int bpp>
@@ -171,119 +99,11 @@ auto bb::image<bpp>::end() const -> auto
 
 
 template<int bpp>
-auto bb::get_image_bytestream_naive(
+auto bb::get_image_bytestream(
    const image<bpp>& image
 ) -> std::vector<uint8_t>
 {
    std::vector<uint8_t> result(image.get_byte_count());
    std::memcpy(result.data(), image.m_pixels.data(), image.get_byte_count());
-   return result;
-}
-
-
-template<int bpp>
-auto bb::get_image_bytestream_dual(
-   const image<bpp>& image,
-   const color_pair<bpp>& pair
-) -> std::vector<uint8_t>
-{
-   const std::vector<dual_color_name> indexed_image = get_indexed_dual_image(image, pair);
-   return get_bit_encoded(indexed_image, dual_color_name::second);
-}
-
-
-namespace bb::detail {
-   template<int bpp>
-   auto apply(
-      const image<bpp>& image,
-      const dual_image_type<bpp>& meta
-   ) -> std::vector<uint8_t>
-   {
-      //return {};
-      const color_pair<bpp> pair{ meta.m_color0, meta.m_color1 };
-      return get_image_bytestream_dual(image, pair);
-   }
-
-   template<int bpp, int dual_bpp>
-   auto apply(
-      const image<bpp>&,
-      const dual_image_type<dual_bpp>&
-   ) -> std::vector<uint8_t>
-   {
-      // This should never happen
-      std::terminate();
-   }
-
-   template<int bpp>
-   auto apply(
-      const image<bpp>& image,
-      const naive_image_type&
-   ) -> std::vector<uint8_t>
-   {
-      return get_image_bytestream_naive(image);
-   }
-
-   template<int bpp>
-   auto apply(
-      const image<bpp>&,
-      const generic_binary&
-   ) -> std::vector<uint8_t>
-   {
-      // This should never happen
-      std::terminate();
-   }
-}
-
-
-template<int bpp>
-auto bb::get_image_bytestream(
-   const image<bpp>& image,
-   const content_meta& meta
-) -> std::vector<uint8_t>
-{
-   return std::visit(
-      [&](const auto& alternative) {
-         return detail::apply(image, alternative);
-      }
-      , meta
-   );
-}
-
-
-template<int bpp>
-auto bb::get_color_pair(const image<bpp>& image) -> std::optional<color_pair<bpp>>
-{
-   if (image.get_pixel_count() == 0)
-   {
-      return std::nullopt;
-   }
-   else if (image.get_pixel_count() == 1)
-   {
-      return color_pair<bpp>{ image[0], image[0] };
-   }
-   else if (image.get_pixel_count() == 2)
-   {
-      return color_pair<bpp>{ image[0], image[1] };
-   }
-   else
-   {
-      return detail::get_actual_color_pair(image);
-   }
-}
-
-
-
-template<int bpp>
-auto bb::get_indexed_dual_image(
-   const image<bpp>& im,
-   const color_pair<bpp>& pair
-) -> std::vector<dual_color_name>
-{
-   std::vector<dual_color_name> result;
-   result.reserve(im.get_pixel_count());
-   for (const auto& color : im)
-   {
-      result.emplace_back(detail::get_indexed_color(color, pair));
-   }
    return result;
 }

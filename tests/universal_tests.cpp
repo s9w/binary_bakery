@@ -22,9 +22,3 @@ TEST_CASE("concepts and type traits")
 
    CHECK_EQ(byte_sizeof<float, uint16_t>, byte_count{6});
 }
-
-TEST_CASE("bit and byte types")
-{
-   CHECK_EQ(bit_count{8}.get_byte_count(), byte_count{ 1 });
-   CHECK_EQ(bit_count{9}.get_byte_count(), byte_count{ 2 });
-}

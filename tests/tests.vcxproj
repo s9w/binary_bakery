@@ -39,10 +39,12 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\lib_dir.props" />
+    <Import Project="..\zstd_static.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\lib_dir.props" />
+    <Import Project="..\zstd_static.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -89,12 +91,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="byte_sequencer_tests.cpp" />
     <ClCompile Include="color_tests.cpp" />
-    <ClCompile Include="dual_image_tools_tests.cpp" />
     <ClCompile Include="payload_tests.cpp" />
-    <ClCompile Include="file_tools_tests.cpp" />
-    <ClCompile Include="content_meta_tests.cpp" />
     <ClCompile Include="tests.cpp" />
     <ClCompile Include="tools_test.cpp" />
     <ClCompile Include="universal_tests.cpp" />

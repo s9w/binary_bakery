@@ -27,12 +27,6 @@ namespace bb {
    color(uint8_t, uint8_t)                   -> color<2>;
    color(uint8_t, uint8_t, uint8_t)          -> color<3>;
    color(uint8_t, uint8_t, uint8_t, uint8_t) -> color<4>;
-
-   template<int bpp>
-   struct color_pair {
-      color<bpp> m_color0;
-      color<bpp> m_color1;
-   };
 }
 
 template <int bpp>
