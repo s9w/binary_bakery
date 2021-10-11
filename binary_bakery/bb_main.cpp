@@ -24,13 +24,27 @@ namespace bb {
    };
 
 
+
+   [[nodiscard]] auto get_best_config_dir(
+      const std::vector<payload>& payloads
+   ) -> fs::path
+   {
+      if (payloads.empty())
+      {
+         return fs::current_path();
+      }
+      else
+      {
+         return payloads[0].m_path.parent_path();
+      }
+   }
+
+
    auto run(
       int argc,
       char* argv[]
    ) -> void
    {
-      const fs::path path = R"(C:/Dropbox/code/binary_inliner/x64/Debug/binary_bakery.toml)";
-      const auto config = read_config_from_toml(path);
       const fs::path working_dir = fs::path(argv[0]).parent_path();
 
       std::vector<payload> payloads;
@@ -54,6 +68,9 @@ namespace bb {
          payloads.emplace_back(get_payload(argv[i]));
       }
       timer t("Time to write");
+
+      const fs::path config_path = get_best_config_dir(payloads) / fs::path("binary_bakery.toml");
+      const auto config = read_config_from_toml(config_path);
       write_payloads_to_file(config, std::move(payloads), working_dir);
    }
 }

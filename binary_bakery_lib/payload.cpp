@@ -234,10 +234,10 @@ auto bb::write_payloads_to_file(
       payload_strings.emplace_back(std::move(payload_str));
    }
 
-   std::ofstream filestream(get_target_path(payloads, working_dir, cfg.group_header_name), std::ios::out);
+   std::ofstream filestream(get_target_path(payloads, working_dir, cfg.output_filename), std::ios::out);
    if (!filestream.good())
    {
-      std::cout << std::format("Couldn't open {} for writing\n", cfg.group_header_name);
+      std::cout << std::format("Couldn't open {} for writing\n", cfg.output_filename);
       return;
    }
 

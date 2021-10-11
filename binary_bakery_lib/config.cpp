@@ -9,6 +9,8 @@
 namespace
 {
 
+   using namespace bb;
+
    template<typename T>
    auto set_value(
       const toml::table& tbl,
@@ -23,6 +25,25 @@ namespace
          return;
       }
       target = read_value.value();
+   }
+
+
+   [[nodiscard]] auto get_compression_mode(
+      const std::optional<std::string>& value
+   ) -> compression_mode
+   {
+      if (value.has_value() == false)
+         return compression_mode::none;
+
+      if (value.value() == "none")
+         return compression_mode::none;
+      else if (value.value() == "zstd")
+         return compression_mode::zstd;
+      else
+      {
+         std::cout << std::format("compression_mode value \"{}\" not recognized. Using no compression.\n", value.value());
+         return compression_mode::none;
+      }
    }
 
 } // namespace {}
@@ -46,11 +67,10 @@ auto bb::read_config_from_toml(
       return cfg;
    }
    
-   set_value(tbl, cfg.in_single_file, "in_single_file");
-   set_value(tbl, cfg.group_header_name, "group_header_name");
-   set_value(tbl, cfg.indentation_size, "indentation_size");
+   set_value(tbl, cfg.output_filename, "output_filename");
    set_value(tbl, cfg.max_columns, "max_columns");
    set_value(tbl, cfg.smart_mode, "smart_mode");
+   cfg.compression = get_compression_mode(tbl["compression_mode"].value<std::string>());
 
    return cfg;
 }

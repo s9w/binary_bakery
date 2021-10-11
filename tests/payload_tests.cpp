@@ -31,5 +31,5 @@ TEST_CASE("payload writing")
 {
    payload pl = get_payload("rgb_example.png");
    const config default_cfg{};
-   write_payloads_to_file(default_cfg, { std::move(pl) });
+   //write_payloads_to_file(default_cfg, { std::move(pl) });
 }
