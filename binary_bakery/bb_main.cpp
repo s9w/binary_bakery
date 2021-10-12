@@ -92,16 +92,7 @@ namespace bb {
             std::cout << std::format("Path is not a file: {} -> skipping.\n", argv[i]);
             continue;
          }
-         const byte_count file_size{ fs::file_size(argv[i]) };
-         std::cout << std::format(
-            "Packed file \"{}\". File size: {}, memory size: {}.",
-            argv[i],
-            get_human_readable_size(file_size),
-            get_human_readable_size(get_file_memory_footprint(argv[i]))
-         );
-
          payloads.emplace_back(get_payload(abs_file_path{ argv[i] }));
-         std::cout << "\n";
       }
       const config cfg = get_config(payloads);
       {

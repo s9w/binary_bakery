@@ -173,6 +173,30 @@ namespace {
       out << "}\n";
    }
 
+
+   auto report_diagnostics(
+      const config& cfg,
+      const payload& pl,
+      const byte_count uncompressed_size,
+      const std::vector<uint8_t>& compressed_bytestream
+   ) -> void
+   {
+      const byte_count compressed_size{ compressed_bytestream.size() - 16 };
+      std::cout << std::format(
+         "Writing file \"{}\". Uncompressed size: {}."
+         , pl.m_path.get_path().filename().string() , get_human_readable_size(uncompressed_size)
+      );
+      if (cfg.compression != compression_mode::none)
+      {
+         const double ratio = static_cast<double>(compressed_size.m_value) / static_cast<double>(uncompressed_size.m_value);
+         std::cout << std::format(
+            " compressed size: {} (compressed to {:.1f}%)"
+            , get_human_readable_size(compressed_size), 100.0 * ratio
+         );
+      }
+      std::cout << '\n';
+   }
+
 } // namespace {}
 
 
@@ -194,7 +218,10 @@ auto bb::write_payloads_to_file(
    std::vector<std::string> payload_strings;
    for (payload& pl : payloads)
    {
-      const auto data_source = detail::get_final_bytestream(pl, cfg);
+      const byte_count uncompressed_size{ pl.m_content_data.size() }; // needs to be read here because it's moved in next line
+      const std::vector<uint8_t> data_source = detail::get_final_bytestream(pl, cfg);
+
+      report_diagnostics(cfg, pl, uncompressed_size, data_source);
 
       std::string content;
       const int symbol_count = get_symbol_count<uint64_t>(byte_count{ data_source.size() });
@@ -259,9 +286,6 @@ auto detail::get_final_bytestream(
    const config& cfg
 ) -> std::vector<uint8_t>
 {
-   std::vector<uint8_t> result(16); // for header
-   result.reserve(result.size() + pl.m_content_data.size());
-
    const byte_count uncompressed_size{ pl.m_content_data.size() };
    byte_count compressed_size = uncompressed_size;
 
@@ -286,6 +310,9 @@ auto detail::get_final_bytestream(
       compressed_size.m_value = static_cast<int>(compressed_stream.value().size());
    }
    const std::array<uint8_t, 16> header_stream = meta_and_size_to_header_stream(pl.m_meta, cfg.compression, uncompressed_size, compressed_size);
+
+   std::vector<uint8_t> result(16); // for header
+   result.reserve(result.size() + pl.m_content_data.size());
    std::copy(header_stream.begin(), header_stream.end(), result.data());
    if (compressed_stream.has_value())
    {
