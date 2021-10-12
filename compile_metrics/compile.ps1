@@ -26,48 +26,48 @@ $cl_command = "CL /O2 /MDd /D _DEBUG /std:c++latest /EHsc /nologo /permissive- /
 $cl_cmd_zero = "CL /O2 /MDd /D _DEBUG /D ZERO /std:c++latest /EHsc /nologo /permissive- /W4 /wd4189 /utf-8 /Feout.exe source.cpp /link /MACHINE:X64"
 
 # Measure zero includes
-# Invoke-Expression $cl_cmd_zero
-# $size=(Get-Item out.exe).length
-# Write-Output ("{0}, {1}" -f 0, $size) | Out-File -FilePath ("compile_sizes.txt") -Append -Encoding ASCII
-# Remove-Item -Path *.obj
-# Remove-Item -Path out.exe
+Invoke-Expression $cl_cmd_zero
+$size=(Get-Item out.exe).length
+Write-Output ("{0}, {1}" -f 0, $size) | Out-File -FilePath ("generated_data/compile_sizes_zero.txt") -Append -Encoding ASCII
+Remove-Item -Path *.obj
+Remove-Item -Path out.exe
 
-# For ($i=0; $i -lt 5; $i++){
-#    Start-Sleep -Seconds 0.2
-#    Measure-Command {
-#       Invoke-Expression $cl_cmd_zero
-#    } | Out-File -FilePath ("compile_time_{0}.txt" -f 0) -Append -Encoding ASCII
-#    Remove-Item -Path *.obj
-#    Remove-Item -Path out.exe
-# }
+For ($i=0; $i -lt 10; $i++){
+   Start-Sleep -Seconds 0.2
+   Measure-Command {
+      Invoke-Expression $cl_cmd_zero
+   } | Out-File -FilePath ("generated_data/compile_times_zero.txt") -Append -Encoding ASCII
+   Remove-Item -Path *.obj
+   Remove-Item -Path out.exe
+}
 
 $compressions = "none","zstd","lz4"
 
 Foreach($compression in $compressions){
-
    Get-ChildItem "..\sample_datasets" -Filter *.png | Foreach-Object{
+      
+      # Generate payload for compression and payload size
       $config_path = "config_{0}.toml" -f $compression
       $expr = "../x64/Release/binary_bakery.exe {0} {1}" -f $config_path, $_.FullName
       Invoke-Expression $expr
       Start-Sleep -Seconds 1.0
 
       # One try first, check for errors and report size
-   #    Invoke-Expression $cl_command
-   #    $size=(Get-Item out.exe).length
-   #    Write-Output ("{0}, {1}" -f $_.Basename, $size) | Out-File -FilePath ("compile_sizes.txt") -Append -Encoding ASCII
+      Invoke-Expression $cl_command
+      $size=(Get-Item out.exe).length
+      Write-Output ("{0}, {1}" -f $_.Basename, $size) | Out-File -FilePath ("generated_data/compile_sizes_{0}.txt" -f $compression) -Append -Encoding ASCII
+      Remove-Item -Path *.obj
+      Remove-Item -Path out.exe
 
-   #    Remove-Item -Path *.obj
-   #    Remove-Item -Path out.exe
-
-   #    # Measure compile time multiple times
-   #    For ($i=0; $i -lt 5; $i++){
-   #       Start-Sleep -Seconds 0.2
-   #       Measure-Command {
-   #          Invoke-Expression $cl_command
-   #       } | Out-File -FilePath ("compile_time_{0}.txt" -f $_.BaseName) -Append -Encoding ASCII
-   #       Remove-Item -Path *.obj
-   #       Remove-Item -Path out.exe
-   #    }
+      # Measure compile time multiple times
+      For ($i=0; $i -lt 5; $i++){
+         Start-Sleep -Seconds 0.2
+         Measure-Command {
+            Invoke-Expression $cl_command
+         } | Out-File -FilePath ("generated_data/compile_times_{0}_{1}.txt" -f $compression, $_.BaseName) -Append -Encoding ASCII
+         Remove-Item -Path *.obj
+         Remove-Item -Path out.exe
+      }
 
    } # sample_datasets
 } # compressions

@@ -70,7 +70,7 @@ auto from_stb_image(const char* filename) -> std::vector<user_type>
 #define BAKERY_PROVIDE_VECTOR
 #ifndef ZERO
 #include "../binary_bakery_decoder.h"
-#include "generating/binary_bakery_payload.h"
+#include "temp_payload.h"
 #endif
 
 
