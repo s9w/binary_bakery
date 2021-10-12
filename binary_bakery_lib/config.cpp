@@ -79,32 +79,6 @@ auto bb::get_cfg_from_dir(
    set_value(tbl, cfg.max_columns, "max_columns");
    set_value(tbl, cfg.smart_mode, "smart_mode");
    cfg.compression = get_compression_mode(tbl["compression_mode"].value<std::string>());
-   return cfg;
-}
-
-
-auto bb::read_config_from_toml(
-   const abs_file_path& file
-) -> config
-{
-   config cfg;
-
-   toml::table tbl;
-   try
-   {
-      tbl = toml::parse_file(file.get_path().string());
-   }
-   catch (const toml::parse_error&)
-   {
-      const std::string msg = std::format("Couldn't parse file {}. Using default config.", file.get_path().string());
-      std::cout << msg << std::endl;
-      return cfg;
-   }
-   
-   set_value(tbl, cfg.output_filename, "output_filename");
-   set_value(tbl, cfg.max_columns, "max_columns");
-   set_value(tbl, cfg.smart_mode, "smart_mode");
-   cfg.compression = get_compression_mode(tbl["compression_mode"].value<std::string>());
-
+   set_value(tbl, cfg.prompt_for_key, "prompt_for_key");
    return cfg;
 }

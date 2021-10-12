@@ -6,6 +6,10 @@
 #include <binary_bakery_lib/file_tools.h>
 #include <binary_bakery_lib/payload.h>
 
+#if defined(_WIN32) || defined(WIN32)
+#include <conio.h>
+#endif
+
 namespace bb {
 
    struct timer{
@@ -56,6 +60,17 @@ namespace bb {
    }
 
 
+   // This is a surprisingly difficult problem with no good universal solution.
+   // For the moment, only do this on windows.
+   auto wait_for_keypress() -> void
+   {
+#if defined(_WIN32) || defined(WIN32)
+      std::cout << std::format("\nPress any key to continue\n");
+      [[maybe_unused]] const auto input_val = _getch();
+#endif
+   }
+
+
    auto run(
       int argc,
       char* argv[]
@@ -79,19 +94,26 @@ namespace bb {
          }
          const byte_count file_size{ fs::file_size(argv[i]) };
          std::cout << std::format(
-            "Packing file \"{}\". File size: {}, memory size: {}.",
+            "Packed file \"{}\". File size: {}, memory size: {}.",
             argv[i],
             get_human_readable_size(file_size),
             get_human_readable_size(get_file_memory_footprint(argv[i]))
          );
 
          payloads.emplace_back(get_payload(abs_file_path{ argv[i] }));
+         std::cout << "\n";
       }
-      timer t(" Time to write");
+      const config cfg = get_config(payloads);
+      {
+         timer t("Time to write");
+         write_payloads_to_file(cfg, std::move(payloads), working_dir);
+      }
 
-      write_payloads_to_file(get_config(payloads), std::move(payloads), working_dir);
+      if (cfg.prompt_for_key)
+         wait_for_keypress();
    }
 }
+
 
 
 auto main(

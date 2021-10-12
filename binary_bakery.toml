@@ -16,3 +16,7 @@ smart_mode = true
 # none: no compression
 # zstd: Zstandard, see https://github.com/facebook/zstd
 compression_mode = "none"
+
+# True: Encoder waits for a key press at the end, allowing you to read some size information
+# False: Ends program immediately
+prompt_for_key = true
