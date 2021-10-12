@@ -59,6 +59,10 @@ auto bb::get_cfg_from_dir(
 {
    toml::table tbl;
    const fs::path config_path = dir.get_path() / config_filename;
+   if (fs::exists(config_path) == false)
+   {
+      return std::nullopt;
+   }
    try
    {
       tbl = toml::parse_file(config_path.string());
@@ -67,10 +71,6 @@ auto bb::get_cfg_from_dir(
    {
       const std::string msg = std::format("Couldn't parse file {}. Looking for other config.", config_path.string());
       std::cout << msg << std::endl;
-      return std::nullopt;
-   }
-   catch (const std::exception&)
-   {
       return std::nullopt;
    }
 

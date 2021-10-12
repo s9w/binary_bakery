@@ -45,17 +45,25 @@ namespace bb {
          const abs_directory_path payload_dir{ payloads[0].m_path.get_path().parent_path() };
          const std::optional<config> target_dir_cfg = get_cfg_from_dir(payload_dir);
          if (target_dir_cfg.has_value())
+         {
+            std::cout << std::format("Using config from \"{}\".\n", payload_dir.get_path().string());
             return target_dir_cfg.value();
+         }
       }
 
       // If that fails, try to get it from the working directory
       const abs_directory_path working_dir{ fs::current_path() };
       const std::optional<config> working_dir_cfg = get_cfg_from_dir(working_dir);
       if (working_dir_cfg.has_value())
+      {
+         std::cout << std::format("Using config from \"{}\".\n", working_dir.get_path().string());
          return working_dir_cfg.value();
+      }
+
 
       // Lastly, use the default config
       config default_config;
+      std::cout << std::format("Using default config.\n");
       return default_config;
    }
 
