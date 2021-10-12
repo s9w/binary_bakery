@@ -1,0 +1,3 @@
+output_filename = "temp_payload.h"
+compression_mode = "lz4"
+prompt_for_key = false
