@@ -48,7 +48,7 @@ namespace
       }
    }
 
-   const std::string config_filename = "binary_bakery.toml";
+   const std::string default_config_filename = "binary_bakery.toml";
 
 } // namespace {}
 
@@ -57,19 +57,27 @@ auto bb::get_cfg_from_dir(
    const abs_directory_path& dir
 ) -> std::optional<config>
 {
-   toml::table tbl;
-   const fs::path config_path = dir.get_path() / config_filename;
+   const fs::path config_path = dir.get_path() / default_config_filename;
    if (fs::exists(config_path) == false)
    {
       return std::nullopt;
    }
+   return get_cfg_from_file(abs_file_path{ dir.get_path() / default_config_filename });
+}
+
+
+auto bb::get_cfg_from_file(
+   const abs_file_path& file
+) -> std::optional<config>
+{
+   toml::table tbl;
    try
    {
-      tbl = toml::parse_file(config_path.string());
+      tbl = toml::parse_file(file.get_path().string());
    }
    catch (const toml::parse_error&)
    {
-      const std::string msg = std::format("Couldn't parse file {}. Looking for other config.", config_path.string());
+      const std::string msg = std::format("Couldn't parse file {}. Looking for other config.", file.get_path().string());
       std::cout << msg << std::endl;
       return std::nullopt;
    }

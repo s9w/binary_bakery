@@ -18,5 +18,6 @@ namespace bb
    };
 
    [[nodiscard]] auto get_cfg_from_dir(const abs_directory_path& dir) -> std::optional<config>;
+   [[nodiscard]] auto get_cfg_from_file(const abs_file_path& file) -> std::optional<config>;
 
 }

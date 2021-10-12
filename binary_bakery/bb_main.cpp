@@ -88,8 +88,10 @@ namespace bb {
 
       std::vector<payload> payloads;
       payloads.reserve(argc-1);
+      std::optional<config> cfg;
       for (int i = 1; i < argc; ++i)
       {
+         // Path must exist and must be a file
          if (std::filesystem::exists(argv[i]) == false)
          {
             std::cout << std::format("Path doesn't exist: {} -> skipping.\n", argv[i]);
@@ -100,15 +102,38 @@ namespace bb {
             std::cout << std::format("Path is not a file: {} -> skipping.\n", argv[i]);
             continue;
          }
-         payloads.emplace_back(get_payload(abs_file_path{ argv[i] }));
+
+         // Try to see if it's an explicit config file
+         const abs_file_path file{ argv[i] };
+         if (file.get_path().extension() == ".toml")
+         {
+            const std::optional<config> explicit_config = get_cfg_from_file(file);
+            if (explicit_config.has_value())
+            {
+               if (cfg.has_value())
+               {
+                  std::cout << "There's more than one explicit config file among the parameters. I hope you know what you're doing.\n";
+               }
+               std::cout << std::format("Using explicit config file \"{}\".\n", file.get_path().string());
+               cfg.emplace(explicit_config.value());
+            }
+         }
+         else
+         {
+            payloads.emplace_back(get_payload(abs_file_path{ argv[i] }));
+         }
       }
-      const config cfg = get_config(payloads);
+      if (cfg.has_value() == false)
       {
-         timer t("Time to write");
-         write_payloads_to_file(cfg, std::move(payloads), working_dir);
+         cfg = get_config(payloads);
       }
 
-      if (cfg.prompt_for_key)
+      {
+         timer t("Time to write");
+         write_payloads_to_file(cfg.value(), std::move(payloads), working_dir);
+      }
+
+      if (cfg.value().prompt_for_key)
          wait_for_keypress();
    }
 }
