@@ -12,8 +12,8 @@ function Invoke-CmdScript {
    }
 }
 
-# $vs_dir = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise"
-$vs_dir = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional"
+$vs_dir = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise"
+# $vs_dir = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional"
 $vcvars_dir = "{0}\VC\Auxiliary\Build\vcvars64.bat" -f $vs_dir
 
 if((-Not (Test-Path env:cvars_invoked)) -And (-Not $env:cvars_invoked)){
@@ -33,6 +33,7 @@ Remove-Item -Path *.obj
 Remove-Item -Path out.exe
 
 For ($i=0; $i -lt 5; $i++){
+   Start-Sleep -Seconds 0.2
    Measure-Command {
       Invoke-Expression $cl_cmd_zero
    } | Out-File -FilePath ("compile_time_{0}.txt" -f 0) -Append -Encoding ASCII
@@ -43,6 +44,7 @@ For ($i=0; $i -lt 5; $i++){
 Get-ChildItem "generating" -Filter *.png | Foreach-Object{
    $expr = "generating/binary_bakery.exe {0}" -f $_.FullName
    Invoke-Expression $expr
+   Start-Sleep -Seconds 2.0
 
    # One try first, check for errors and report size
    Invoke-Expression $cl_command
@@ -54,6 +56,7 @@ Get-ChildItem "generating" -Filter *.png | Foreach-Object{
 
    # Measure compile time multiple times
    For ($i=0; $i -lt 5; $i++){
+      Start-Sleep -Seconds 0.2
       Measure-Command {
          Invoke-Expression $cl_command
       } | Out-File -FilePath ("compile_time_{0}.txt" -f $_.BaseName) -Append -Encoding ASCII

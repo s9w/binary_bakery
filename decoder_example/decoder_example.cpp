@@ -38,7 +38,7 @@ namespace example {
       std::vector<user_type>& storage
    ) -> time_result
    {
-      constexpr int n = 10;
+      constexpr int n = 300;
       std::vector<double> times;
       times.reserve(n);
       
