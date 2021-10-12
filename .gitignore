@@ -2,5 +2,7 @@
 x64
 libs/
 *.user
-compile_metrics/generating/*
-compile_metrics/*.txt
+compile_metrics/generated_data/*
+compile_metrics/temp_payload.h
+readme/gif/*
+sample_datasets/binary_bakery_payload.h
