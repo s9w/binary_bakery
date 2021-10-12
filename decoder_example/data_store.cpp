@@ -13,7 +13,7 @@ namespace {
       const size_t dst_capacity
    ) -> void
    {
-      const auto decompressed_bytes = ZSTD_decompress(dst, dst_capacity, src, srcSize);
+      const size_t decompressed_bytes = ZSTD_decompress(dst, dst_capacity, src, srcSize);
       if (decompressed_bytes != dst_capacity)
       {
          std::terminate();
@@ -28,7 +28,7 @@ namespace {
       const size_t dst_size
    ) -> void
    {
-      const auto decompressed_bytes = LZ4_decompress_safe(
+      const int decompressed_bytes = LZ4_decompress_safe(
          static_cast<const char*>(src),
          static_cast<char*>(dst),
          static_cast<int>(src_size),

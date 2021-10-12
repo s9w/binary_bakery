@@ -36,11 +36,11 @@
     <ClCompile Include="config_tests.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="file_tools_tests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="test_tools.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\binary_bakery_decoder.h">
       <Filter>binary_bakery</Filter>
     </ClInclude>

@@ -48,11 +48,43 @@ namespace
       }
    }
 
+   const std::string config_filename = "binary_bakery.toml";
+
 } // namespace {}
 
 
+auto bb::get_cfg_from_dir(
+   const abs_directory_path& dir
+) -> std::optional<config>
+{
+   toml::table tbl;
+   const fs::path config_path = dir.get_path() / config_filename;
+   try
+   {
+      tbl = toml::parse_file(config_path.string());
+   }
+   catch (const toml::parse_error&)
+   {
+      const std::string msg = std::format("Couldn't parse file {}. Looking for other config.", config_path.string());
+      std::cout << msg << std::endl;
+      return std::nullopt;
+   }
+   catch (const std::exception&)
+   {
+      return std::nullopt;
+   }
+
+   config cfg;
+   set_value(tbl, cfg.output_filename, "output_filename");
+   set_value(tbl, cfg.max_columns, "max_columns");
+   set_value(tbl, cfg.smart_mode, "smart_mode");
+   cfg.compression = get_compression_mode(tbl["compression_mode"].value<std::string>());
+   return cfg;
+}
+
+
 auto bb::read_config_from_toml(
-   const fs::path& path
+   const abs_file_path& file
 ) -> config
 {
    config cfg;
@@ -60,11 +92,11 @@ auto bb::read_config_from_toml(
    toml::table tbl;
    try
    {
-      tbl = toml::parse_file(path.string());
+      tbl = toml::parse_file(file.get_path().string());
    }
    catch (const toml::parse_error&)
    {
-      const std::string msg = std::format("Couldn't parse file {}. Using default config.", path.string());
+      const std::string msg = std::format("Couldn't parse file {}. Using default config.", file.get_path().string());
       std::cout << msg << std::endl;
       return cfg;
    }

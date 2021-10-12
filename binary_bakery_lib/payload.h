@@ -8,6 +8,7 @@ namespace fs = std::filesystem;
 
 #include "content_meta.h"
 #include "image.h"
+#include "file_tools.h"
 
 
 namespace bb {
@@ -18,25 +19,25 @@ namespace bb {
    struct payload {
       std::vector<uint8_t> m_content_data;
       content_meta m_meta;
-      fs::path m_path;
+      abs_file_path m_path;
 
       // Making sure no one is left behind during init
-      payload(std::vector<uint8_t>&& content, const content_meta& meta, const fs::path& path)
+      payload(std::vector<uint8_t>&& content, const content_meta& meta, const abs_file_path& file)
          : m_content_data(std::move(content))
          , m_meta(meta)
-         , m_path(path)
+         , m_path(file)
       {
          
       }
    };
 
    // TODO maybe make this optional and deal with exception from file opening, parsing errors etc
-   [[nodiscard]] auto get_payload(const fs::path& path) -> payload;
+   [[nodiscard]] auto get_payload(const abs_file_path& path) -> payload;
 
    auto write_payloads_to_file(
       const config& cfg,
       std::vector<payload>&& payloads,
-      const fs::path& working_dir
+      const abs_directory_path& working_dir
    ) -> void;
 }
 

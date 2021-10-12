@@ -1,0 +1,18 @@
+# Output path of the resulting header. Relative to the path of first parameter
+# if not an absolute path.
+output_filename = "binary_bakery_payload.h"
+
+# Maximum number of rows in output header
+max_columns = 100
+
+# Smart means that images will be detected as such and treated differently. In
+# particular that means their bitmap content will be encoded instead of the
+# raw file content. Also, dimensions and bpp will be available in the header.
+# true: Images will be treated differently [default]
+# false: Images will be encoded like all binary files
+smart_mode = true
+
+# Any of: [none, zstd, lz4]
+# none: no compression
+# zstd: Zstandard, see https://github.com/facebook/zstd
+compression_mode = "none"

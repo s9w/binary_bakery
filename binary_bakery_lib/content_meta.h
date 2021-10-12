@@ -1,9 +1,8 @@
 #pragma once
 
-#include <cstdint>
+#include <array>
 #include <variant>
 
-#include "color.h"
 #include "universal.h"
 
 

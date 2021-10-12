@@ -31,9 +31,10 @@ namespace bb {
 
    [[nodiscard]] auto get_human_readable_size(byte_count bytes) -> std::string;
 
+   // For images: Returns number of pixels times number of bytes. Otherwise, returns the file size.
    [[nodiscard]] auto get_file_memory_footprint(const fs::path& path) -> byte_count;
-}
 
+}
 
 
 template<typename color_type>

@@ -1,10 +1,9 @@
 #pragma once
 
 #include "universal.h"
+#include "file_tools.h"
 
 #include <string>
-#include <filesystem>
-namespace fs = std::filesystem;
 
 namespace bb
 {
@@ -17,7 +16,8 @@ namespace bb
       compression_mode compression = compression_mode::lz4;
    };
 
+   [[nodiscard]] auto get_cfg_from_dir(const abs_directory_path& dir) -> std::optional<config>;
 
-   [[nodiscard]] auto read_config_from_toml(const fs::path& path) -> config;
+   [[nodiscard]] auto read_config_from_toml(const abs_file_path& file) -> config;
 
 }

@@ -17,9 +17,9 @@ namespace {
 
    using namespace bb;
 
-   [[nodiscard]] auto is_image_path(const fs::path& path) -> bool
+   [[nodiscard]] auto is_image_path(const abs_file_path& file) -> bool
    {
-      if (path.extension() == fs::path(".png"))
+      if (file.get_path().extension() == fs::path(".png"))
       {
          return true;
       }
@@ -27,12 +27,11 @@ namespace {
    }
 
 
-   [[nodiscard]] auto get_binary_file_payload(const fs::path& path) -> payload
+   [[nodiscard]] auto get_binary_file_payload(const abs_file_path& file) -> payload
    {
-      std::vector<uint8_t> file_content = get_binary_file(path);
+      std::vector<uint8_t> file_content = get_binary_file(file);
       constexpr generic_binary meta{};
-      const auto test = path.filename();
-      return { std::move(file_content), meta, path.filename().string() };
+      return { std::move(file_content), meta, file };
    }
 
 
@@ -42,11 +41,11 @@ namespace {
       int m_height = 0;
       int m_components = 0;
 
-      explicit stbi_loader(const fs::path& path)
+      explicit stbi_loader(const abs_file_path& file)
       {
-         m_data = stbi_load(path.string().c_str(), &m_width, &m_height, &m_components, 0);
+         m_data = stbi_load(file.get_path().string().c_str(), &m_width, &m_height, &m_components, 0);
          if (m_data == nullptr) {
-            const std::string msg = std::format("Couldn't open file {}", path.string());
+            const std::string msg = std::format("Couldn't open file {}", file.get_path().string());
             throw std::runtime_error(msg);
          }
       }
@@ -68,31 +67,31 @@ namespace {
       const int width,
       const int height,
       const unsigned char* image_data_ptr,
-      const fs::path& path
+      const abs_file_path& file
    ) -> payload
    {
       const image<bpp> image{ width, height, image_data_ptr };
       const naive_image_type meta{ width, height, bpp };
       std::vector<uint8_t> stream = get_image_bytestream(image);
 
-      return { std::move(stream), meta, path };
+      return { std::move(stream), meta, file };
    }
 
 
-   [[nodiscard]] auto get_image_payload(const fs::path& path) -> payload
+   [[nodiscard]] auto get_image_payload(const abs_file_path& file) -> payload
    {
-      const stbi_loader loader(path);
+      const stbi_loader loader(file);
 
       return [&]() {
          switch (loader.m_components) {
          case 1:
-            return get_image_payload_impl<1>(loader.m_width, loader.m_height, loader.m_data, path);
+            return get_image_payload_impl<1>(loader.m_width, loader.m_height, loader.m_data, file);
          case 2:
-            return get_image_payload_impl<2>(loader.m_width, loader.m_height, loader.m_data, path);
+            return get_image_payload_impl<2>(loader.m_width, loader.m_height, loader.m_data, file);
          case 3:
-            return get_image_payload_impl<3>(loader.m_width, loader.m_height, loader.m_data, path);
+            return get_image_payload_impl<3>(loader.m_width, loader.m_height, loader.m_data, file);
          case 4:
-            return get_image_payload_impl<4>(loader.m_width, loader.m_height, loader.m_data, path);
+            return get_image_payload_impl<4>(loader.m_width, loader.m_height, loader.m_data, file);
          default:
             std::cout << "unexpected\n";
             std::terminate();
@@ -102,10 +101,10 @@ namespace {
 
 
    auto get_variable_name(
-      const fs::path& path
+      const abs_file_path& file
    ) -> std::string
    {
-      std::string result = "bb_" + path.filename().string();
+      std::string result = "bb_" + file.get_path().filename().string();
       result = get_replaced_str(result, ".", "_");
       return result;
    }
@@ -113,17 +112,17 @@ namespace {
 
    [[nodiscard]] auto get_target_path(
       const std::vector<payload>& payloads,
-      const fs::path& working_dir,
+      const abs_directory_path& working_dir,
       const std::string& group_header_name
    ) -> fs::path
    {
-      fs::path target_dir = working_dir;
+      abs_directory_path target_dir = working_dir;
       if (payloads.empty() == false)
       {
-         target_dir = payloads[0].m_path.parent_path();
+         target_dir = abs_directory_path{ payloads[0].m_path.get_path().parent_path() };
       }
 
-      return target_dir / group_header_name;
+      return target_dir.get_path() / group_header_name;
    }
 
 
@@ -159,7 +158,7 @@ namespace {
          const std::string conditional_keyword = first ? "if" : "else if";
          out << std::format(
             "   {}(is_equal_c_string(name, \"{}\"))\n      return {};\n",
-            conditional_keyword, pl.m_path.filename().string(), get_variable_name(pl.m_path)
+            conditional_keyword, pl.m_path.get_path().filename().string(), get_variable_name(pl.m_path)
          );
          first = false;
       }
@@ -177,19 +176,19 @@ namespace {
 } // namespace {}
 
 
-auto bb::get_payload(const fs::path& path) -> payload
+auto bb::get_payload(const abs_file_path& file) -> payload
 {
-   if (is_image_path(path))
-      return get_image_payload(path);
+   if (is_image_path(file))
+      return get_image_payload(file);
    else
-      return get_binary_file_payload(path);
+      return get_binary_file_payload(file);
 }
 
 
 auto bb::write_payloads_to_file(
    const config& cfg,
    std::vector<payload>&& payloads,
-   const fs::path& working_dir
+   const abs_directory_path& working_dir
 ) -> void
 {
    std::vector<std::string> payload_strings;

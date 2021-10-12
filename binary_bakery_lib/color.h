@@ -1,6 +1,6 @@
 #pragma once
 
-#include "tools.h"
+#include "universal.h"
 
 
 namespace bb {
@@ -18,7 +18,6 @@ namespace bb {
       constexpr color(uint8_t r, uint8_t g, uint8_t b, uint8_t a) requires(bpp == 4);
       [[nodiscard]] constexpr auto operator[](const int index) const -> uint8_t;
       [[nodiscard]] constexpr auto operator[](const int index)       -> uint8_t&;
-      [[nodiscard]] constexpr auto get_4byte_padded() const -> color<4>;
       auto operator<=>(const color<bpp>&) const = default;
    };
 
@@ -82,14 +81,4 @@ template <int bpp>
 constexpr auto bb::color<bpp>::operator[](const int index) -> uint8_t& 
 {
    return m_components[index];
-}
-
-
-template <int bpp>
-constexpr auto bb::color<bpp>::get_4byte_padded() const -> color<4>
-{
-   color<4> result{ 0ui8, 0ui8, 0ui8, 0ui8 };
-   for (int i = 0; i < bpp; ++i)
-      result[i] = (*this)[i];
-   return result;
 }

@@ -3,6 +3,7 @@
 #include <zstd_1.5.0/zstd.h>
 #include <lz4/lz4.h>
 
+
 auto bb::get_zstd_compressed(
    const std::vector<uint8_t>& input
 ) -> std::vector<uint8_t>
@@ -46,10 +47,9 @@ auto bb::get_lz4_compressed(
    );
    if (compressed_size == 0)
    {
-      // error
+      printf("Error occured during LZ4 compression.\n");
    }
 
    result.resize(compressed_size);
    return result;
 }
-

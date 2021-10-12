@@ -47,7 +47,7 @@ fig.savefig("binary_sizes.png")
 
 fig = plt.figure(figsize=(6, 3))
 ax = fig.add_subplot(111)
-ax.plot(source_sizes_kb, compile_times_increases, "o-")
+ax.plot(source_sizes_kb, compile_times_increases, "o--")
 ax.set_xscale('log')
 ax.xaxis.set_major_formatter(ticker.StrMethodFormatter("{x:8.0f}"))
 ax.set_xlabel("Memory size of include [KB]")
