@@ -21,7 +21,6 @@ namespace
       const std::optional<T> read_value = tbl[key].value<T>();
       if (read_value.has_value() == false)
       {
-         std::cout << std::format("Setting {} can't be read from config. Keeping default value ({}).\n", key, target);
          return;
       }
       target = read_value.value();
