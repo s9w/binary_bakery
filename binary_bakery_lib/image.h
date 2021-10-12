@@ -38,8 +38,6 @@ namespace bb
    template<int bpp>
    [[nodiscard]] auto get_image(const fs::path& path) -> image<bpp>;
 
-   enum class dual_color_name { first, second };
-
    template<int bpp>
    [[nodiscard]] auto get_image_bytestream(const image<bpp>& image) -> std::vector<uint8_t>;
 

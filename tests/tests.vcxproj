@@ -96,6 +96,7 @@
     <ClCompile Include="color_tests.cpp" />
     <ClCompile Include="config_tests.cpp" />
     <ClCompile Include="file_tools_tests.cpp" />
+    <ClCompile Include="image_tests.cpp" />
     <ClCompile Include="payload_tests.cpp" />
     <ClCompile Include="tests.cpp" />
     <ClCompile Include="tools_test.cpp" />
