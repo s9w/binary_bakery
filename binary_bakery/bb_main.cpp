@@ -84,7 +84,7 @@ namespace bb {
       char* argv[]
    ) -> void
    {
-      const abs_directory_path working_dir{ fs::path(argv[0]).parent_path() };
+      
 
       std::vector<payload> payloads;
       payloads.reserve(argc-1);
@@ -130,6 +130,7 @@ namespace bb {
 
       {
          timer t("Time to write");
+         const abs_directory_path working_dir{ fs::current_path() };
          write_payloads_to_file(cfg.value(), std::move(payloads), working_dir);
       }
 

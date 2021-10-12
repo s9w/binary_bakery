@@ -110,22 +110,6 @@ namespace {
    }
 
 
-   [[nodiscard]] auto get_target_path(
-      const std::vector<payload>& payloads,
-      const abs_directory_path& working_dir,
-      const std::string& group_header_name
-   ) -> fs::path
-   {
-      abs_directory_path target_dir = working_dir;
-      if (payloads.empty() == false)
-      {
-         target_dir = abs_directory_path{ payloads[0].m_path.get_path().parent_path() };
-      }
-
-      return target_dir.get_path() / group_header_name;
-   }
-
-
    auto write_string_compare_fun(
       std::ofstream& out
    ) -> void
@@ -260,7 +244,8 @@ auto bb::write_payloads_to_file(
       payload_strings.emplace_back(std::move(payload_str));
    }
 
-   std::ofstream filestream(get_target_path(payloads, working_dir, cfg.output_filename), std::ios::out);
+   const fs::path output_path = working_dir.get_path() / cfg.output_filename;
+   std::ofstream filestream(output_path, std::ios::out);
    if (!filestream.good())
    {
       std::cout << std::format("Couldn't open {} for writing\n", cfg.output_filename);
