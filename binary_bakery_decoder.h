@@ -10,10 +10,6 @@
 #include <vector>
 #endif // BAKERY_PROVIDE_VECTOR
 
-#ifdef    BAKERY_PROVIDE_STD_ARRAY
-#include <array>
-#endif // BAKERY_PROVIDE_STD_ARRAY
-
 
 namespace bb {
 
@@ -67,16 +63,6 @@ namespace bb {
    template<typename user_type, int bpp = sizeof(user_type)>
    [[nodiscard]] constexpr auto get_pixel(const uint64_t* source, const int index) -> user_type;
 
-#ifdef    BAKERY_PROVIDE_STD_ARRAY
-   // Returns an std::array of provided type. This is constexpr. Warning: Arrays allocate the
-   // memory on the stack. This will quickly be exhausted and is often limited to as little as 1MB.
-   // Don't use this interface unless you know what you're doing. Does not work with compressed payloads.
-   template<typename user_type, header head, int array_size, int element_count = get_element_count<user_type>(head)>
-   [[nodiscard]] constexpr auto decode_to_array(
-      const uint64_t(&source)[array_size]
-   ) -> std::array<user_type, element_count>;
-#endif // BAKERY_PROVIDE_STD_ARRAY
-
 #ifdef    BAKERY_PROVIDE_VECTOR
    // Returns an std::vector of provided type.
    template<typename user_type>
@@ -122,7 +108,7 @@ namespace bb::detail {
    template<typename user_type, int element_count>
    struct wrapper_type {
       uint64_t filler[2];
-      alignas(user_type) std::array<user_type, element_count> m_data; // needs to be returned
+      alignas(user_type) better_array<user_type, element_count> m_data; // needs to be returned
       // End padding should be unnecessary because of array alignment
    };
 
@@ -357,21 +343,6 @@ constexpr auto bb::get_pixel(
 
    return detail::get_pixel_impl<user_type, bpp>(source, index);
 }
-
-
-#ifdef BAKERY_PROVIDE_STD_ARRAY
-template<typename user_type, bb::header head, int array_size, int element_count>
-constexpr auto bb::decode_to_array(
-   const uint64_t(&source)[array_size]
-) -> std::array<user_type, element_count>
-{
-   // TODO assert not compressed
-   static_assert(element_count > 0, "Not enough bytes to even fill one of those types.");
-
-   using target_type = detail::wrapper_type<user_type, element_count>;
-   return std::bit_cast<target_type>(source).m_data;
-}
-#endif // BAKERY_PROVIDE_STD_ARRAY
 
 
 #ifdef BAKERY_PROVIDE_VECTOR

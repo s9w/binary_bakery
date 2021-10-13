@@ -94,8 +94,6 @@ For zstd for example, that would typically contain a call to `ZSTD_decompress(ds
 |:---|
 | Writes into a **preallocated** memory. You can always access the required decompressed size in bytes from `header::decompressed_size`. |
 
-#### `constexpr auto bb::decode_to_array(identifier) -> std::array<T, n>` :warning::warning::warning:
-This returns a `std::array` of the correct type and size. The array size is determined automagically, but can be explicitly requested from `bb::get_element_count(identifier)`. If you want to use this interface, you need to `#define BAKERY_PROVIDE_STD_ARRAY` before you include the decoder header.
 
 This function is special and dangerous: It allows `constexpr` access to the data, which might be handy for very special purposes. As a result, this returns an array, which stores its data on the stack. Stack memory is a very limited resource (often just 1MB), which can *easily* be exhausted by calling this function on a non-tiny file. That also applies to a runtime-use and will result in a stack overflow. Use this only when you know what you're doing.
 
@@ -105,7 +103,7 @@ This function is special and dangerous: It allows `constexpr` access to the data
 If you want to avoid using the provided decoding header altogether, you can access the information yourself. The first 24 bytes contain the header which is defined at the top of the [`binary_bakery_decoder.h`](binary_bakery_decoder.h). Everything after that is the byte stream.
 
 ## Error handling
-If there's an error in a compile-time context, that always results in a Compile error. Runtime behavior is configurable by providing a function that gets called in error cases. You might want to throw an exception, call `std::terminate()`, log some error and continue or whatever you desire.
+If there's an error in a compile-time context, that always results in a compile error. Runtime behavior is configurable by providing a function that gets called in error cases. You might want to throw an exception, call `std::terminate()`, log some error and continue or whatever you desire.
 
 |   | Compiletime | Runtime |
 |---|---|---|
