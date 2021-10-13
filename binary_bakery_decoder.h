@@ -46,17 +46,18 @@ namespace bb {
    [[nodiscard]] constexpr auto get_height(const char* name)       -> int;
    [[nodiscard]] constexpr auto get_height(const uint64_t* source) -> int;
 
-   // These methods provide easy access to the number of elements in the dataset. In images, that equates to the number
-   // of pixels. In generic binaries, that's the number of elements of the target type.
-   // Can be called without a target type if the dataset is an image, otherwise the target type has to be provided as
-   // template parameter. Throws if that assumption is violated.
-   template<typename user_type>
+   // These methods provide easy access to the number of elements in the dataset. In images, that is equal to the number
+   // of pixels. Therefore this function can be called without template parameter with image payloads.
+   // In generic binaries, that's the number of elements of the target type. That needs to be provided as template
+   // parameter.
    [[nodiscard]] constexpr auto get_element_count(const char* name) -> int;
-   [[nodiscard]] constexpr auto get_element_count(const char* name) -> int;
+   [[nodiscard]] constexpr auto get_element_count(const uint64_t* source) -> int;
    
    template<typename user_type>
+   [[nodiscard]] constexpr auto get_element_count(const char* name) -> int;
+   template<typename user_type>
    [[nodiscard]] constexpr auto get_element_count(const uint64_t* source) -> int;
-   [[nodiscard]] constexpr auto get_element_count(const uint64_t* source) -> int;
+   
 
    using decompression_fun_type = std::add_pointer_t<void(const void* src, const size_t src_size, void* dst, const size_t dst_capacity)>;
 
@@ -124,42 +125,6 @@ namespace bb::detail {
       return {x/y, x%y};
    }
 
-
-   template<typename T, typename color_type, typename target_type>
-   constexpr auto reconstruct(
-      const int element_count,
-      const uint8_t* source,
-      target_type& target,
-      const color_type& color0,
-      const color_type& color1
-   ) -> void
-   {
-      for (int i = 0; i < element_count; ++i)
-      {
-         const auto [byte_index, bit_index] = div(i, 8);
-         const int left_shift_amount = 7 - bit_index; // 7 is leftest bit
-         const uint8_t mask = static_cast<uint8_t>(1ui8 << left_shift_amount);
-         const bool binary_value = static_cast<bool>((source[byte_index] & mask) >> left_shift_amount);
-         const auto replacement_color = std::bit_cast<T>(binary_value ? color1 : color0);
-         target[i] = replacement_color;
-      }
-   }
-
-
-   [[nodiscard]] constexpr auto get_byte_count_from_bit_count(
-      const int bit_count
-   ) -> int
-   {
-      auto [byte_count, bit_modulo] = div(bit_count, 8);
-      if (bit_modulo > 0)
-         ++byte_count;
-      return byte_count;
-   }
-
-   template<typename user_type>
-   [[nodiscard]] constexpr auto get_element_count(const header& head) -> int;
-   [[nodiscard]] constexpr auto get_element_count(const header& head) -> int;
-
    template<typename user_type, int bpp>
    [[nodiscard]] constexpr auto get_pixel_impl(const uint64_t* source, const int index) -> user_type;
    
@@ -188,10 +153,14 @@ constexpr auto bb::get_header(
    const uint64_t* source
 ) -> header
 {
-   header result;
+   
    if (source == nullptr)
-      return result;
+   {
+      detail::error("Source was nullptr", std::source_location::current());
+      return header{};
+   }
 
+   header result;
    {
       struct front_decoder {
          uint8_t  type = 0;
@@ -233,10 +202,12 @@ constexpr auto bb::is_image(
 ) -> bool
 {
    if (source == nullptr)
+   {
+      detail::error("Source was nullptr", std::source_location::current());
       return false;
-   const auto temp0 = std::bit_cast<detail::better_array<uint8_t, 8>>(source[0]);
-   const uint8_t type = temp0[0];
-   return type == 1 || type == 2;
+   }
+   const header head = get_header(source);
+   return head.type == 1;
 }
 
 constexpr auto bb::is_image(
@@ -252,13 +223,17 @@ constexpr auto bb::get_width(
 ) -> int
 {
    if (source == nullptr)
+   {
+      detail::error("Source was nullptr", std::source_location::current());
       return 0;
+   }
    if (is_image(source) == false)
    {
-      return -1;
+      detail::error("get_width() called on a non-image payload", std::source_location::current());
+      return 0;
    }
-   const auto temp = std::bit_cast<detail::better_array<uint16_t, 4>>(source[1]);
-   return temp[0];
+   const header head = get_header(source);
+   return head.width;
 }
 
 
@@ -275,13 +250,17 @@ constexpr auto bb::get_height(
 ) -> int
 {
    if (source == nullptr)
+   {
+      detail::error("Source was nullptr", std::source_location::current());
       return 0;
+   }
    if (is_image(source) == false)
    {
-      return -1;
+      detail::error("get_height() called on a non-image payload", std::source_location::current());
+      return 0;
    }
-   const auto temp = std::bit_cast<detail::better_array<uint16_t, 4>>(source[1]);
-   return temp[1];
+   const header head = get_header(source);
+   return head.height;
 }
 
 
@@ -327,14 +306,14 @@ constexpr auto bb::get_pixel(
       return detail::get_default<user_type>();
    }
 
-   const header head = bb::get_header(source);
+   //const header head = bb::get_header(source);
    if (is_image(source) == false)
    {
       detail::error("Payload is not an image", std::source_location::current());
       return detail::get_default<user_type>();
    }
 
-   const int element_count = detail::get_element_count<user_type>(head);
+   const int element_count = get_element_count<user_type>(source);
    if (index >= element_count || index < 0)
    {
       detail::error("Index is out of bounds", std::source_location::current());
@@ -353,22 +332,25 @@ auto bb::decode_to_vector(
 ) -> std::vector<user_type>
 {
    if (source == nullptr)
+   {
+      detail::error("Source was nullptr", std::source_location::current());
       return {};
+   }
 
    const header head = bb::get_header(source);
-   const int element_count = detail::get_element_count<user_type>(head);
+   const int element_count = get_element_count<user_type>(source);
    std::vector<user_type> result(element_count);
    
    const uint8_t* payload_data_start_ptr = reinterpret_cast<const uint8_t*>(&source[2]);
    if (head.compression == 0)
    {
-      
       std::memcpy(result.data(), payload_data_start_ptr, head.decompressed_size);
    }
-   else if (head.compression == 1)
+   else if (head.compression > 0)
    {
       if (decomp_fun == nullptr)
       {
+         detail::error("Payload is compressed, but the decompression_fun parameter is nullptr.", std::source_location::current());
          return {};
       }
       decomp_fun(payload_data_start_ptr, head.compressed_size, result.data(), head.decompressed_size);
@@ -394,8 +376,16 @@ auto bb::decode_into_pointer(
    user_type* dst
 ) -> void
 {
-   if (source == nullptr || dst == nullptr)
+   if (source == nullptr)
+   {
+      detail::error("Source is nullptr", std::source_location::current());
       return;
+   }
+   if (dst == nullptr)
+   {
+      detail::error("Destination is nullptr", std::source_location::current());
+      return;
+   }
    const header head = bb::get_header(source);
    const int element_count = get_element_count<user_type>(head);
    const int byte_count = element_count * sizeof(user_type);
@@ -418,25 +408,30 @@ auto bb::decode_into_pointer(
 
 
 constexpr auto bb::get_element_count(
-   const char* name
+   const uint64_t* source
 ) -> int
 {
-   const uint64_t* source = bb::get(name);
    if (source == nullptr)
+   {
+      detail::error("Source was nullptr", std::source_location::current());
       return 0;
-   return detail::get_element_count(get_header(source));
+   }
+
+   if (is_image(source) == false)
+   {
+      detail::error("Can't call get_element_count() without template param for non-images.", std::source_location::current());
+      return 0;
+   }
+   const header head = get_header(source);
+   return head.width * head.height;
 }
 
 
-template<typename user_type>
 constexpr auto bb::get_element_count(
    const char* name
 ) -> int
 {
-   const uint64_t* source = bb::get(name);
-   if (source == nullptr)
-      return 0;
-   return detail::get_element_count<user_type>(get_header(source));
+   return get_element_count(bb::get(name));
 }
 
 
@@ -446,43 +441,21 @@ constexpr auto bb::get_element_count(
 ) -> int
 {
    if (source == nullptr)
+   {
+      detail::error("Source was nullptr", std::source_location::current());
       return 0;
-   return detail::get_element_count<user_type>(get_header(source));
-}
-
-
-constexpr auto bb::get_element_count(
-   const uint64_t* source
-) -> int
-{
-   if (source == nullptr)
-      return 0;
-   return detail::get_element_count(get_header(source));
-}
-
-
-template<typename user_type>
-constexpr auto bb::detail::get_element_count(
-   const header& head
-) -> int
-{
+   }
+   const header head = get_header(source);
    return head.decompressed_size / sizeof(user_type);
 }
 
 
-constexpr auto bb::detail::get_element_count(
-   const header& head
+template<typename user_type>
+constexpr auto bb::get_element_count(
+   const char* name
 ) -> int
 {
-   if (head.type == 0)
-   {
-      throw "Can't be used on non-image payloads without a type.";
-   }
-   else
-   {
-      const int pixel_count = head.width * head.height;
-      return pixel_count;
-   }
+   return get_element_count<user_type>(bb::get(name));
 }
 
 
