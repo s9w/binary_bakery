@@ -15,6 +15,15 @@ namespace fs = std::filesystem;
 
 namespace bb
 {
+   struct abs_file_path;
+
+   struct image_dimensions {
+      int width = 0;
+      int height = 0;
+      int bpp = 0;
+
+      auto operator<=>(const image_dimensions&) const = default;
+   };
 
    template<int bpp>
    struct image {
@@ -23,9 +32,10 @@ namespace bb
 
       int m_width = 0;
       int m_height = 0;
-      std::vector<color_type> m_pixels;
+      std::vector<color_type> m_pixels{};
 
-      explicit image(const int w, const int h, const unsigned char* data);
+      explicit image(const abs_file_path& file, const image_dimensions& image_dim, const image_vertical_direction direction);
+      explicit image(const abs_file_path& file, const image_vertical_direction direction);
       [[nodiscard]] auto get_byte_count() const -> int;
       [[nodiscard]] auto get_pixel_count() const -> int;
       [[nodiscard]] auto operator[](const int index) const -> const color_type&;
@@ -35,22 +45,11 @@ namespace bb
       auto operator<=>(const image<bpp>&) const = default;
    };
 
-   template<int bpp>
-   [[nodiscard]] auto get_image(const fs::path& path) -> image<bpp>;
+   [[nodiscard]] auto get_image_dimensions(const abs_file_path& file) -> image_dimensions;
 
    template<int bpp>
    [[nodiscard]] auto get_image_bytestream(const image<bpp>& image) -> std::vector<uint8_t>;
 
-}
-
-
-
-template <int bpp>
-bb::image<bpp>::image(const int w, const int h, const unsigned char* data): m_width(w)
-   , m_height(h)
-   , m_pixels(m_width* m_height, no_init{})
-{
-   std::memcpy(m_pixels.data(), data, get_byte_count());
 }
 
 

@@ -35,63 +35,38 @@ namespace {
    }
 
 
-   struct stbi_loader {
-      unsigned char* m_data = nullptr;
-      int m_width = 0;
-      int m_height = 0;
-      int m_components = 0;
-
-      explicit stbi_loader(const abs_file_path& file)
-      {
-         m_data = stbi_load(file.get_path().string().c_str(), &m_width, &m_height, &m_components, 0);
-         if (m_data == nullptr) {
-            const std::string msg = std::format("Couldn't open file {}", file.get_path().string());
-            throw std::runtime_error(msg);
-         }
-      }
-
-      ~stbi_loader()
-      {
-         stbi_image_free(m_data);
-      }
-
-      stbi_loader(const stbi_loader&) = delete;
-      stbi_loader& operator=(const stbi_loader&) = delete;
-      stbi_loader(stbi_loader&&) = delete;
-      stbi_loader& operator=(stbi_loader&&) = delete;
-   };
-
-
    template<int bpp>
    [[nodiscard]] auto get_image_payload_impl(
-      const int width,
-      const int height,
-      const unsigned char* image_data_ptr,
-      const abs_file_path& file
+      const abs_file_path& file,
+      const image_dimensions& image_dim,
+      const config& cfg
    ) -> payload
    {
-      const image<bpp> image{ width, height, image_data_ptr };
-      const naive_image_type meta{ width, height, bpp };
+      const image<bpp> image{ file, image_dim, cfg.image_loading_direction };
+      const naive_image_type meta{ image.m_width, image.m_height, bpp };
       std::vector<uint8_t> stream = get_image_bytestream(image);
 
       return { std::move(stream), meta, file };
    }
 
 
-   [[nodiscard]] auto get_image_payload(const abs_file_path& file) -> payload
+   [[nodiscard]] auto get_image_payload(
+      const abs_file_path& file,
+      const config& cfg
+   ) -> payload
    {
-      const stbi_loader loader(file);
+      const image_dimensions image_dim = get_image_dimensions(file);
 
       return [&]() {
-         switch (loader.m_components) {
+         switch (image_dim.bpp) {
          case 1:
-            return get_image_payload_impl<1>(loader.m_width, loader.m_height, loader.m_data, file);
+            return get_image_payload_impl<1>(file, image_dim, cfg);
          case 2:
-            return get_image_payload_impl<2>(loader.m_width, loader.m_height, loader.m_data, file);
+            return get_image_payload_impl<2>(file, image_dim, cfg);
          case 3:
-            return get_image_payload_impl<3>(loader.m_width, loader.m_height, loader.m_data, file);
+            return get_image_payload_impl<3>(file, image_dim, cfg);
          case 4:
-            return get_image_payload_impl<4>(loader.m_width, loader.m_height, loader.m_data, file);
+            return get_image_payload_impl<4>(file, image_dim, cfg);
          default:
             std::cout << "unexpected\n";
             std::terminate();
@@ -184,10 +159,13 @@ namespace {
 } // namespace {}
 
 
-auto bb::get_payload(const abs_file_path& file) -> payload
+auto bb::get_payload(
+   const abs_file_path& file,
+   const config& cfg
+) -> payload
 {
    if (is_image_path(file))
-      return get_image_payload(file);
+      return get_image_payload(file, cfg);
    else
       return get_binary_file_payload(file);
 }

@@ -47,6 +47,24 @@ namespace
       }
    }
 
+   [[nodiscard]] auto get_image_write_direction(
+      const std::optional<std::string>& value
+   ) -> image_vertical_direction
+   {
+      if (value.has_value() == false)
+         return image_vertical_direction::bottom_to_top;
+
+      if (value.value() == "bottom_to_top")
+         return image_vertical_direction::bottom_to_top;
+      else if (value.value() == "top_to_bottom")
+         return image_vertical_direction::top_to_bottom;
+      else
+      {
+         std::cout << std::format("image_loading_direction value \"{}\" not recognized. Using bottom to top.\n", value.value());
+         return image_vertical_direction::bottom_to_top;
+      }
+   }
+
    const std::string default_config_filename = "binary_bakery.toml";
 
 } // namespace {}
@@ -87,5 +105,6 @@ auto bb::get_cfg_from_file(
    set_value(tbl, cfg.smart_mode, "smart_mode");
    cfg.compression = get_compression_mode(tbl["compression_mode"].value<std::string>());
    set_value(tbl, cfg.prompt_for_key, "prompt_for_key");
+   cfg.image_loading_direction = get_image_write_direction(tbl["image_loading_direction"].value<std::string>());
    return cfg;
 }

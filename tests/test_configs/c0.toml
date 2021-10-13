@@ -15,3 +15,5 @@ smart_mode = false
 # none: no compression
 # zstd: Zstandard, see https://github.com/facebook/zstd
 compression_mode = "zstd"
+
+image_loading_direction = "top_to_bottom"

@@ -32,7 +32,7 @@ namespace bb {
    };
 
    // TODO maybe make this optional and deal with exception from file opening, parsing errors etc
-   [[nodiscard]] auto get_payload(const abs_file_path& path) -> payload;
+   [[nodiscard]] auto get_payload(const abs_file_path& path, const config& cfg) -> payload;
 
    auto write_payloads_to_file(
       const config& cfg,

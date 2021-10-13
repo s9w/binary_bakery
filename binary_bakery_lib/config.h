@@ -15,6 +15,7 @@ namespace bb
       bool smart_mode = true;
       compression_mode compression = compression_mode::lz4;
       bool prompt_for_key = true;
+      image_vertical_direction image_loading_direction = image_vertical_direction::bottom_to_top;
    };
 
    [[nodiscard]] auto get_cfg_from_dir(const abs_directory_path& dir) -> std::optional<config>;

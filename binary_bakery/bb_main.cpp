@@ -37,12 +37,15 @@ namespace bb {
    };
 
 
-   [[nodiscard]] auto get_config(const std::vector<payload>& payloads) -> config
+   // move this to config header?
+   [[nodiscard]] auto get_config(
+      const std::vector<abs_file_path>& packing_files
+   ) -> config
    {
       // First: Try to get the config from the dirctory of the first file
-      if(payloads.empty() == false)
+      if(packing_files.empty() == false)
       {
-         const abs_directory_path payload_dir{ payloads[0].m_path.get_path().parent_path() };
+         const abs_directory_path payload_dir{ packing_files[0].get_path().parent_path() };
          const std::optional<config> target_dir_cfg = get_cfg_from_dir(payload_dir);
          if (target_dir_cfg.has_value())
          {
@@ -78,17 +81,21 @@ namespace bb {
 #endif
    }
 
+   // From the inputs, filter out all non-files and non-existing files. Also try to find a config
+   // among the parameters
+   struct input_files {
+      std::vector<abs_file_path> m_packing_files;
+      std::optional<config> m_config;
+   };
 
-   auto run(
+
+   [[nodiscard]] auto get_input_files(
       int argc,
       char* argv[]
-   ) -> void
+   ) -> input_files
    {
-      
-
-      std::vector<payload> payloads;
-      payloads.reserve(argc-1);
-      std::optional<config> cfg;
+      input_files result;
+      result.m_packing_files.reserve(argc - 1);
       for (int i = 1; i < argc; ++i)
       {
          // Path must exist and must be a file
@@ -103,38 +110,56 @@ namespace bb {
             continue;
          }
 
-         // Try to see if it's an explicit config file
          const abs_file_path file{ argv[i] };
+
          if (file.get_path().extension() == ".toml")
          {
             const std::optional<config> explicit_config = get_cfg_from_file(file);
             if (explicit_config.has_value())
             {
-               if (cfg.has_value())
+               if (result.m_config.has_value())
                {
-                  std::cout << "There's more than one explicit config file among the parameters. I hope you know what you're doing.\n";
+                  std::cout << std::format("There was already a config among the input files. Ignoring this one\n");
+                  continue;
                }
                std::cout << std::format("Using explicit config file \"{}\".\n", file.get_path().string());
-               cfg.emplace(explicit_config.value());
+               result.m_config.emplace(explicit_config.value());
+               continue;
             }
          }
-         else
-         {
-            payloads.emplace_back(get_payload(abs_file_path{ argv[i] }));
-         }
+         result.m_packing_files.emplace_back(file);
       }
-      if (cfg.has_value() == false)
+      return result;
+   }
+
+
+   auto run(
+      int argc,
+      char* argv[]
+   ) -> void
+   {
+      const input_files inputs = get_input_files(argc, argv);
+      const config cfg = [&]() {
+         if (inputs.m_config.has_value())
+            return inputs.m_config.value();
+         else
+            return get_config(inputs.m_packing_files);
+      }();
+
+      std::vector<payload> payloads;
+      payloads.reserve(inputs.m_packing_files.size());
+      for (const abs_file_path& file : inputs.m_packing_files)
       {
-         cfg = get_config(payloads);
+         payloads.emplace_back(get_payload(file, cfg));
       }
 
       {
          timer t("Time to write");
          const abs_directory_path working_dir{ fs::current_path() };
-         write_payloads_to_file(cfg.value(), std::move(payloads), working_dir);
+         write_payloads_to_file(cfg, std::move(payloads), working_dir);
       }
 
-      if (cfg.value().prompt_for_key)
+      if (cfg.prompt_for_key)
          wait_for_keypress();
    }
 }

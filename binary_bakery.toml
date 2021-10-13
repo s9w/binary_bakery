@@ -12,11 +12,17 @@ max_columns = 100
 # false: Images will be encoded like all binary files
 smart_mode = true
 
-# Any of: [none, zstd, lz4]
-# none: no compression
-# zstd: Zstandard, see https://github.com/facebook/zstd
+# Any of: ["none", "zstd", "lz4"]
+# "none": no compression
+# "zstd": Zstandard, see https://github.com/facebook/zstd
+# "LZ4": see https://github.com/lz4/lz4
 compression_mode = "none"
 
 # True: Encoder waits for a key press at the end, allowing you to read some size information
 # False: Ends program immediately
 prompt_for_key = true
+
+# Store image pixel information from bottom row to top or the other way?
+# "bottom_to_top": First pixel is bottom left
+# "top_to_bottom": First pixel is top left
+image_loading_direction = "bottom_to_top"

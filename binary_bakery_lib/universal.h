@@ -27,6 +27,7 @@ namespace bb
    struct no_init {};
 
    enum class compression_mode { none, zstd, lz4 };
+   enum class image_vertical_direction { bottom_to_top, top_to_bottom };
 
    template<typename T>
    concept numerical = (std::integral<T> && !std::is_same_v<T, bool>) || std::floating_point<T>;
