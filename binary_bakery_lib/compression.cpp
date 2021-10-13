@@ -38,7 +38,9 @@ auto bb::get_lz4_compressed(
    const std::vector<uint8_t>& input
 ) -> std::vector<uint8_t>
 {
-   std::vector<uint8_t> result(input.size());
+   const int target_size_bount = LZ4_compressBound(static_cast<int>(input.size()));
+   std::vector<uint8_t> result(target_size_bount);
+   
    const int compressed_size = LZ4_compress_default(
       std::bit_cast<const char*>(input.data()),
       std::bit_cast<char*>(result.data()),
