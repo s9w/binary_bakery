@@ -1,9 +1,10 @@
 #pragma once
 
-#include <bit>     // For std::bit_cast
-#include <cstdint> // For sized types
-#include <string>  // For std::memcpy
-#include <type_traits> // for add_pointer, just to look nice
+#include <bit>             // For std::bit_cast
+#include <cstdint>         // For sized types
+#include <source_location> // For source locations of errors
+#include <string>          // For std::memcpy
+#include <type_traits>     // For add_pointer, just to look nice
 
 #ifdef    BAKERY_PROVIDE_VECTOR
 #include <vector>
@@ -93,16 +94,30 @@ namespace bb {
    // This is defined in the payload header. Returns nullptr if the name isn't in the dataset.
    [[nodiscard]] constexpr auto get(const char* name) -> const uint64_t*;
 
+   using error_callback_type = void(*)(const char* msg, const std::source_location& location);
+   inline error_callback_type error_callback = nullptr;
+
 } // namespace bb
 
 
 namespace bb::detail {
+
+#ifdef BB_ERROR_FUNCTION
+   inline auto error(const char* msg, const std::source_location& location) noexcept(false) -> void;
+#else
+   inline auto error(const char* msg, const std::source_location& location) noexcept -> void;
+#endif
+
    template<typename T, int size>
    struct better_array {
       T m_values[size];
       [[nodiscard]] constexpr auto operator[](const int index) const -> const T&;
       [[nodiscard]] constexpr auto operator[](const int index)       ->       T&;
    };
+
+   // Construct objects of types that might not be default-consructible
+   template<typename user_type>
+   [[nodiscard]] constexpr auto get_default() -> user_type;
 
    template<typename user_type, int element_count>
    struct wrapper_type {
@@ -298,7 +313,7 @@ constexpr auto bb::detail::get_pixel_impl(
    const int index
 ) -> user_type
 {
-   // User intermediate type because user-type might not be default constructible and not have operator[]
+   // Use intermediate type because user-type might not be default constructible and not have operator[]
    better_array<uint8_t, bpp> intermediate{};
 
    using bytes_type = better_array<uint8_t, 8>;
@@ -322,19 +337,22 @@ constexpr auto bb::get_pixel(
 {
    if (source == nullptr)
    {
-      // error
+      detail::error("Source was nullptr", std::source_location::current());
+      return detail::get_default<user_type>();
    }
 
    const header head = bb::get_header(source);
    if (is_image(source) == false)
    {
-      // error
+      detail::error("Payload is not an image", std::source_location::current());
+      return detail::get_default<user_type>();
    }
 
    const int element_count = detail::get_element_count<user_type>(head);
-   if (index >= element_count)
+   if (index >= element_count || index < 0)
    {
-      // error
+      detail::error("Index is out of bounds", std::source_location::current());
+      return detail::get_default<user_type>();
    }
 
    return detail::get_pixel_impl<user_type, bpp>(source, index);
@@ -495,3 +513,35 @@ constexpr auto bb::detail::get_element_count(
       return pixel_count;
    }
 }
+
+
+template<typename user_type>
+constexpr auto bb::detail::get_default() -> user_type
+{
+   return std::bit_cast<user_type>(detail::better_array<uint8_t, sizeof(user_type)>{});
+}
+
+
+#ifdef BB_ERROR_FUNCTION
+auto bb::detail::error(
+   [[maybe_unused]] const char* msg,
+   [[maybe_unused]] const std::source_location& location
+) noexcept(false) -> void
+{
+   if (error_callback != nullptr)
+   {
+      error_callback(msg, location);
+   }
+}
+#endif
+
+
+#ifndef BB_ERROR_FUNCTION
+auto bb::detail::error(
+   [[maybe_unused]] const char* msg,
+   [[maybe_unused]] const std::source_location& location
+) noexcept -> void
+{
+   // Ignoring errors
+}
+#endif

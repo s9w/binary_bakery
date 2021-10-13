@@ -10,6 +10,11 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "binary_bakery", "binary_bakery\binary_bakery.vcxproj", "{36FF9F00-2C70-4772-BEAB-6C4CF64668AF}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "decoder_example", "decoder_example\decoder_example.vcxproj", "{BD1207F7-F492-495D-9607-0438334E963D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{56B69B75-2BEB-4E0A-908A-EAD9F6498217} = {56B69B75-2BEB-4E0A-908A-EAD9F6498217}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tests_user_error", "tests_user_error\tests_user_error.vcxproj", "{BF364DC9-9054-4C2D-BAE6-682C1399BDFB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +38,10 @@ Global
 		{BD1207F7-F492-495D-9607-0438334E963D}.Debug|x64.Build.0 = Debug|x64
 		{BD1207F7-F492-495D-9607-0438334E963D}.Release|x64.ActiveCfg = Release|x64
 		{BD1207F7-F492-495D-9607-0438334E963D}.Release|x64.Build.0 = Release|x64
+		{BF364DC9-9054-4C2D-BAE6-682C1399BDFB}.Debug|x64.ActiveCfg = Debug|x64
+		{BF364DC9-9054-4C2D-BAE6-682C1399BDFB}.Debug|x64.Build.0 = Debug|x64
+		{BF364DC9-9054-4C2D-BAE6-682C1399BDFB}.Release|x64.ActiveCfg = Release|x64
+		{BF364DC9-9054-4C2D-BAE6-682C1399BDFB}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

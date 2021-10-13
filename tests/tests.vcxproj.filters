@@ -42,6 +42,9 @@
     <ClCompile Include="image_tests.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="decode_error_test_default.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\binary_bakery_decoder.h">

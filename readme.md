@@ -2,6 +2,7 @@
 Translates binary files (images, fonts etc.) into C++ *source code* and extract that binary data at compile- or runtime. There are different reasons why you might want this:
 
 - Avoiding the complexity of loading images or archives with external libraries
+- Compile-time access to image dimensions and content
 - Faster load times, especially with small files
 - Avoiding to ship files with your application binary or preventing people from grabbing such files
 
@@ -103,6 +104,34 @@ This function is special and dangerous: It allows `constexpr` access to the data
 
 If you want to avoid using the provided decoding header altogether, you can access the information yourself. The first 24 bytes contain the header which is defined at the top of the [`binary_bakery_decoder.h`](binary_bakery_decoder.h). Everything after that is the byte stream.
 
+## Error handling
+If there's an error in a compile-time context, that always results in a Compile error. Runtime behavior is configurable by providing a function that gets called in error cases. You might want to throw an exception, call `std::terminate()`, log some error and continue or whatever you desire.
+
+|   | Compiletime | Runtime |
+|---|---|---|
+| Default | Compile error | No error, return defaulted types |
+| User-defined error function | Compile error | Call user-defined function |
+
+To provide a custom error function, define `BB_ERROR_FUNCTION` and set set the function pointer to your function:
+
+```c++
+auto my_error_function(
+   const char* msg,
+   const std::source_location& loc
+) -> void
+{
+   std::cerr << std::format(
+      "ERROR: {} in: {}({}:{}) \"{}\"\n",
+      msg, loc.file_name(), loc.line(), loc.column(), loc.function_name()
+   );
+   std::terminate();
+}
+
+// ...
+
+bb::error_callback = my_error_function;
+```
+
 ## Costs and benefits
 There's two main concerns about embedding non-code data into your source code and resulting binary: Compile times and the size of the resulting binary. But there's also the potential of higher decode speed. What follows is an analysis of the pros and cons this method vs file loading in regard to various metrics. To get realistic results, a dataset of different images was created (in [sample_datasets/](sample_datasets)):
 
@@ -124,7 +153,7 @@ The dataset contains various game spritesheets like this:
 
 ### Binary size
 
-The decoder header has been written with few includes (`<bit>`, `<cstdint>`, `<string>`, `<type_traits>`). In most cases, they are already implicitly included and shouldn't have a meaningful impact on compile metrics on its own. I've measured a constant binary size penalty of 3KB in my test, independent of the size of the payload.
+The decoder header has been written with few includes (`<bit>`, `<cstdint>`, `<error_location>`, `<string>`, `<type_traits>`). In most cases, they are already implicitly included and shouldn't have a meaningful impact on compile metrics on its own. I've measured a constant binary size penalty of 3KB in my test, independent of the size of the payload.
 
 In addition to the decoder code, it's to be expected that the binary size increases at least by the size of the data you add. Luckily compilers seem to do a good job at preventing additional overhead. On top of the decoder code cost, uncompressed encoding increases the binary size by the payload size.
 
