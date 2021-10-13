@@ -96,6 +96,7 @@
     <ClCompile Include="color_tests.cpp" />
     <ClCompile Include="config_tests.cpp" />
     <ClCompile Include="decode_error_test_default.cpp" />
+    <ClCompile Include="decoding_tests_uncompressed.cpp" />
     <ClCompile Include="file_tools_tests.cpp" />
     <ClCompile Include="image_tests.cpp" />
     <ClCompile Include="payload_tests.cpp" />
@@ -110,6 +111,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\binary_bakery_decoder.h" />
+    <ClInclude Include="test_types.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

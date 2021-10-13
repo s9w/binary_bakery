@@ -45,10 +45,16 @@
     <ClCompile Include="decode_error_test_default.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="decoding_tests_uncompressed.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\binary_bakery_decoder.h">
       <Filter>binary_bakery</Filter>
+    </ClInclude>
+    <ClInclude Include="test_types.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

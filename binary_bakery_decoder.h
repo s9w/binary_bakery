@@ -78,6 +78,9 @@ namespace bb {
    template<typename user_type>
    auto decode_into_pointer(const char* name, user_type* dst) -> void;
 
+   [[nodiscard]] constexpr auto get_data_ptr(const char* name)       -> const void*;
+   [[nodiscard]] constexpr auto get_data_ptr(const uint64_t* source) -> const void*;
+
    // This is defined in the payload header. Returns nullptr if the name isn't in the dataset.
    [[nodiscard]] constexpr auto get(const char* name) -> const uint64_t*;
 
@@ -89,11 +92,7 @@ namespace bb {
 
 namespace bb::detail {
 
-#ifdef BB_ERROR_FUNCTION
-   inline auto error(const char* msg, const std::source_location& location) noexcept(false) -> void;
-#else
-   inline auto error(const char* msg, const std::source_location& location) noexcept -> void;
-#endif
+   inline auto error(const char* msg, const std::source_location& location) -> void;
 
    template<typename T, int size>
    struct better_array {
@@ -104,7 +103,7 @@ namespace bb::detail {
 
    // Construct objects of types that might not be default-consructible
    template<typename user_type>
-   [[nodiscard]] constexpr auto get_default() -> user_type;
+   [[nodiscard]] constexpr auto get_nulled_object() -> user_type;
 
    template<typename user_type, int element_count>
    struct wrapper_type {
@@ -303,21 +302,21 @@ constexpr auto bb::get_pixel(
    if (source == nullptr)
    {
       detail::error("Source was nullptr", std::source_location::current());
-      return detail::get_default<user_type>();
+      return detail::get_nulled_object<user_type>();
    }
 
    //const header head = bb::get_header(source);
    if (is_image(source) == false)
    {
       detail::error("Payload is not an image", std::source_location::current());
-      return detail::get_default<user_type>();
+      return detail::get_nulled_object<user_type>();
    }
 
    const int element_count = get_element_count<user_type>(source);
    if (index >= element_count || index < 0)
    {
       detail::error("Index is out of bounds", std::source_location::current());
-      return detail::get_default<user_type>();
+      return detail::get_nulled_object<user_type>();
    }
 
    return detail::get_pixel_impl<user_type, bpp>(source, index);
@@ -331,6 +330,7 @@ auto bb::decode_to_vector(
    decompression_fun_type decomp_fun
 ) -> std::vector<user_type>
 {
+   static_assert(std::is_default_constructible_v<user_type>, "decode_to_vector() requires the type to be default constructible. If that's a problem, file an issue. Should be possible (potentially slower).");
    if (source == nullptr)
    {
       detail::error("Source was nullptr", std::source_location::current());
@@ -341,10 +341,9 @@ auto bb::decode_to_vector(
    const int element_count = get_element_count<user_type>(source);
    std::vector<user_type> result(element_count);
    
-   const uint8_t* payload_data_start_ptr = reinterpret_cast<const uint8_t*>(&source[2]);
    if (head.compression == 0)
    {
-      std::memcpy(result.data(), payload_data_start_ptr, head.decompressed_size);
+      std::memcpy(result.data(), get_data_ptr(source), head.decompressed_size);
    }
    else if (head.compression > 0)
    {
@@ -353,7 +352,7 @@ auto bb::decode_to_vector(
          detail::error("Payload is compressed, but the decompression_fun parameter is nullptr.", std::source_location::current());
          return {};
       }
-      decomp_fun(payload_data_start_ptr, head.compressed_size, result.data(), head.decompressed_size);
+      decomp_fun(get_data_ptr(source), head.compressed_size, result.data(), head.decompressed_size);
    }
    return result;
 }
@@ -389,11 +388,10 @@ auto bb::decode_into_pointer(
    const header head = bb::get_header(source);
    const int element_count = get_element_count<user_type>(head);
    const int byte_count = element_count * sizeof(user_type);
-   const uint8_t* data_start_ptr = reinterpret_cast<const uint8_t*>(&source[2]);
 
    // TODO compression
 
-   std::memcpy(dst, data_start_ptr, byte_count);
+   std::memcpy(dst, get_data_ptr(source), byte_count);
 }
 
 
@@ -460,32 +458,40 @@ constexpr auto bb::get_element_count(
 
 
 template<typename user_type>
-constexpr auto bb::detail::get_default() -> user_type
+constexpr auto bb::detail::get_nulled_object() -> user_type
 {
    return std::bit_cast<user_type>(detail::better_array<uint8_t, sizeof(user_type)>{});
 }
 
 
-#ifdef BB_ERROR_FUNCTION
+constexpr auto bb::get_data_ptr(const uint64_t* source) -> const void*
+{
+   if (source == nullptr)
+   {
+      detail::error("Source was nullptr", std::source_location::current());
+      return nullptr;
+   }
+
+   constexpr auto header_size = sizeof(header);
+   static_assert(header_size % sizeof(uint64_t) == 0);
+
+   return &source[sizeof(header)/sizeof(uint64_t)];
+}
+
+
+constexpr auto bb::get_data_ptr(const char* name) -> const void*
+{
+   return bb::get_data_ptr(bb::get(name));
+}
+
+
 auto bb::detail::error(
    [[maybe_unused]] const char* msg,
    [[maybe_unused]] const std::source_location& location
-) noexcept(false) -> void
+) -> void
 {
    if (error_callback != nullptr)
    {
       error_callback(msg, location);
    }
 }
-#endif
-
-
-#ifndef BB_ERROR_FUNCTION
-auto bb::detail::error(
-   [[maybe_unused]] const char* msg,
-   [[maybe_unused]] const std::source_location& location
-) noexcept -> void
-{
-   // Ignoring errors
-}
-#endif

@@ -3,10 +3,9 @@
 #include <iostream>
 #include <format>
 
-#define BB_ERROR_FUNCTION
 #include "../binary_bakery_decoder.h"
 
-#include "../tests/test_images/test_image_rgb_payload.h"
+#include "../tests/test_images/test_payload_uncompressed.h"
 
 using namespace bb;
 
