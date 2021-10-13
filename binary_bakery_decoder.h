@@ -63,6 +63,9 @@ namespace bb {
 
    using decompression_fun_type = std::add_pointer_t<void(const void* src, const size_t src_size, void* dst, const size_t dst_capacity)>;
 
+   template<typename user_type, int bpp = sizeof(user_type)>
+   [[nodiscard]] constexpr auto get_pixel(const uint64_t* source, const int index) -> user_type;
+
 #ifdef    BAKERY_PROVIDE_STD_ARRAY
    // Returns an std::array of provided type. This is constexpr. Warning: Arrays allocate the
    // memory on the stack. This will quickly be exhausted and is often limited to as little as 1MB.
@@ -98,6 +101,7 @@ namespace bb::detail {
    struct better_array {
       T m_values[size];
       [[nodiscard]] constexpr auto operator[](const int index) const -> const T&;
+      [[nodiscard]] constexpr auto operator[](const int index)       ->       T&;
    };
 
    template<typename user_type, int element_count>
@@ -154,6 +158,9 @@ namespace bb::detail {
    template<typename user_type>
    [[nodiscard]] constexpr auto get_element_count(const header& head) -> int;
    [[nodiscard]] constexpr auto get_element_count(const header& head) -> int;
+
+   template<typename user_type, int bpp>
+   [[nodiscard]] constexpr auto get_pixel_impl(const uint64_t* source, const int index) -> user_type;
    
 } // namespace bb::detail
 
@@ -162,6 +169,15 @@ template <typename T, int size>
 constexpr auto bb::detail::better_array<T, size>::operator[](
    const int index
 ) const -> const T&
+{
+   return m_values[index];
+}
+
+
+template <typename T, int size>
+constexpr auto bb::detail::better_array<T, size>::operator[](
+   const int index
+) -> T&
 {
    return m_values[index];
 }
@@ -273,6 +289,55 @@ constexpr auto bb::get_height(
 ) -> int
 {
    return get_height(bb::get(name));
+}
+
+
+template<typename user_type, int bpp>
+constexpr auto bb::detail::get_pixel_impl(
+   const uint64_t* source,
+   const int index
+) -> user_type
+{
+   // User intermediate type because user-type might not be default constructible and not have operator[]
+   better_array<uint8_t, bpp> intermediate{};
+
+   using bytes_type = better_array<uint8_t, 8>;
+   for (int i = 0; i < bpp; ++i)
+   {
+      const int absolute_byte_index = index * sizeof(user_type) + i;
+      const auto [word_index, byte_index] = div(absolute_byte_index, static_cast<int>(sizeof(uint64_t)));
+      const uint64_t word = source[2 + word_index];
+      const bytes_type bytes = std::bit_cast<bytes_type>(word);
+      intermediate[i] = bytes[byte_index];
+   }
+   return std::bit_cast<user_type>(intermediate);
+}
+
+
+template<typename user_type, int bpp>
+constexpr auto bb::get_pixel(
+   const uint64_t* source,
+   const int index
+) -> user_type
+{
+   if (source == nullptr)
+   {
+      // error
+   }
+
+   const header head = bb::get_header(source);
+   if (is_image(source) == false)
+   {
+      // error
+   }
+
+   const int element_count = detail::get_element_count<user_type>(head);
+   if (index >= element_count)
+   {
+      // error
+   }
+
+   return detail::get_pixel_impl<user_type, bpp>(source, index);
 }
 
 
