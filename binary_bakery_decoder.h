@@ -73,10 +73,8 @@ namespace bb {
 #endif // BAKERY_PROVIDE_VECTOR
 
    // This writes into an arbitrary container-pointer. No memory management - needs to be allocated!
-   template<typename user_type>
-   auto decode_into_pointer(const uint64_t* source, user_type* dst) -> void;
-   template<typename user_type>
-   auto decode_into_pointer(const char* name, user_type* dst) -> void;
+   inline auto decode_into_pointer(const uint64_t* source, void* dst) -> void;
+   inline auto decode_into_pointer(const char* name, void* dst) -> void;
 
    [[nodiscard]] constexpr auto get_data_ptr(const char* name)       -> const void*;
    [[nodiscard]] constexpr auto get_data_ptr(const uint64_t* source) -> const void*;
@@ -369,10 +367,9 @@ auto bb::decode_to_vector(
 #endif // BAKERY_PROVIDE_VECTOR
 
 
-template<typename user_type>
 auto bb::decode_into_pointer(
    const uint64_t* source,
-   user_type* dst
+   void* dst
 ) -> void
 {
    if (source == nullptr)
@@ -386,22 +383,24 @@ auto bb::decode_into_pointer(
       return;
    }
    const header head = bb::get_header(source);
-   const int element_count = get_element_count<user_type>(head);
-   const int byte_count = element_count * sizeof(user_type);
-
-   // TODO compression
-
-   std::memcpy(dst, get_data_ptr(source), byte_count);
+   if (head.compression > 0)
+   {
+      // compression
+   }
+   else
+   {
+      const int byte_count = head.decompressed_size;
+      std::memcpy(dst, get_data_ptr(source), byte_count);
+   }
 }
 
 
-template<typename user_type>
 auto bb::decode_into_pointer(
    const char* name,
-   user_type* dst
+   void* dst
 ) -> void
 {
-   return decode_into_pointer<user_type>(bb::get(name), dst);
+   return decode_into_pointer(bb::get(name), dst);
 }
 
 

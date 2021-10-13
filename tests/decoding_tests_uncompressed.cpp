@@ -25,7 +25,7 @@ namespace
 
 namespace tests {
 
-   TEST_CASE("vector decoder, image")
+   TEST_CASE("decode_to_vector, image")
    {
       const abs_file_path test_image_path{ "test_images/test_image_rgb.png" };
       const std::vector<uint8_t> bytes_from_file = get_image_bytes(test_image_path);
@@ -39,12 +39,38 @@ namespace tests {
    }
 
 
-   TEST_CASE("vector decoder, generic binary")
+   TEST_CASE("decode_to_vector, generic binary")
    {
       const abs_file_path test_image_path{ "test_images/binary0.bin" };
       const std::vector<uint8_t> bytes_from_file = get_binary_file(test_image_path);
 
       const std::vector<uint8_t> bytes_from_payload = decode_to_vector<uint8_t>("binary0.bin");
+
+      CHECK_EQ(bytes_from_file, bytes_from_payload);
+   }
+
+
+   TEST_CASE("decode_into_pointer, image")
+   {
+      const abs_file_path test_file_path{ "test_images/test_image_rgb.png" };
+      const std::vector<uint8_t> bytes_from_file = get_image_bytes(test_file_path);
+
+      const auto header = get_header("test_image_rgb.png");
+      const std::vector<uint8_t> bytes_from_payload(header.decompressed_size);
+      decode_into_pointer("test_image_rgb.png", (void*)(bytes_from_payload.data()));
+
+      CHECK_EQ(bytes_from_file, bytes_from_payload);
+   }
+
+
+   TEST_CASE("decode_into_pointer, generic binary")
+   {
+      const abs_file_path test_file_path{ "test_images/binary0.bin" };
+      const std::vector<uint8_t> bytes_from_file = get_binary_file(test_file_path);
+
+      const auto header = get_header("binary0.bin");
+      const std::vector<uint8_t> bytes_from_payload(header.decompressed_size);
+      decode_into_pointer("binary0.bin", (void*)(bytes_from_payload.data()));
 
       CHECK_EQ(bytes_from_file, bytes_from_payload);
    }
