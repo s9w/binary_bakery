@@ -19,5 +19,5 @@ TEST_CASE("get_cfg_from_file()")
    CHECK_EQ(cfg.output_filename, "123.h");
    CHECK_EQ(cfg.smart_mode, false);
    CHECK_EQ(cfg.compression, compression_mode::zstd);
-   CHECK_EQ(cfg.image_loading_direction, image_vertical_direction::bottom_to_top);
+   CHECK_EQ(cfg.image_loading_direction, image_vertical_direction::top_to_bottom);
 }
