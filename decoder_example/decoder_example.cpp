@@ -6,7 +6,6 @@
 #include <format>
 #include <fstream>
 
-
 #include "data_store.h"
 #include "tools.h"
 
@@ -62,7 +61,7 @@ namespace example {
    {
       std::vector<user_type> vec;
 
-      std::string path = R"(C:\Dropbox\code\binary_inliner\input_tests\)" + filename;
+      std::string path = R"(..\sample_datasets\)" + filename;
       const time_result binary_times = repeat([&]() {return example::decode_to_vector(filename.c_str()); }, vec);
       const time_result stb_times = repeat([&]() {return from_stb_image(path.c_str()); }, vec);
       filestream << binary_times.avg << ", " << binary_times.std << ", " << stb_times.avg << ", " << stb_times.std << "\n";

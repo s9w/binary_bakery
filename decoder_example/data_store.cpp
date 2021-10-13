@@ -3,7 +3,7 @@
 #include <zstd_1.5.0/zstd.h>
 #include <lz4/lz4.h>
 
-#include "C:\Dropbox\code\binary_inliner\input_tests\binary_bakery_payload.h"
+#include "..\sample_datasets\binary_bakery_payload.h"
 
 namespace {
    auto zstd_decompression(
