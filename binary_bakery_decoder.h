@@ -35,26 +35,19 @@ namespace bb {
    static_assert(sizeof(header) == 16);
 
    // Retrieves the header from a payload by name or pointer.
-   [[nodiscard]] constexpr auto get_header(const char* name) -> header;
    [[nodiscard]] constexpr auto get_header(const uint64_t* source) -> header;
 
    // Retrieves parts of the header. Just for convenience.
-   [[nodiscard]] constexpr auto is_image  (const char* name)       -> bool;
    [[nodiscard]] constexpr auto is_image  (const uint64_t* source) -> bool;
-   [[nodiscard]] constexpr auto get_width (const char* name)       -> int;
    [[nodiscard]] constexpr auto get_width (const uint64_t* source) -> int;
-   [[nodiscard]] constexpr auto get_height(const char* name)       -> int;
    [[nodiscard]] constexpr auto get_height(const uint64_t* source) -> int;
 
    // These methods provide easy access to the number of elements in the dataset. In images, that is equal to the number
    // of pixels. Therefore this function can be called without template parameter with image payloads.
    // In generic binaries, that's the number of elements of the target type. That needs to be provided as template
    // parameter.
-   [[nodiscard]] constexpr auto get_element_count(const char* name) -> int;
    [[nodiscard]] constexpr auto get_element_count(const uint64_t* source) -> int;
    
-   template<typename user_type>
-   [[nodiscard]] constexpr auto get_element_count(const char* name) -> int;
    template<typename user_type>
    [[nodiscard]] constexpr auto get_element_count(const uint64_t* source) -> int;
    
@@ -68,19 +61,12 @@ namespace bb {
    // Returns an std::vector of provided type.
    template<typename user_type>
    [[nodiscard]] auto decode_to_vector(const uint64_t* source, decompression_fun_type decomp_fun = nullptr) -> std::vector<user_type>;
-   template<typename user_type>
-   [[nodiscard]] auto decode_to_vector(const char* name, decompression_fun_type decomp_fun = nullptr) -> std::vector<user_type>;
 #endif // BAKERY_PROVIDE_VECTOR
 
    // This writes into an arbitrary container-pointer. No memory management - needs to be allocated!
-   inline auto decode_into_pointer(const uint64_t* source, void* dst) -> void;
-   inline auto decode_into_pointer(const char* name, void* dst) -> void;
+   inline auto decode_into_pointer(const uint64_t* source, void* dst, decompression_fun_type decomp_fun = nullptr) -> void;
 
-   [[nodiscard]] constexpr auto get_data_ptr(const char* name)       -> const void*;
    [[nodiscard]] constexpr auto get_data_ptr(const uint64_t* source) -> const void*;
-
-   // This is defined in the payload header. Returns nullptr if the name isn't in the dataset.
-   [[nodiscard]] constexpr auto get(const char* name) -> const uint64_t*;
 
    using error_callback_type = void(*)(const char* msg, const std::source_location& location);
    inline error_callback_type error_callback = nullptr;
@@ -186,14 +172,6 @@ constexpr auto bb::get_header(
 }
 
 
-constexpr auto bb::get_header(
-   const char* name
-) -> header
-{
-   return get_header(bb::get(name));
-}
-
-
 constexpr auto bb::is_image(
    const uint64_t* source
 ) -> bool
@@ -205,13 +183,6 @@ constexpr auto bb::is_image(
    }
    const header head = get_header(source);
    return head.type == 1;
-}
-
-constexpr auto bb::is_image(
-   const char* name
-) -> bool
-{
-   return is_image(bb::get(name));
 }
 
 
@@ -234,14 +205,6 @@ constexpr auto bb::get_width(
 }
 
 
-constexpr auto bb::get_width(
-   const char* name
-) -> int
-{
-   return get_width(bb::get(name));
-}
-
-
 constexpr auto bb::get_height(
    const uint64_t* source
 ) -> int
@@ -258,14 +221,6 @@ constexpr auto bb::get_height(
    }
    const header head = get_header(source);
    return head.height;
-}
-
-
-constexpr auto bb::get_height(
-   const char* name
-) -> int
-{
-   return get_height(bb::get(name));
 }
 
 
@@ -354,22 +309,13 @@ auto bb::decode_to_vector(
    }
    return result;
 }
-
-
-template<typename user_type>
-auto bb::decode_to_vector(
-   const char* name,
-   decompression_fun_type decomp_fun
-) -> std::vector<user_type>
-{
-   return decode_to_vector<user_type>(bb::get(name), decomp_fun);
-}
 #endif // BAKERY_PROVIDE_VECTOR
 
 
 auto bb::decode_into_pointer(
    const uint64_t* source,
-   void* dst
+   void* dst,
+   decompression_fun_type decomp_fun
 ) -> void
 {
    if (source == nullptr)
@@ -385,22 +331,13 @@ auto bb::decode_into_pointer(
    const header head = bb::get_header(source);
    if (head.compression > 0)
    {
-      // compression
+      decomp_fun(get_data_ptr(source), head.compressed_size, dst, head.decompressed_size);
    }
    else
    {
       const int byte_count = head.decompressed_size;
       std::memcpy(dst, get_data_ptr(source), byte_count);
    }
-}
-
-
-auto bb::decode_into_pointer(
-   const char* name,
-   void* dst
-) -> void
-{
-   return decode_into_pointer(bb::get(name), dst);
 }
 
 
@@ -424,14 +361,6 @@ constexpr auto bb::get_element_count(
 }
 
 
-constexpr auto bb::get_element_count(
-   const char* name
-) -> int
-{
-   return get_element_count(bb::get(name));
-}
-
-
 template<typename user_type>
 constexpr auto bb::get_element_count(
    const uint64_t* source
@@ -444,15 +373,6 @@ constexpr auto bb::get_element_count(
    }
    const header head = get_header(source);
    return head.decompressed_size / sizeof(user_type);
-}
-
-
-template<typename user_type>
-constexpr auto bb::get_element_count(
-   const char* name
-) -> int
-{
-   return get_element_count<user_type>(bb::get(name));
 }
 
 
@@ -475,12 +395,6 @@ constexpr auto bb::get_data_ptr(const uint64_t* source) -> const void*
    static_assert(header_size % sizeof(uint64_t) == 0);
 
    return &source[sizeof(header)/sizeof(uint64_t)];
-}
-
-
-constexpr auto bb::get_data_ptr(const char* name) -> const void*
-{
-   return bb::get_data_ptr(bb::get(name));
 }
 
 

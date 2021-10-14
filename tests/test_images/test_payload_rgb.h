@@ -10,9 +10,9 @@ static constexpr uint64_t bb_binary0_bin[]{
    0xd5209d2b068f675b, 0x52f1e019a8e3bf2c, 0x5c2a50ee8fdd366f, 0x3b0506eda5095a3e, 
    0xde43b131610de48a, 0xc4e69a57324e30ae
 };
-static constexpr uint64_t bb_red_png[]{
-   0x0002000303000001, 0x0000001200000012, 0x00ff0000ff0000ff, 0xff0000ff0000ff00, 
-   0x0000000000000000
+static constexpr uint64_t bb_test_image_rgb_png[]{
+   0x0002000303000001, 0x0000001200000012, 0x000000ff000000ff, 0x00ffffff000000ff, 
+   0x00620069004c0000
 };
 
 [[nodiscard]] constexpr auto is_equal_c_string(
@@ -30,8 +30,8 @@ static constexpr uint64_t bb_red_png[]{
 {
    if(is_equal_c_string(name, "binary0.bin"))
       return bb_binary0_bin;
-   else if(is_equal_c_string(name, "red.png"))
-      return bb_red_png;
+   else if(is_equal_c_string(name, "test_image_rgb.png"))
+      return bb_test_image_rgb_png;
    else
       return nullptr;
 }

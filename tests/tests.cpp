@@ -4,6 +4,18 @@
 #include <doctest/doctest.h>
 
 
+namespace {
+
+   //auto my_error_function(
+   //   const char* msg,
+   //   const std::source_location& loc
+   //) -> void
+   //{
+   //   throw std::exception{};
+   //}
+
+}
+
 auto run_doctest() -> std::optional<int> {
    doctest::Context context;
    const int res = context.run();
@@ -15,6 +27,8 @@ auto run_doctest() -> std::optional<int> {
 
 auto main() -> int
 {
+   //bb::error_callback = my_error_function;
+
    const std::optional<int> doctest_result = run_doctest();
    if (doctest_result.has_value())
       return doctest_result.value();

@@ -106,7 +106,7 @@ namespace {
       const std::vector<payload>& payloads
    ) -> void
    {
-      out << R"([[nodiscard]] constexpr auto get(
+      out << R"([[nodiscard]] static constexpr auto get(
    [[maybe_unused]] const char* name
 ) -> const uint64_t*
 {
@@ -213,7 +213,7 @@ auto bb::write_payloads_to_file(
       }
 
       std::string payload_str;
-      payload_str += "constexpr uint64_t ";
+      payload_str += "static constexpr uint64_t ";
       payload_str += get_variable_name(pl.m_path);
       payload_str += "[]{\n";
       payload_str += indentation_str;

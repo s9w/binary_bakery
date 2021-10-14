@@ -2,6 +2,7 @@
 
 #include "tools.h"
 
+#define BAKERY_JUST_HEADER
 #include "../binary_bakery_decoder.h"
 
 namespace
