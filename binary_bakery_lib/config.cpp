@@ -11,6 +11,34 @@ namespace
 
    using namespace bb;
 
+   [[nodiscard]] auto get_lowercase_string(
+      const std::string& input
+   ) -> std::string
+   {
+      const auto get_lowercase_char = [](const char ch) {
+         const auto uc = static_cast<unsigned char>(ch);
+         const int lowered = std::tolower(uc);
+         return static_cast<char>(lowered);
+      };
+
+      std::string result = input;
+      std::transform(result.begin(), result.end(), result.begin(), get_lowercase_char);
+      return result;
+   }
+
+
+   template<typename read_type>
+   [[nodiscard]] constexpr auto get_sanitized_input(
+      const read_type& input
+   ) -> read_type
+   {
+      if constexpr (std::same_as<read_type, std::string>) {
+         return get_lowercase_string(input);
+      }
+      else
+         return input;
+   }
+
 
    template<typename read_type = std::string, typename target_type, typename fun_type>
    auto set_value(
@@ -25,7 +53,7 @@ namespace
       {
          return;
       }
-      const std::optional<target_type> interpret_result = fun(read_value.value());
+      const std::optional<target_type> interpret_result = fun(get_sanitized_input(read_value.value()));
       if (interpret_result.has_value() == false)
       {
          std::cout << std::format("The config value \"{}\" couldn't be parsed. Skipping.\n", read_value.value());
