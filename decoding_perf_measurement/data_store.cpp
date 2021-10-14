@@ -45,11 +45,11 @@ auto example::decode_to_vector(
    const char* name
 ) -> std::vector<example::user_type>
 {
-   const auto header = bb::get_header(bb::get(name));
+   const auto header = bb::get_header(bb::get_payload(name));
    bb::decompression_fun_type decomp_fun = nullptr;
    if (header.compression == 1)
       decomp_fun = zstd_decompression;
    else if (header.compression == 2)
       decomp_fun = lz4_decompression;
-   return bb::decode_to_vector<user_type>(bb::get(name), decomp_fun);
+   return bb::decode_to_vector<user_type>(bb::get_payload(name), decomp_fun);
 }

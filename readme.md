@@ -23,14 +23,17 @@ Include the resulting header as well as a general decoder header into your code:
 
 // All binary information can just be read as bytes.
 // Interfaces other than vector also available, see further down
-const std::vector<uint8_t> font_bytes = bb::decode_to_vector<uint8_t>("fancy_font.ttf");
+const std::vector<uint8_t> font_bytes = bb::decode_to_vector<uint8_t>(get_payload("fancy_font.ttf"));
 
 // Images have their pixel information available directly, without third party libraries
 struct color { uint8_t r, g, b; };
-const std::vector<color> logo_pixels = bb::decode_to_vector<color>("logo.png");
+const std::vector<color> logo_pixels = bb::decode_to_vector<color>(get_payload("logo.png"));
 
-// The data as well as meta information is also available at compile time!
-constexpr bb::header meta_information = bb::get_header("logo.png")
+// Meta information is also available at compile time!
+constexpr bb::header meta_information = bb::get_header(get_payload("logo.png"))
+
+// For uncompressed images, color information can also be accessed at compile time
+constexpr color first_pixel = get_pixel(get_payload("logo.png"), 0);
 ```
 
 If decompression code is available in the target codebase, the bytestream can be compressed during encoding, resulting in less impact on the [compile metrics](#costs-and-benefits). Currently supported is [zstd](https://github.com/facebook/zstd) and [LZ4](https://github.com/lz4/lz4).
@@ -68,7 +71,7 @@ static constexpr uint64_t bb_bitmap_font_16_png[]{
 } // namespace bb
 ```
 #### Header
-You can get a `const uint64_t*` pointer to the payloads by filename with `bb::get(const char*)`. All other functions require that payload pointer.
+You can get a `const uint64_t*` pointer to the payloads by filename with `bb::get_payload(const char*)`. All other functions require that payload pointer.
 
 Inside those `uint64` payload arrays is a header with meta information and the data itself. You can access the header with `constexpr get_header(const uint64_t*)`. See [binary_bakery_decoder.h#L16-L34](binary_bakery_decoder.h#L16-L34) for the header members.
 

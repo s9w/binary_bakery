@@ -106,7 +106,7 @@ namespace {
       const std::vector<payload>& payloads
    ) -> void
    {
-      out << R"([[nodiscard]] static constexpr auto get(
+      out << R"([[nodiscard]] static constexpr auto get_payload(
    [[maybe_unused]] const char* name
 ) -> const uint64_t*
 {
