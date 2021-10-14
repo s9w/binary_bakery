@@ -57,6 +57,9 @@
     <ClCompile Include="decoding_tools.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="decoding_tests_constexpr.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\binary_bakery_decoder.h">

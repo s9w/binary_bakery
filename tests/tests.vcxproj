@@ -96,6 +96,7 @@
     <ClCompile Include="color_tests.cpp" />
     <ClCompile Include="config_tests.cpp" />
     <ClCompile Include="decode_error_test_default.cpp" />
+    <ClCompile Include="decoding_tests_constexpr.cpp" />
     <ClCompile Include="decoding_tests_lz4.cpp" />
     <ClCompile Include="decoding_tests_uncompressed.cpp" />
     <ClCompile Include="decoding_tests_zstd.cpp" />

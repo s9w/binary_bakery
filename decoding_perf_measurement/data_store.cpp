@@ -45,10 +45,6 @@ auto example::decode_to_vector(
    const char* name
 ) -> std::vector<example::user_type>
 {
-   //constexpr auto xxx = bb::get_pixel<user_type>(bb::bb_192_png, 4);
-   //constexpr auto xxx = bb::get_pixel<user_type>(nullptr, 4);
-   const auto yyy = bb::get_pixel<user_type>(nullptr, 4);
-
    const auto header = bb::get_header(bb::get(name));
    bb::decompression_fun_type decomp_fun = nullptr;
    if (header.compression == 1)
