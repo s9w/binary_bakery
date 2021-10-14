@@ -3,7 +3,6 @@
 #include <compare>
 #include <vector>
 #include <string>
-#include <format>
 #include <optional>
 #include <filesystem>
 

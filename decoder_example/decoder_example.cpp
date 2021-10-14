@@ -3,12 +3,12 @@
 
 #include <chrono>
 #include <iostream>
-#include <format>
 #include <fstream>
 
 #include "data_store.h"
 #include "tools.h"
 
+#include <fmt/format.h>
 
 namespace example {
 
@@ -76,7 +76,7 @@ int main()
    for (const int size : {192, 3072, 49152, 240000, 480000, 3145728})
    {
       filestream << size << ", ";
-      const std::string filename = std::format("{}.png", size);
+      const std::string filename = fmt::format("{}.png", size);
       time(filename, filestream);
    }
 

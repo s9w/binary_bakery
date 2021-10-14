@@ -22,8 +22,8 @@ if((-Not (Test-Path env:cvars_invoked)) -And (-Not $env:cvars_invoked)){
    $env:cvars_invoked = $true
 }
 
-$cl_command = "CL /O2 /MDd /D _DEBUG /std:c++latest /EHsc /nologo /permissive- /W4 /wd4189 /utf-8 /Feout.exe source.cpp /link /MACHINE:X64"
-$cl_cmd_zero = "CL /O2 /MDd /D _DEBUG /D ZERO /std:c++latest /EHsc /nologo /permissive- /W4 /wd4189 /utf-8 /Feout.exe source.cpp /link /MACHINE:X64"
+$cl_command = "CL /O2 /MDd /D _DEBUG /std:c++20 /EHsc /nologo /permissive- /W4 /wd4189 /utf-8 /Feout.exe source.cpp /link /MACHINE:X64"
+$cl_cmd_zero = "CL /O2 /MDd /D _DEBUG /D ZERO /std:c++20 /EHsc /nologo /permissive- /W4 /wd4189 /utf-8 /Feout.exe source.cpp /link /MACHINE:X64"
 
 # Measure zero includes
 Invoke-Expression $cl_cmd_zero

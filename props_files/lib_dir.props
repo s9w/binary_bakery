@@ -3,7 +3,7 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <IncludePath>$(SolutionDir)\libs;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\libs;$(SolutionDir)\libs\fmt-8.0.1\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup />
   <ItemGroup />

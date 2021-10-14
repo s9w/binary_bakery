@@ -1,10 +1,11 @@
 #include "config.h"
 
 #include <iostream>
-#include <format>
 #include <fstream>
 
 #include <tomlplusplus/toml.hpp>
+#include <fmt/format.h>
+
 
 namespace
 {
@@ -56,7 +57,7 @@ namespace
       const std::optional<target_type> interpret_result = fun(get_sanitized_input(read_value.value()));
       if (interpret_result.has_value() == false)
       {
-         std::cout << std::format("The config value \"{}\" couldn't be parsed. Skipping.\n", read_value.value());
+         std::cout << fmt::format("The config value \"{}\" couldn't be parsed. Skipping.\n", read_value.value());
          return;
       }
       target = interpret_result.value();
@@ -91,7 +92,7 @@ namespace
          return compression_mode::lz4;
       else
       {
-         std::cout << std::format("compression_mode value \"{}\" not recognized. Using no compression.\n", value);
+         std::cout << fmt::format("compression_mode value \"{}\" not recognized. Using no compression.\n", value);
          return compression_mode::none;
       }
    }
@@ -138,7 +139,7 @@ auto bb::get_cfg_from_file(
    }
    catch (const toml::parse_error&)
    {
-      const std::string msg = std::format("Couldn't parse file {}. Looking for other config.", file.get_path().string());
+      const std::string msg = fmt::format("Couldn't parse file {}. Looking for other config.", file.get_path().string());
       std::cout << msg << std::endl;
       return std::nullopt;
    }

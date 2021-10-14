@@ -3,7 +3,7 @@
 #include "file_tools.h"
 
 #include <stb/stb_image.h>
-
+#include <fmt/format.h>
 
 namespace
 {
@@ -42,17 +42,17 @@ bb::image<bpp>::image(
    );
    if (data == nullptr)
    {
-      const std::string msg = std::format("stb_image couldn't load file {}", file.get_path().string());
+      const std::string msg = fmt::format("stb_image couldn't load file {}", file.get_path().string());
       throw std::runtime_error(msg);
    }
    if (redundand_dim != image_dim)
    {
-      const std::string msg = std::format("Second image read returned different dimensions. File: {}", file.get_path().string());
+      const std::string msg = fmt::format("Second image read returned different dimensions. File: {}", file.get_path().string());
       throw std::runtime_error(msg);
    }
    if (image_dim.bpp != bpp)
    {
-      const std::string msg = std::format("Explicit bpp parameter is different from file bpp. File: {}.", file.get_path().string());
+      const std::string msg = fmt::format("Explicit bpp parameter is different from file bpp. File: {}.", file.get_path().string());
       throw std::runtime_error(msg);
    }
 
@@ -93,7 +93,7 @@ auto bb::get_image_dimensions(
    );
    if (return_value == 0)
    {
-      const std::string msg = std::format("stb_info couldn't load file {}", file.get_path().string());
+      const std::string msg = fmt::format("stb_info couldn't load file {}", file.get_path().string());
       throw std::runtime_error(msg);
    }
    return dimensions;

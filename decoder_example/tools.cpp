@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+#include <fmt/format.h>
+
 
 example::timer::timer(const std::string& msg, double* result_ptr /*= nullptr*/)
    : m_t0(std::chrono::high_resolution_clock::now())
@@ -18,7 +20,7 @@ example::timer::~timer()
    const auto us = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - m_t0).count();
    const double ms = us / 1'000'000.0;
    if (m_msg.empty() == false)
-      std::cout << std::format("{}: {}ms\n", m_msg, ms);
+      std::cout << fmt::format("{}: {}ms\n", m_msg, ms);
    if (m_result_target != nullptr)
       *m_result_target = ms;
 }

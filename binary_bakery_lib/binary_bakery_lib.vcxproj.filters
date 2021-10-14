@@ -68,5 +68,8 @@
     <ClCompile Include="compression.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\libs\fmt-8.0.1\src\format.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

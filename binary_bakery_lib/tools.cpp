@@ -1,8 +1,7 @@
 #include "tools.h"
 
-#include <format>
-
 #include <stb/stb_image.h>
+#include <fmt/format.h>
 
 
 auto bb::get_replaced_str(
@@ -57,15 +56,15 @@ auto bb::get_human_readable_size(byte_count bytes) -> std::string
    const double mb = bytes.m_value / (1024.0 * 1024.0);
    if(mb >= 1.0)
    {
-      return std::format("{:.2f} MB", mb);
+      return fmt::format("{:.2f} MB", mb);
    }
    else if(kb >= 1.0)
    {
-      return std::format("{:.2f} KB", kb);
+      return fmt::format("{:.2f} KB", kb);
    }
    else
    {
-      return std::format("{} bytes", bytes.m_value);
+      return fmt::format("{} bytes", bytes.m_value);
    }
 }
 

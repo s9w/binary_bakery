@@ -29,7 +29,7 @@ struct timer {
       const auto us = std::chrono::duration_cast<std::chrono::microseconds>(t1 - m_t0).count();
       const double ms = us / 1000.0;
       if(m_msg.empty() == false)
-         std::cout << std::format("{}: {}ms\n", m_msg, ms);
+         std::cout << fmt::format("{}: {}ms\n", m_msg, ms);
       if (m_result_target != nullptr)
          *m_result_target = ms;
    }
@@ -90,7 +90,7 @@ int main()
       timer t("Time to load from file", &file_time);
       vec = from_stb_image(R"(C:\Dropbox\code\binary_inliner\input_tests\240000.png)");
    }
-   std::cout << std::format("Binary takes {:.2f}% of file load.\n", 100.0*binary_time/file_time);
+   std::cout << fmt::format("Binary takes {:.2f}% of file load.\n", 100.0*binary_time/file_time);
 
    printf("%llu bytes\n", vec.size());
 

@@ -1,7 +1,8 @@
 #include "file_tools.h"
 
 #include <fstream>
-#include <format>
+
+#include <fmt/format.h>
 
 namespace
 {
@@ -54,7 +55,7 @@ auto bb::get_binary_file(const abs_file_path& file_p) -> std::vector<uint8_t>
    std::ifstream file(file_p.get_path(), std::ios::ate | std::ios::binary);
 
    if (file.is_open() == false) {
-      const std::string msg = std::format("Couldn't open file {}", file_p.get_path().string());
+      const std::string msg = fmt::format("Couldn't open file {}", file_p.get_path().string());
       throw std::runtime_error(msg);
    }
 

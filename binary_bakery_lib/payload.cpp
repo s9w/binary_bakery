@@ -1,6 +1,5 @@
 #include "payload.h"
 
-#include <format>
 #include <fstream>
 #include <iostream>
 
@@ -11,6 +10,7 @@
 #include "compression.h"
 
 #include <stb/stb_image.h>
+#include <fmt/format.h>
 
 
 namespace {
@@ -115,7 +115,7 @@ namespace {
       for (const payload& pl : payloads)
       {
          const std::string conditional_keyword = first ? "if" : "else if";
-         out << std::format(
+         out << fmt::format(
             "   {}(is_equal_c_string(name, \"{}\"))\n      return &{}[0];\n",
             conditional_keyword, pl.m_path.get_path().filename().string(), get_variable_name(pl.m_path)
          );
@@ -141,14 +141,14 @@ namespace {
    ) -> void
    {
       const byte_count compressed_size{ compressed_bytestream.size() - 16 };
-      std::cout << std::format(
+      std::cout << fmt::format(
          "Writing file \"{}\". Uncompressed size: {}."
          , pl.m_path.get_path().filename().string() , get_human_readable_size(uncompressed_size)
       );
       if (cfg.compression != compression_mode::none)
       {
          const double ratio = static_cast<double>(compressed_size.m_value) / static_cast<double>(uncompressed_size.m_value);
-         std::cout << std::format(
+         std::cout << fmt::format(
             " compressed size: {} (compressed to {:.1f}%)"
             , get_human_readable_size(compressed_size), 100.0 * ratio
          );
@@ -226,7 +226,7 @@ auto bb::write_payloads_to_file(
    std::ofstream filestream(output_path, std::ios::out);
    if (!filestream.good())
    {
-      std::cout << std::format("Couldn't open {} for writing\n", cfg.output_filename);
+      std::cout << fmt::format("Couldn't open {} for writing\n", cfg.output_filename);
       return;
    }
 

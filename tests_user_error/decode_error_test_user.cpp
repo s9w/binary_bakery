@@ -1,7 +1,6 @@
 #include <doctest/doctest.h>
 
 #include <iostream>
-#include <format>
 
 #include "../binary_bakery_decoder.h"
 
