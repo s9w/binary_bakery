@@ -60,7 +60,7 @@ A typical payload header looks like this:
 ```c++
 namespace bb{
 
-constexpr uint64_t bb_bitmap_font_16_png[]{
+static constexpr uint64_t bb_bitmap_font_16_png[]{
    0x0020002003000201, 0x00000bf600000c00, 0x62a1b925fffffff0, 0x97ad5c9db662a1b9, 
    0xc262a3bb65a8bc5b, 0x5b9bb462a3bb6aad, 0x82973f7c944f8ca1, /* ... */
 };
@@ -68,9 +68,9 @@ constexpr uint64_t bb_bitmap_font_16_png[]{
 } // namespace bb
 ```
 #### Header
-Encoded in that array is a header with meta information and the file contents itself. You can access the header with `get_header(identifier)`. Here, `identifier` means you can either enter the original filename `get_header("bitmap_font_16.png")` or the array itself `get_header(bb_bitmap_font_16_png)`. Almost all functions can be used that way. See [binary_bakery_decoder.h](binary_bakery_decoder.h#L19-L37) for the header members.
+You can get a `const uint64_t*` pointer to the payloads by filename with `bb::get(const char*)`. All other functions require that payload pointer.
 
-To access the original itself, there are three interfaces. Note that some of those are typed, so they already return the data in the original type. For generic binary data, that is `uint8_t` or whatever compatible byte-sized type you like (e.g. `std::byte`). Images are stored in a special way so their direct pixel information is available. For a n-component bitmap, your type should be `sizeof(T)==n`.
+Inside those `uint64` payload arrays is a header with meta information and the data itself. You can access the header with `constexpr get_header(const uint64_t*)`. See [binary_bakery_decoder.h#L16-L34](binary_bakery_decoder.h#L16-L34) for the header members.
 
 #### Decompression
 If your data was encoded with a compression algorithm, you need to provide a function in your code that does the decompression. All interface functions have such a function pointer parameter. For uncompressed streams, that parameter can be left out as it defaults to `nullptr`. That function should look like this:
@@ -86,31 +86,26 @@ auto compression_fun(
 For zstd for example, that would typically contain a call to `ZSTD_decompress(dst, dst_size, src, src_size);`. For Lz4, that might look like `LZ4_decompress_safe(src, dst, src_size, dst_size)`.
 
 #### Data interfaces
-|<pre>template&lt;typename user_type&gt;<br>auto bb::decode_to_vector(identifier, decomp_fun) -> std::vector&lt;T&gt;</pre>|
+|<pre>template&lt;typename user_type&gt;<br>auto bb::decode_to_vector(const uint64_t* payload, decomp_fun) -> std::vector&lt;user_type&gt;</pre>|
 |:---|
-| Returns a vector of your target type. If you want to use this interface, you need to `#define BAKERY_PROVIDE_VECTOR` before you include the decoder header. |
+| Returns a vector of your target type. If you want to use this interface, you need to `#define BAKERY_PROVIDE_VECTOR` before you include the decoder header (to prevent the `<vector>` include if you don't). Note that this function requires `user_type` to be default constructible. |
 
-|<pre>template&lt;typename user_type&gt;<br>auto bb::decode_into_pointer(identifier, user_type* dst, decomp_fun) -> void</pre>|
+|<pre>auto bb::decode_into_pointer(const uint64_t* payload, void* dst, decomp_fun) -> void</pre>|
 |:---|
-| Writes into a **preallocated** memory. You can always access the required decompressed size in bytes from `header::decompressed_size`. |
+| Writes into a **preallocated** memory. You can access the required decompressed size in bytes (at compile-time) from `header::decompressed_size`. |
+
+|<pre>template&lt;typename user_type&gt;<br>constexpr auto bb::get_pixel(const uint64_t* payload, const int index) -> user_type</pre>|
+|:---|
+| Special compile-time access interface that only works for **uncompressed images**. Can retrieve the pixel color data at compile-time. |
 
 
-This function is special and dangerous: It allows `constexpr` access to the data, which might be handy for very special purposes. As a result, this returns an array, which stores its data on the stack. Stack memory is a very limited resource (often just 1MB), which can *easily* be exhausted by calling this function on a non-tiny file. That also applies to a runtime-use and will result in a stack overflow. Use this only when you know what you're doing.
-
----
-
-
-If you want to avoid using the provided decoding header altogether, you can access the information yourself. The first 24 bytes contain the header which is defined at the top of the [`binary_bakery_decoder.h`](binary_bakery_decoder.h). Everything after that is the byte stream.
+#### Do your own thing
+If you want to avoid using the provided decoding header altogether, you can access the information yourself. The first 24 bytes contain the header which is defined at the top of the [`binary_bakery_decoder.h`](binary_bakery_decoder.h#L16-L34). Everything after that is the byte stream.
 
 ## Error handling
 If there's an error in a compile-time context, that always results in a compile error. Runtime behavior is configurable by providing a function that gets called in error cases. You might want to throw an exception, call `std::terminate()`, log some error and continue or whatever you desire.
 
-|   | Compiletime | Runtime |
-|---|---|---|
-| Default | Compile error | No error, return defaulted types |
-| User-defined error function | Compile error | Call user-defined function |
-
-To provide a custom error function, define `BB_ERROR_FUNCTION` and set set the function pointer to your function:
+To provide a custom error function, set set the function pointer to your function:
 
 ```c++
 auto my_error_function(
@@ -124,11 +119,16 @@ auto my_error_function(
    );
    std::terminate();
 }
-
 // ...
-
 bb::error_callback = my_error_function;
 ```
+
+ :warning: If no `bb::error_callback` is set, default behavior is ignoring errors and returning nulled values. That is almost certainly not what you want. Errors are things like calling image-only functions on non-image payloads and providing `nullptr` parameters. Behavior summary:
+
+|   | Compiletime | Runtime |
+|---|---|---|
+| Default | Compile error | No error, return defaulted types |
+| User-defined error function | Compile error | Call user-defined function |
 
 ## Costs and benefits
 There's two main concerns about embedding non-code data into your source code and resulting binary: Compile times and the size of the resulting binary. But there's also the potential of higher decode speed. What follows is an analysis of the pros and cons this method vs file loading in regard to various metrics. To get realistic results, a dataset of different images was created (in [sample_datasets/](sample_datasets)):
@@ -151,37 +151,35 @@ The dataset contains various game spritesheets like this:
 
 ### Binary size
 
-The decoder header has been written with few includes (`<bit>`, `<cstdint>`, `<error_location>`, `<string>`, `<type_traits>`). In most cases, they are already implicitly included and shouldn't have a meaningful impact on compile metrics on its own. I've measured a constant binary size penalty of 3KB in my test, independent of the size of the payload.
+The expected size of the resulting binary is the size without anything plus the byte-size of the payload. The following plot shows the resulting binary size relative to that expected size.
 
-In addition to the decoder code, it's to be expected that the binary size increases at least by the size of the data you add. Luckily compilers seem to do a good job at preventing additional overhead. On top of the decoder code cost, uncompressed encoding increases the binary size by the payload size.
+<p align="center"><img src="https://github.com/s9w/binary_bakery/raw/master/readme/binary_size.png"></p>
 
-Compression allows the payload size to decrease, lessening the impact on binary size and compile time:
+So the compiler doesn't add overhead beyond the payload size and a small constant size penalty of ~3KB from the decoding header. Compression allows the payload size to decrease, reducing the impact on binary size and compile time.
 
-<p align="center"><img src="https://github.com/s9w/binary_bakery/raw/master/readme/binary_size_overhead.png"></p>
-
-So with zstd compression, an image with an uncompressed size of 16MB only adds 1.78MB to the resulting binary.
+As an example datapoint, an image with an uncompressed size of 16MB only adds 1.78MB to the resulting binary with zstd compression.
 
 ### Compile times
 
 <p align="center"><img src="https://github.com/s9w/binary_bakery/raw/master/readme/compile_times.png"></p>
 
-The increase in compile times is linear with the size of the payload (note the log scale). Compression decreases the effective payload size. For the biggest 16 MB data sample, compile time increases by 5 seconds uncompressed and 1 second with zstd.
+The increase in compile times is linear with the size of the payload (note the log scale). Compression decreases the effective payload size. For the biggest 16 MB data sample, compile time increases by 5 seconds uncompressed and 0.5 seconds with zstd.
 
-The payload header should only be included in one translation unit (TU). With commonplace parallel compilation, the effective compile time increase should only be 1/n (n cores) of those numbers because the other n-1 threads can compile other TUs. So even ignoring compression, an effective payload size of 3MB only increases compile times by 0.1 seconds.
+The payload header should only be included in one translation unit (TU). With commonplace parallel compilation, the effective compile time increase should only be 1/n (n cores) of those numbers because the other n-1 threads can compile other TUs. So even ignoring compression, a payload size of 16MB only increases compile times by 0.06 seconds (assuming 8 threads and enough TUs to saturate them).
 
 ### Decode speed
 
-Of interest is also the loading speed compared to traditional loading from files. Here's the decoding time relative to the decoding speed from a file with [stb_image](https://github.com/nothings/stb):
+Of interest is also the loading speed compared to traditional loading from files. Here's the decoding time for png images relative to the decoding speed from a file with [stb_image](https://github.com/nothings/stb) (lower is faster):
 
 <p align="center"><img src="https://github.com/s9w/binary_bakery/raw/master/readme/decode_speed_analysis.png"></p>
 
-LZ4 performs identical to uncompressed data in decoding speed. It's a very fast compression that suffers in compression rate. zstd can often reduce the compile impact by half compared to LZ4.
+LZ4 performs identical to uncompressed data in decoding speed by being fast enough to not be the bottleneck. zstd is heaver bit also often reduced the compile impact by half compared to LZ4.
 
 Baking performs better than file loading for all sizes and compression types. In particular for small files, which should be the main target demographic for this tool.
 
 All these numbers were measured in release mode (`/O2`) with Visual Studio 16.11.3, a Ryzen 3800X and a Samsung 970 EVO SSD.
 
 ## Summary
-This is a niche tool. File systems are a good invention and the better choice in most cases.
+This is a niche tool. File systems and other means of packing data are a good inventions and the better choice in most cases.
 
-If this suits your needs however, the tradeoffs are manageable. If used correctly, compile times and binary sizes don't suffer much.
+If this suits your needs however, the tradeoffs are manageable.

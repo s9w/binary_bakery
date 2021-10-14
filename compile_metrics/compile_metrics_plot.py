@@ -26,25 +26,29 @@ fig = plt.figure(figsize=(6, 3))
 ax = fig.add_subplot(111)
 
 baseline_target_size_kb = np.loadtxt("generated_data/compile_sizes_zero.txt", dtype=int, delimiter=',', usecols=[1], unpack=False).item() / 1024
+print("baseline_target_size_kb", baseline_target_size_kb)
 
 target_sizes_kb = {}
 for compression in ["none", "LZ4", "zstd"]:
     loaded = np.loadtxt("generated_data/compile_sizes_{}.txt".format(compression), dtype=int, delimiter=',', usecols=[1], unpack=False)
     size_kb = loaded[sort_indices] / 1024
-    ax.plot(source_sizes_kb, size_kb - baseline_target_size_kb, ".-", label=compression)
+    target_sizes_kb[compression] = size_kb
+
+for compression, target_size_kb in target_sizes_kb.items():
+    expected_size = baseline_target_size_kb + source_sizes_kb
+    ax.plot(source_sizes_kb, 100.0 * target_size_kb / expected_size, "o-", label=compression)
 
 ax.set_xscale('log')
-ax.set_yscale('log')
 ax.xaxis.set_major_formatter(ticker.StrMethodFormatter("{x:8.0f}"))
-ax.yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:8.0f}"))
+ax.set_ylim(0, 105)
 ax.set_xlabel("Payload size [KB]")
-ax.set_ylabel("Binary size increase [KB]")
+ax.set_ylabel("Binary size/expected size [%]")
 ax.spines["top"].set_visible(False)
 ax.spines["right"].set_visible(False)
 ax.grid()
 ax.legend()
 fig.tight_layout()
-fig.savefig("../readme/binary_size_overhead.png")
+fig.savefig("../readme/binary_size.png")
 
 
 
@@ -57,7 +61,7 @@ for compression in ["none", "LZ4", "zstd"]:
     times = []
     for source_size in source_sizes:
         times.append(np.mean(get_times_from_txt("generated_data/compile_times_{}_{}.txt".format(compression, source_size))))
-    ax.plot(source_sizes_kb, times - compile_time_baseline, ".-", label=compression)
+    ax.plot(source_sizes_kb, times - compile_time_baseline, "o-", label=compression)
 
 ax.set_xscale('log')
 ax.xaxis.set_major_formatter(ticker.StrMethodFormatter("{x:8.0f}"))

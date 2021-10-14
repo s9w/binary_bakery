@@ -257,10 +257,16 @@ constexpr auto bb::get_pixel(
       return detail::get_nulled_object<user_type>();
    }
 
-   //const header head = bb::get_header(source);
-   if (is_image(source) == false)
+   const header head = bb::get_header(source);
+   if (head.type != 1)
    {
       detail::error("Payload is not an image", std::source_location::current());
+      return detail::get_nulled_object<user_type>();
+   }
+
+   if (head.compression != 0)
+   {
+      detail::error("Payload is compressed. This interface only works with uncompressed payloads", std::source_location::current());
       return detail::get_nulled_object<user_type>();
    }
 
