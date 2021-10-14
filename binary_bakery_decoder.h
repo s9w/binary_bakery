@@ -50,12 +50,11 @@ namespace bb {
    
    template<typename user_type>
    [[nodiscard]] constexpr auto get_element_count(const uint64_t* source) -> int;
-   
-
-   using decompression_fun_type = std::add_pointer_t<void(const void* src, const size_t src_size, void* dst, const size_t dst_capacity)>;
 
    template<typename user_type, int bpp = sizeof(user_type)>
    [[nodiscard]] constexpr auto get_pixel(const uint64_t* source, const int index) -> user_type;
+
+   using decompression_fun_type = std::add_pointer_t<void(const void* src, const size_t src_size, void* dst, const size_t dst_capacity)>;
 
 #ifdef    BAKERY_PROVIDE_VECTOR
    // Returns an std::vector of provided type.
@@ -154,7 +153,7 @@ constexpr auto bb::get_header(
          uint16_t height = 0;
       };
 
-      const front_decoder temp = std::bit_cast<front_decoder>(source[0]);
+      const auto temp = std::bit_cast<front_decoder>(source[0]);
       result.type = temp.type;
       result.compression = temp.compression;
       result.version = temp.version;
@@ -239,7 +238,7 @@ constexpr auto bb::detail::get_pixel_impl(
       const int absolute_byte_index = index * sizeof(user_type) + i;
       const auto [word_index, byte_index] = div(absolute_byte_index, static_cast<int>(sizeof(uint64_t)));
       const uint64_t word = source[2 + word_index];
-      const bytes_type bytes = std::bit_cast<bytes_type>(word);
+      const auto bytes = std::bit_cast<bytes_type>(word);
       intermediate[i] = bytes[byte_index];
    }
    return std::bit_cast<user_type>(intermediate);

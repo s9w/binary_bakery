@@ -7,8 +7,6 @@
 #define BAKERY_PROVIDE_VECTOR
 #include "../binary_bakery_decoder.h"
 
-
-#include <binary_bakery_lib/image.h>
 #include <binary_bakery_lib/file_tools.h>
 
 

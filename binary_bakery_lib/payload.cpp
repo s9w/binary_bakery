@@ -116,7 +116,7 @@ namespace {
       {
          const std::string conditional_keyword = first ? "if" : "else if";
          out << std::format(
-            "   {}(is_equal_c_string(name, \"{}\"))\n      return {};\n",
+            "   {}(is_equal_c_string(name, \"{}\"))\n      return &{}[0];\n",
             conditional_keyword, pl.m_path.get_path().filename().string(), get_variable_name(pl.m_path)
          );
          first = false;

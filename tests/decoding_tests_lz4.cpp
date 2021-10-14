@@ -3,14 +3,13 @@
 #include "test_types.h"
 #include "decoding_tools.h"
 
-#include "test_images/test_payload_lz4.h"
+
 #define BAKERY_PROVIDE_VECTOR
 #include "../binary_bakery_decoder.h"
 
-
-#include <binary_bakery_lib/image.h>
 #include <binary_bakery_lib/file_tools.h>
 
+#include "test_images/test_payload_lz4.h"
 
 using namespace bb;
 

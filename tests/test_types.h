@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cstdint>
 #include <compare>
+#include <cstdint>
 
 namespace tests
 {
@@ -26,4 +26,5 @@ namespace tests
    constexpr nc_test_rgb nc_test_rgb_null{ 0, 0, 0 };
    constexpr test_rgb test_rgb_null{ 0, 0, 0 };
 
-}
+} // namespace tests
+
