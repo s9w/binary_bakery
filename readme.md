@@ -33,7 +33,7 @@ const std::vector<color> logo_pixels = bb::decode_to_vector<color>(get_payload("
 constexpr bb::header meta_information = bb::get_header(get_payload("logo.png"))
 
 // For uncompressed images, color information can also be accessed at compile time
-constexpr color first_pixel = get_pixel(get_payload("logo.png"), 0);
+constexpr color first_pixel = get_element(get_payload("logo.png"), 0);
 ```
 
 If decompression code is available in the target codebase, the bytestream can be compressed during encoding, resulting in less impact on the [compile metrics](#costs-and-benefits). Currently supported is [zstd](https://github.com/facebook/zstd) and [LZ4](https://github.com/lz4/lz4).
@@ -97,13 +97,13 @@ For zstd for example, that would typically contain a call to `ZSTD_decompress(ds
 |:---|
 | Writes into a **preallocated** memory. You can access the required decompressed size in bytes (at compile-time) from `header::decompressed_size`. |
 
-|<pre>template&lt;typename user_type&gt;<br>constexpr auto bb::get_pixel(const uint64_t* payload, const int index) -> user_type</pre>|
+|<pre>template&lt;typename user_type&gt;<br>constexpr auto bb::get_element(const uint64_t* payload, const int index) -> user_type</pre>|
 |:---|
-| Special compile-time access interface that only works for **uncompressed images**. Can retrieve the pixel color data at compile-time. |
+| Special compile-time access interface that only works for **uncompressed** data. For images, it should be `sizeof(user_type)==bpp`. |
 
 
 #### Do your own thing
-If you want to avoid using the provided decoding header altogether, you can access the information yourself. The first 24 bytes contain the header which is defined at the top of the [`binary_bakery_decoder.h`](binary_bakery_decoder.h#L16-L34). Everything after that is the byte stream.
+If you want to avoid using the provided decoding header altogether, you can access the information yourself. The first 16 bytes contain the header which is defined at the top of the [`binary_bakery_decoder.h`](binary_bakery_decoder.h#L16-L34). Everything after that is the byte stream.
 
 ## Error handling
 If there's an error in a compile-time context, that always results in a compile error. Runtime behavior is configurable by providing a function that gets called in error cases. You might want to throw an exception, call `std::terminate()`, log some error and continue or whatever you desire.
@@ -126,7 +126,7 @@ auto my_error_function(
 bb::error_callback = my_error_function;
 ```
 
- :warning: If no `bb::error_callback` is set, default behavior is ignoring errors and returning nulled values. That is almost certainly not what you want. Errors are things like calling image-only functions on non-image payloads and providing `nullptr` parameters. Behavior summary:
+:warning: If no `bb::error_callback` is set, default behavior is ignoring errors and returning nulled values. That is almost certainly not what you want. Errors are things like calling image-only functions on non-image payloads and providing `nullptr` parameters. Behavior summary:
 
 |   | Compiletime | Runtime |
 |---|---|---|

@@ -25,25 +25,25 @@ TEST_CASE("user-defined compile-time error handling ")
    bb::error_callback = my_error_function;
 
    // None of these should compile
-   //constexpr auto t0 = bb::get_pixel<user_type>(nullptr, 4); // Nullptr source
-   //constexpr auto t1 = bb::get_pixel<user_type>(bb::get("red.png"), -1); // Negative index
-   //constexpr auto t1 = bb::get_pixel<user_type>(bb::get("red.png"), 6); // Index too big
+   //constexpr auto t0 = bb::get_element<user_type>(nullptr, 4); // Nullptr source
+   //constexpr auto t1 = bb::get_element<user_type>(bb::get("red.png"), -1); // Negative index
+   //constexpr auto t1 = bb::get_element<user_type>(bb::get("red.png"), 6); // Index too big
 
    // These should be fine
-   static_assert(bb::get_pixel<user_type>(bb::get_payload("test_image_rgb.png"), 0) == user_type{ 255, 0, 0 });
-   static_assert(bb::get_pixel<user_type>(bb::get_payload("test_image_rgb.png"), 1) == user_type{ 0, 255, 0 });
-   static_assert(bb::get_pixel<user_type>(bb::get_payload("test_image_rgb.png"), 2) == user_type{ 0, 0, 255 });
+   static_assert(bb::get_element<user_type>(bb::get_payload("test_image_rgb.png"), 0) == user_type{ 255, 0, 0 });
+   static_assert(bb::get_element<user_type>(bb::get_payload("test_image_rgb.png"), 1) == user_type{ 0, 255, 0 });
+   static_assert(bb::get_element<user_type>(bb::get_payload("test_image_rgb.png"), 2) == user_type{ 0, 0, 255 });
 }
 
 
 TEST_CASE("user-defined run-time error handling ")
 {
    bb::error_callback = my_error_function;
-   CHECK_THROWS_AS(bb::get_pixel<user_type>(nullptr, 0), std::exception);
+   CHECK_THROWS_AS(bb::get_element<user_type>(nullptr, 0), std::exception);
 
    // Correct cases
-   CHECK_EQ(bb::get_pixel<user_type>(bb::get_payload("test_image_rgb.png"), 0), user_type{ 255, 0, 0 });
-   CHECK_EQ(bb::get_pixel<user_type>(bb::get_payload("test_image_rgb.png"), 1), user_type{ 0, 255, 0 });
-   CHECK_EQ(bb::get_pixel<user_type>(bb::get_payload("test_image_rgb.png"), 2), user_type{ 0, 0, 255 });
+   CHECK_EQ(bb::get_element<user_type>(bb::get_payload("test_image_rgb.png"), 0), user_type{ 255, 0, 0 });
+   CHECK_EQ(bb::get_element<user_type>(bb::get_payload("test_image_rgb.png"), 1), user_type{ 0, 255, 0 });
+   CHECK_EQ(bb::get_element<user_type>(bb::get_payload("test_image_rgb.png"), 2), user_type{ 0, 0, 255 });
 }
 

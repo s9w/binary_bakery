@@ -46,13 +46,13 @@ namespace bb {
    // of pixels. Therefore this function can be called without template parameter with image payloads.
    // In generic binaries, that's the number of elements of the target type. That needs to be provided as template
    // parameter.
-   [[nodiscard]] constexpr auto get_element_count(const uint64_t* source) -> int;
-   
    template<typename user_type>
    [[nodiscard]] constexpr auto get_element_count(const uint64_t* source) -> int;
+   [[nodiscard]] constexpr auto get_element_count(const uint64_t* source) -> int;
 
-   template<typename user_type, int bpp = sizeof(user_type)>
-   [[nodiscard]] constexpr auto get_pixel(const uint64_t* source, const int index) -> user_type;
+   // Compile-time access to the stored elements. For images, provide a color type.
+   template<typename user_type>
+   [[nodiscard]] constexpr auto get_element(const uint64_t* source, const int index) -> user_type;
 
    using decompression_fun_type = std::add_pointer_t<void(const void* src, const size_t src_size, void* dst, const size_t dst_capacity)>;
 
@@ -106,9 +106,6 @@ namespace bb::detail {
    {
       return {x/y, x%y};
    }
-
-   template<typename user_type, int bpp>
-   [[nodiscard]] constexpr auto get_pixel_impl(const uint64_t* source, const int index) -> user_type;
    
 } // namespace bb::detail
 
@@ -223,30 +220,8 @@ constexpr auto bb::get_height(
 }
 
 
-template<typename user_type, int bpp>
-constexpr auto bb::detail::get_pixel_impl(
-   const uint64_t* source,
-   const int index
-) -> user_type
-{
-   // Use intermediate type because user-type might not be default constructible and not have operator[]
-   better_array<uint8_t, bpp> intermediate{};
-
-   using bytes_type = better_array<uint8_t, 8>;
-   for (int i = 0; i < bpp; ++i)
-   {
-      const int absolute_byte_index = index * sizeof(user_type) + i;
-      const auto [word_index, byte_index] = div(absolute_byte_index, static_cast<int>(sizeof(uint64_t)));
-      const uint64_t word = source[2 + word_index];
-      const auto bytes = std::bit_cast<bytes_type>(word);
-      intermediate[i] = bytes[byte_index];
-   }
-   return std::bit_cast<user_type>(intermediate);
-}
-
-
-template<typename user_type, int bpp>
-constexpr auto bb::get_pixel(
+template<typename user_type>
+constexpr auto bb::get_element(
    const uint64_t* source,
    const int index
 ) -> user_type
@@ -257,27 +232,31 @@ constexpr auto bb::get_pixel(
       return detail::get_nulled_object<user_type>();
    }
 
-   const header head = bb::get_header(source);
-   if (head.type != 1)
-   {
-      detail::error("Payload is not an image", std::source_location::current());
-      return detail::get_nulled_object<user_type>();
-   }
-
-   if (head.compression != 0)
+   if (bb::get_header(source).compression != 0)
    {
       detail::error("Payload is compressed. This interface only works with uncompressed payloads", std::source_location::current());
       return detail::get_nulled_object<user_type>();
    }
 
-   const int element_count = get_element_count<user_type>(source);
-   if (index >= element_count || index < 0)
+   if (index >= get_element_count<user_type>(source) || index < 0)
    {
       detail::error("Index is out of bounds", std::source_location::current());
       return detail::get_nulled_object<user_type>();
    }
 
-   return detail::get_pixel_impl<user_type, bpp>(source, index);
+
+   // Use intermediate type because user-type might not be default constructible and not have operator[]
+   detail::better_array<uint8_t, sizeof(user_type)> proxy{};
+
+   using word_bytes_type = detail::better_array<uint8_t, 8>;
+   for (int i = 0; i < sizeof(user_type); ++i)
+   {
+      const int byte_offset = index * sizeof(user_type) + i;
+      const auto [word_index, byte_index] = detail::div(byte_offset, static_cast<int>(sizeof(uint64_t)));
+      const auto word_bytes = std::bit_cast<word_bytes_type>(source[2 + word_index]);
+      proxy[i] = word_bytes[byte_index];
+   }
+   return std::bit_cast<user_type>(proxy);
 }
 
 

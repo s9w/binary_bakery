@@ -31,7 +31,7 @@ namespace bb
       explicit image(const abs_file_path& file, const image_dimensions& image_dim, const image_vertical_direction direction);
       explicit image(const abs_file_path& file, const image_vertical_direction direction);
       [[nodiscard]] auto get_byte_count() const -> int;
-      [[nodiscard]] auto get_pixel_count() const -> int;
+      [[nodiscard]] auto get_element_count() const -> int;
       [[nodiscard]] auto operator[](const int index) const -> const color_type&;
       [[nodiscard]] auto operator[](const int index) -> color_type&;
       [[nodiscard]] auto begin() const -> auto;
@@ -50,12 +50,12 @@ namespace bb
 template <int bpp>
 auto bb::image<bpp>::get_byte_count() const -> int
 {
-   return get_pixel_count() * sizeof(color_type);
+   return get_element_count() * sizeof(color_type);
 }
 
 
 template <int bpp>
-auto bb::image<bpp>::get_pixel_count() const -> int
+auto bb::image<bpp>::get_element_count() const -> int
 {
    return m_width * m_height;
 }

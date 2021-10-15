@@ -13,7 +13,7 @@ TEST_CASE("image basics")
    const image<3> image_3x3(test_image_file, image_vertical_direction::bottom_to_top);
    CHECK_EQ(image_3x3.m_width, 3);
    CHECK_EQ(image_3x3.m_height, 2);
-   CHECK_EQ(image_3x3.get_pixel_count(), 6);
+   CHECK_EQ(image_3x3.get_element_count(), 6);
    CHECK_EQ(image_3x3[0], color{ 255, 0, 0 });
    CHECK_EQ(image_3x3[1], color{ 0, 255, 0 });
    CHECK_EQ(image_3x3[2], color{ 0, 0, 255 });
