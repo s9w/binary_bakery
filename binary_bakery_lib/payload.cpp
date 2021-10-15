@@ -153,11 +153,82 @@ namespace {
    }
 
 
-   auto get_payload_strings(
+   auto add_word_separator(
+      std::string& target,
+      const bool is_last_word_total,
+      const bool is_last_word_in_line
+   ) -> void
+   {
+      if (is_last_word_total)
+         return;
+
+      if (is_last_word_in_line)
+         target += ",";
+      else
+         target += ", ";
+   }
+
+
+   // Stringified content of the data array, ie "0xffffffffffffffff, 0xffffffffffffffff, ..."
+   [[nodiscard]] auto get_content(
+      const std::vector<uint8_t> data_source,
+      const std::string& indentation_str,
+      const int words_per_line
+   ) -> std::string
+   {
+      const uint64_t* ui64_ptr = reinterpret_cast<const uint64_t*>(data_source.data());
+      
+      const int word_count = get_symbol_count<uint64_t>(byte_count{ data_source.size() });
+      std::string content;
+      content.reserve(word_count * 21);
+      int words_in_line = 0;
+      for (int i = 0; i < word_count; ++i)
+      {
+         const bool is_last_word_total = i == (word_count - 1);
+         const bool is_last_word_in_line = words_in_line == (words_per_line - 1);
+
+         append_ui64_str(ui64_ptr[i], content);
+         add_word_separator(content, is_last_word_total, is_last_word_in_line);
+
+         ++words_in_line;
+
+         if (is_last_word_in_line && is_last_word_total == false)
+         {
+            content += '\n';
+            content += indentation_str;
+            words_in_line = 0;
+         }
+      }
+      return content;
+   }
+
+
+   [[nodiscard]] auto get_payload_string(
+      const config& cfg,
+      const abs_file_path& payload_path,
+      const std::string& content_str
+   ) -> std::string
+   {
+      const std::string indentation_str(cfg.indentation_size, ' ');
+
+      std::string payload_str;
+      payload_str += fmt::format("static constexpr uint64_t {}[]{{\n", get_variable_name(payload_path));
+      payload_str += indentation_str;
+      payload_str += content_str;
+      payload_str += "\n};\n";
+      return payload_str;
+   }
+
+
+   [[nodiscard]] auto get_payload_strings(
       std::vector<payload>&& payloads,
       const config& cfg
-   ) ->std::vector<std::string>
+   ) -> std::vector<std::string>
    {
+      const std::string indentation_str(cfg.indentation_size, ' ');
+      constexpr auto chunk_string_len = std::char_traits<char>::length("0x3f3ffc3f3ffc3f3f, ");
+      const int words_per_line = (cfg.max_columns - cfg.indentation_size) / chunk_string_len;
+
       std::vector<std::string> payload_strings;
       for (payload& pl : payloads)
       {
@@ -165,40 +236,11 @@ namespace {
          const std::vector<uint8_t> data_source = detail::get_final_bytestream(pl, cfg);
 
          report_diagnostics(cfg, pl, uncompressed_size, data_source);
-
-         std::string content;
-         const int word_count = get_symbol_count<uint64_t>(byte_count{ data_source.size() });
-         content.reserve(word_count * 21);
-
-         const uint64_t* ui64_ptr = reinterpret_cast<const uint64_t*>(data_source.data());
-
-         constexpr auto chunk_len = std::char_traits<char>::length("0x3f3ffc3f3ffc3f3f, ");
-         const int groups_per_line = (cfg.max_columns - cfg.indentation_size) / chunk_len;
-         int in_line_count = 0;
-         const std::string indentation_str(cfg.indentation_size, ' ');
-         for (int i = 0; i < word_count; ++i)
-         {
-            const bool is_last = i == (word_count - 1);
-            append_ui64_str(ui64_ptr[i], content);
-            if (is_last == false)
-            {
-               content += ", ";
-            }
-            ++in_line_count;
-            if (in_line_count == groups_per_line && is_last == false)
-            {
-               content += '\n';
-               content += indentation_str;
-               in_line_count = 0;
-            }
-         }
-         std::string payload_str;
-         payload_str += "static constexpr uint64_t ";
-         payload_str += get_variable_name(pl.m_path);
-         payload_str += "[]{\n";
-         payload_str += indentation_str;
-         payload_str += content;
-         payload_str += "\n};\n";
+         std::string payload_str = get_payload_string(
+            cfg,
+            pl.m_path,
+            get_content(data_source, indentation_str, words_per_line)
+         );
          payload_strings.emplace_back(std::move(payload_str));
       }
       return payload_strings;
