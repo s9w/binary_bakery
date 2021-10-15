@@ -13,11 +13,10 @@ auto bb::get_zstd_compressed(
    // "Hint : compression runs faster if `dstCapacity` >=  `ZSTD_compressBound(srcSize)`"
    std::vector<uint8_t> destination(2 * compress_bound);
 
-   // TODO make this configurable
    constexpr int compression_level = 3; // default according to documentation
    const size_t written_comp_size = ZSTD_compress(
       destination.data(),
-      destination.capacity(),
+      destination.size(),
       input.data(),
       input.size(),
       compression_level
@@ -50,6 +49,7 @@ auto bb::get_lz4_compressed(
    if (compressed_size == 0)
    {
       printf("Error occured during LZ4 compression.\n");
+      return {};
    }
 
    result.resize(compressed_size);

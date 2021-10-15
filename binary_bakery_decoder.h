@@ -32,7 +32,7 @@ namespace bb {
       uint32_t compressed_size   = 0; // Without compression, this is equal to the uncompressed_size
                                       // range: [0-4096 MB]
    };
-   static_assert(sizeof(header) == 16);
+   static_assert(sizeof(header) == 2 * sizeof(uint64_t));
 
    // Retrieves the header from a payload by name or pointer.
    [[nodiscard]] constexpr auto get_header(const uint64_t* source) -> header;

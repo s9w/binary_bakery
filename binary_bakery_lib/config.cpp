@@ -1,7 +1,9 @@
 #include "config.h"
 
-#include <iostream>
+#include <algorithm>
 #include <fstream>
+
+#include "file_tools.h"
 
 #include <tomlplusplus/toml.hpp>
 #include <fmt/format.h>
@@ -57,14 +59,14 @@ namespace
       const std::optional<target_type> interpret_result = fun(get_sanitized_input(read_value.value()));
       if (interpret_result.has_value() == false)
       {
-         std::cout << fmt::format("The config value \"{}\" couldn't be parsed. Skipping.\n", read_value.value());
+         fmt::print("The config value \"{}\" couldn't be parsed. Skipping.\n", read_value.value());
          return;
       }
       target = interpret_result.value();
    }
 
 
-   // For simple types, the reading type equals to type of the target
+   // Settings that don't require a conversion function
    template<typename target_type>
    auto set_value(
       target_type& target,
@@ -73,7 +75,7 @@ namespace
    ) -> void
    {
       using read_type = target_type;
-      const auto opt_identity = [](const read_type & in) {
+      const auto opt_identity = [](const read_type& in) {
          return std::optional<read_type>{in};
       };
       set_value<read_type>(target, tbl, key, opt_identity);
@@ -92,7 +94,7 @@ namespace
          return compression_mode::lz4;
       else
       {
-         std::cout << fmt::format("compression_mode value \"{}\" not recognized. Using no compression.\n", value);
+         fmt::print("compression_mode value \"{}\" not recognized. Using no compression.\n", value);
          return compression_mode::none;
       }
    }
@@ -139,8 +141,7 @@ auto bb::get_cfg_from_file(
    }
    catch (const toml::parse_error&)
    {
-      const std::string msg = fmt::format("Couldn't parse file {}. Looking for other config.", file.get_path().string());
-      std::cout << msg << std::endl;
+      fmt::print("Couldn't parse file {}. Looking for other config.\n", file.get_path().string());
       return std::nullopt;
    }
 

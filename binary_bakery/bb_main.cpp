@@ -1,5 +1,4 @@
 #include <chrono>
-#include <iostream>
 
 #include <binary_bakery_lib/config.h>
 #include <binary_bakery_lib/file_tools.h>
@@ -28,7 +27,7 @@ namespace bb {
          const auto t1 = std::chrono::high_resolution_clock::now();
          const auto us = std::chrono::duration_cast<std::chrono::microseconds>(t1 - m_t0).count();
          const double ms = us / 1000.0;
-         std::cout << fmt::format("{}: {}ms\n", m_msg, ms);
+         fmt::print("{}: {}ms\n", m_msg, ms);
       }
 
       timer(const timer&) = delete;
@@ -50,7 +49,7 @@ namespace bb {
          const std::optional<config> target_dir_cfg = get_cfg_from_dir(payload_dir);
          if (target_dir_cfg.has_value())
          {
-            std::cout << fmt::format("Using config from \"{}\".\n", payload_dir.get_path().string());
+            fmt::print("Using config from \"{}\".\n", payload_dir.get_path().string());
             return target_dir_cfg.value();
          }
       }
@@ -60,14 +59,14 @@ namespace bb {
       const std::optional<config> working_dir_cfg = get_cfg_from_dir(working_dir);
       if (working_dir_cfg.has_value())
       {
-         std::cout << fmt::format("Using config from \"{}\".\n", working_dir.get_path().string());
+         fmt::print("Using config from \"{}\".\n", working_dir.get_path().string());
          return working_dir_cfg.value();
       }
 
 
       // Lastly, use the default config
       config default_config;
-      std::cout << fmt::format("Using default config.\n");
+      fmt::print("Using default config.\n");
       return default_config;
    }
 
@@ -77,7 +76,7 @@ namespace bb {
    auto wait_for_keypress() -> void
    {
 #if defined(_WIN32) || defined(WIN32)
-      std::cout << fmt::format("\nPress any key to continue\n");
+      fmt::print("\nPress any key to continue\n");
       [[maybe_unused]] const auto input_val = _getch();
 #endif
    }
@@ -102,12 +101,12 @@ namespace bb {
          // Path must exist and must be a file
          if (std::filesystem::exists(argv[i]) == false)
          {
-            std::cout << fmt::format("Path doesn't exist: {} -> skipping.\n", argv[i]);
+            fmt::print("Path doesn't exist: {} -> skipping.\n", argv[i]);
             continue;
          }
          if (std::filesystem::is_regular_file(argv[i]) == false)
          {
-            std::cout << fmt::format("Path is not a file: {} -> skipping.\n", argv[i]);
+            fmt::print("Path is not a file: {} -> skipping.\n", argv[i]);
             continue;
          }
 
@@ -120,10 +119,10 @@ namespace bb {
             {
                if (result.m_config.has_value())
                {
-                  std::cout << fmt::format("There was already a config among the input files. Ignoring this one\n");
+                  fmt::print("There was already a config among the input files. Ignoring this one\n");
                   continue;
                }
-               std::cout << fmt::format("Using explicit config file \"{}\".\n", file.get_path().string());
+               fmt::print("Using explicit config file \"{}\".\n", file.get_path().string());
                result.m_config.emplace(explicit_config.value());
                continue;
             }

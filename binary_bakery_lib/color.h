@@ -9,8 +9,6 @@ namespace bb {
    struct color {
       uint8_t m_components[bpp];
 
-      static constexpr auto black() -> color;
-
       constexpr color(no_init) { }
       constexpr color(uint8_t r)                                  requires(bpp == 1);
       constexpr color(uint8_t r, uint8_t a)                       requires(bpp == 2);
@@ -26,15 +24,6 @@ namespace bb {
    color(uint8_t, uint8_t)                   -> color<2>;
    color(uint8_t, uint8_t, uint8_t)          -> color<3>;
    color(uint8_t, uint8_t, uint8_t, uint8_t) -> color<4>;
-}
-
-template <int bpp>
-constexpr auto bb::color<bpp>::black() -> color
-{
-   color black(no_init{});
-   for (int i = 0; i < bpp; ++i)
-      black[i] = 0ui8;
-   return black;
 }
 
 

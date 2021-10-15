@@ -2,15 +2,10 @@
 
 #include <compare>
 #include <vector>
-#include <string>
-#include <optional>
-#include <filesystem>
-
-namespace fs = std::filesystem;
+#include <string> // memcpy
 
 #include "color.h"
-#include "tools.h"
-#include "content_meta.h"
+
 
 namespace bb
 {

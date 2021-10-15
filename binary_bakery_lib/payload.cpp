@@ -1,7 +1,6 @@
 #include "payload.h"
 
 #include <fstream>
-#include <iostream>
 
 #include "config.h"
 #include "tools.h"
@@ -9,7 +8,6 @@
 #include "image.h"
 #include "compression.h"
 
-#include <stb/stb_image.h>
 #include <fmt/format.h>
 
 
@@ -29,9 +27,7 @@ namespace {
 
    [[nodiscard]] auto get_binary_file_payload(const abs_file_path& file) -> payload
    {
-      std::vector<uint8_t> file_content = get_binary_file(file);
-      constexpr generic_binary meta{};
-      return { std::move(file_content), meta, file };
+      return { get_binary_file(file), generic_binary{}, file };
    }
 
 
@@ -44,9 +40,8 @@ namespace {
    {
       const image<bpp> image{ file, image_dim, cfg.image_loading_direction };
       const naive_image_type meta{ image.m_width, image.m_height, bpp };
-      std::vector<uint8_t> stream = get_image_bytestream(image);
 
-      return { std::move(stream), meta, file };
+      return { get_image_bytestream(image), meta, file };
    }
 
 
@@ -68,14 +63,14 @@ namespace {
          case 4:
             return get_image_payload_impl<4>(file, image_dim, cfg);
          default:
-            std::cout << "unexpected\n";
+            fmt::print("unexpected\n");
             std::terminate();
          }
       }();
    }
 
 
-   auto get_variable_name(
+   [[nodiscard]] auto get_variable_name(
       const abs_file_path& file
    ) -> std::string
    {
@@ -141,19 +136,19 @@ namespace {
    ) -> void
    {
       const byte_count compressed_size{ compressed_bytestream.size() - 16 };
-      std::cout << fmt::format(
+      fmt::print(
          "Writing file \"{}\". Uncompressed size: {}."
          , pl.m_path.get_path().filename().string() , get_human_readable_size(uncompressed_size)
       );
       if (cfg.compression != compression_mode::none)
       {
          const double ratio = static_cast<double>(compressed_size.m_value) / static_cast<double>(uncompressed_size.m_value);
-         std::cout << fmt::format(
+         fmt::print(
             " compressed size: {} (compressed to {:.1f}%)"
             , get_human_readable_size(compressed_size), 100.0 * ratio
          );
       }
-      std::cout << '\n';
+      printf("\n");
    }
 
 } // namespace {}
@@ -226,7 +221,7 @@ auto bb::write_payloads_to_file(
    std::ofstream filestream(output_path, std::ios::out);
    if (!filestream.good())
    {
-      std::cout << fmt::format("Couldn't open {} for writing\n", cfg.output_filename);
+      fmt::print("Couldn't open {} for writing\n", cfg.output_filename);
       return;
    }
 
@@ -272,7 +267,7 @@ auto detail::get_final_bytestream(
    {
       compressed_size.m_value = static_cast<int>(compressed_stream.value().size());
    }
-   const std::array<uint8_t, 16> header_stream = meta_and_size_to_header_stream(pl.m_meta, cfg.compression, uncompressed_size, compressed_size);
+   const std::array<uint8_t, 16> header_stream = get_header_bytes(pl.m_meta, cfg.compression, uncompressed_size, compressed_size);
 
    std::vector<uint8_t> result(16); // for header
    result.reserve(result.size() + pl.m_content_data.size());
@@ -285,7 +280,6 @@ auto detail::get_final_bytestream(
    {
       append_moved(result, std::move(pl.m_content_data));
    }
-   
 
    return result;
 }

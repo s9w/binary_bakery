@@ -4,6 +4,7 @@
 
 #include <fmt/format.h>
 
+
 namespace
 {
 
@@ -39,13 +40,13 @@ namespace
 
 
 auto bb::write_binary_file(
-   const abs_file_path& file_p,
+   const abs_file_path& file_path,
    const std::vector<uint8_t>& byte_sequence
 ) -> void
 {
-   std::ofstream file(file_p.get_path(), std::ios::out | std::ios::binary);
+   std::ofstream file_stream(file_path.get_path(), std::ios::out | std::ios::binary);
    const auto byte_size = static_cast<std::streamsize>(byte_sequence.size());
-   file.write(reinterpret_cast<const char*>(byte_sequence.data()), byte_size);
+   file_stream.write(reinterpret_cast<const char*>(byte_sequence.data()), byte_size);
 }
 
 

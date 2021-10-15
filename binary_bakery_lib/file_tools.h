@@ -28,7 +28,7 @@ namespace bb
 
 
    // Stores absolute directory path. Ensures directory exists. Can convert from relative path.
-   struct abs_directory_path : path_type {
+   struct abs_directory_path : path_type{
       using path_type::path_type;
 
       explicit abs_directory_path(const fs::path& path);

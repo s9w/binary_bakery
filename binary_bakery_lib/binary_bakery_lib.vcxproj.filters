@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="fmt lib">
+      <UniqueIdentifier>{c6f511da-6c7c-460a-b1f6-9ae4bb3d61da}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="color.h">
@@ -69,7 +72,7 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\libs\fmt-8.0.1\src\format.cc">
-      <Filter>Source Files</Filter>
+      <Filter>fmt lib</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

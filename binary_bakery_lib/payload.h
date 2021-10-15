@@ -1,13 +1,8 @@
 #pragma once
 
-#include <string>
-#include <optional>
-#include <filesystem>
-
-namespace fs = std::filesystem;
+#include <vector>
 
 #include "content_meta.h"
-#include "image.h"
 #include "file_tools.h"
 
 

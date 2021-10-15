@@ -2,6 +2,7 @@
 #include <string>
 
 #include <binary_bakery_lib/payload.h>
+#include <binary_bakery_lib/tools.h>
 #include <binary_bakery_lib/config.h>
 
 #include <doctest/doctest.h>

@@ -2,7 +2,6 @@
 #include <stb/stb_image.h>
 
 #include <chrono>
-#include <iostream>
 #include <fstream>
 
 #include "data_store.h"

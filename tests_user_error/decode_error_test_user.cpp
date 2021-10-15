@@ -1,7 +1,5 @@
 #include <doctest/doctest.h>
 
-#include <iostream>
-
 #include "../binary_bakery_decoder.h"
 
 #include "../tests/test_images/test_payload_rgb.h"

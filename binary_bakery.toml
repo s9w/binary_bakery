@@ -1,8 +1,9 @@
-# Output path of the resulting header. Relative to the path of first parameter
-# if not an absolute path.
+# Output path of the resulting header.
+# Default: "binary_bakery_payload.h"
 output_filename = "binary_bakery_payload.h"
 
 # Maximum number of rows in output header
+# Default: 100
 max_columns = 100
 
 # Smart means that images will be detected as such and treated differently. In
@@ -13,16 +14,16 @@ max_columns = 100
 smart_mode = true
 
 # Any of: ["none", "zstd", "lz4"]
-# "none": no compression
+# "none": no compression [default]
 # "zstd": Zstandard, see https://github.com/facebook/zstd
 # "LZ4": see https://github.com/lz4/lz4
 compression_mode = "none"
 
-# True: Encoder waits for a key press at the end, allowing you to read some size information
+# True: Encoder waits for a key press at the end, allowing you to read some size information [default]
 # False: Ends program immediately
 prompt_for_key = true
 
 # Store image pixel information from bottom row to top or the other way?
-# "bottom_to_top": First pixel is bottom left
+# "bottom_to_top": First pixel is bottom left [default]
 # "top_to_bottom": First pixel is top left
 image_loading_direction = "bottom_to_top"

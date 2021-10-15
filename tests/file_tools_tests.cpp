@@ -24,11 +24,6 @@ TEST_CASE("abs_file_path")
 {
    SUBCASE("must be a file")
    {
-      CHECK_THROWS_AS(abs_file_path{ "." }, std::exception);
       CHECK_NOTHROW(abs_file_path{ "tests.cpp" });
-   }
-   SUBCASE("must exist")
-   {
-      CHECK_THROWS_AS(abs_file_path{ "doesnt_exist.cpp" }, std::exception);
    }
 }

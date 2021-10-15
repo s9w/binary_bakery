@@ -1,4 +1,5 @@
 #include <binary_bakery_lib/config.h>
+#include <binary_bakery_lib/file_tools.h>
 
 #include <doctest/doctest.h>
 

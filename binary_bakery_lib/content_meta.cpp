@@ -1,52 +1,22 @@
 #include "content_meta.h"
 
-#include "tools.h"
+#include "../binary_bakery_decoder.h" // for header type
 
-#define BAKERY_JUST_HEADER
-#include "../binary_bakery_decoder.h"
 
 namespace
 {
    using namespace bb;
 
-
-   template<typename target_type, typename meta_type>
-   [[nodiscard]] constexpr auto get_bpp(
-      const meta_type& meta
-   ) -> target_type
+   template<typename accessor_type>
+   [[nodiscard]] constexpr auto get_property(
+      const content_meta& meta_var,
+      const accessor_type& accessor
+   ) -> int
    {
-      if constexpr (std::same_as<meta_type, naive_image_type>)
-      {
-         return static_cast<target_type>(meta.m_bpp);
-      }
+      if (std::holds_alternative<naive_image_type>(meta_var))
+         return accessor(std::get<naive_image_type>(meta_var));
       else
-      {
-         return target_type{};
-      }
-   }
-
-
-   template<typename meta_type>
-   [[nodiscard]] constexpr auto get_width(
-      const meta_type& meta
-   ) -> uint16_t
-   {
-      if constexpr (std::same_as<meta_type, naive_image_type>)
-         return static_cast<uint16_t>(meta.m_width);
-      else
-         return 0ui16;
-   }
-
-
-   template<typename meta_type>
-   [[nodiscard]] constexpr auto get_height(
-      const meta_type& meta
-   ) -> uint16_t
-   {
-      if constexpr (std::same_as<meta_type, naive_image_type>)
-         return static_cast<uint16_t>(meta.m_height);
-      else
-         return 0ui16;
+         return 0;
    }
 
 
@@ -70,10 +40,23 @@ namespace
       }
    }
 
+
+   [[nodiscard]] auto get_type_index(
+      const content_meta& meta
+   ) -> int
+   {
+      if (std::holds_alternative<generic_binary>(meta))
+         return 0;
+      else if (std::holds_alternative<naive_image_type>(meta))
+         return 1;
+      else
+         std::terminate();
+   }
+
 } // namespace {}
 
 
-auto bb::meta_and_size_to_header_stream(
+auto bb::get_header_bytes(
    const content_meta& meta,
    const compression_mode compression,
    const byte_count uncompressed_size,
@@ -81,15 +64,13 @@ auto bb::meta_and_size_to_header_stream(
 ) -> std::array<uint8_t, 16>
 {
    header head;
-   head.type = static_cast<uint8_t>(meta.index());
+   head.type = static_cast<uint8_t>(get_type_index(meta));
    head.compression = get_compression_int(compression);
    head.version = 0ui8;
-   head.bpp = std::visit(
-      [&](const auto alternative) {return get_bpp<uint8_t>(alternative); }
-      , meta
-   );
-   head.width = std::visit([&](const auto alternative) {return ::get_width(alternative); }, meta);
-   head.height = std::visit([&](const auto alternative) {return ::get_height(alternative); }, meta);
+   head.bpp = static_cast<uint8_t>(get_property(meta, [](const naive_image_type& image) {return image.m_bpp; }));
+   head.width = static_cast<uint8_t>(get_property(meta, [](const naive_image_type& image) {return image.m_width; }));
+   head.height = static_cast<uint8_t>(get_property(meta, [](const naive_image_type& image) {return image.m_height; }));
+
    head.decompressed_size = static_cast<uint32_t>(uncompressed_size.m_value);
    head.compressed_size = static_cast<uint32_t>(compressed_size.m_value);
 
