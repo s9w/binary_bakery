@@ -33,13 +33,17 @@ namespace tests {
    {
       const abs_file_path source_file{ "test_images/test_image_rgb.png" };
       const image<3> image(source_file, image_vertical_direction::bottom_to_top);
-      CHECK_EQ(get_image_bytestream(image), get_file_roundtrip_bytes(source_file));
+      const std::vector<uint8_t> expected = get_image_bytestream(image);
+      const std::vector<uint8_t> result = get_file_roundtrip_bytes(source_file);
+      CHECK_EQ(expected, result);
    }
 
    TEST_CASE("image roundtrip")
    {
       const abs_file_path source_file{ "test_images/binary0.bin" };
-      CHECK_EQ(get_binary_file(source_file), get_file_roundtrip_bytes(source_file));
+      const auto expected = get_binary_file(source_file);
+      const auto result = get_file_roundtrip_bytes(source_file);
+      CHECK_EQ(result, expected);
    }
 
 }

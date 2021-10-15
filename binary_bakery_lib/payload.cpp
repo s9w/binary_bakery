@@ -17,17 +17,18 @@ namespace {
 
    [[nodiscard]] auto is_image_path(const abs_file_path& file) -> bool
    {
-      if (file.get_path().extension() == fs::path(".png"))
-      {
-         return true;
-      }
-      return false;
+      const std::string ext_string = file.get_path().extension().string();
+      return ext_string == std::string{ ".png" }
+          || ext_string == std::string{ ".jpg" }
+          || ext_string == std::string{ ".jpeg" }
+          || ext_string == std::string{ ".tga" }
+          || ext_string == std::string{ ".bmp" };
    }
 
 
    [[nodiscard]] auto get_binary_file_payload(const abs_file_path& file) -> payload
    {
-      return { get_binary_file(file), generic_binary{}, file };
+      return payload{ get_binary_file(file), generic_binary{}, file };
    }
 
 
@@ -151,6 +152,59 @@ namespace {
       printf("\n");
    }
 
+
+   auto get_payload_strings(
+      std::vector<payload>&& payloads,
+      const config& cfg
+   ) ->std::vector<std::string>
+   {
+      std::vector<std::string> payload_strings;
+      for (payload& pl : payloads)
+      {
+         const byte_count uncompressed_size{ pl.m_content_data.size() }; // needs to be read here because it's moved in next line
+         const std::vector<uint8_t> data_source = detail::get_final_bytestream(pl, cfg);
+
+         report_diagnostics(cfg, pl, uncompressed_size, data_source);
+
+         std::string content;
+         const int word_count = get_symbol_count<uint64_t>(byte_count{ data_source.size() });
+         content.reserve(word_count * 21);
+
+         const uint64_t* ui64_ptr = reinterpret_cast<const uint64_t*>(data_source.data());
+
+         constexpr auto chunk_len = std::char_traits<char>::length("0x3f3ffc3f3ffc3f3f, ");
+         const int groups_per_line = (cfg.max_columns - cfg.indentation_size) / chunk_len;
+         int in_line_count = 0;
+         const std::string indentation_str(cfg.indentation_size, ' ');
+         for (int i = 0; i < word_count; ++i)
+         {
+            const bool is_last = i == (word_count - 1);
+            append_ui64_str(ui64_ptr[i], content);
+            if (is_last == false)
+            {
+               content += ", ";
+            }
+            ++in_line_count;
+            if (in_line_count == groups_per_line && is_last == false)
+            {
+               content += '\n';
+               content += indentation_str;
+               in_line_count = 0;
+            }
+         }
+         std::string payload_str;
+         payload_str += "static constexpr uint64_t ";
+         payload_str += get_variable_name(pl.m_path);
+         payload_str += "[]{\n";
+         payload_str += indentation_str;
+         payload_str += content;
+         payload_str += "\n};\n";
+         payload_strings.emplace_back(std::move(payload_str));
+      }
+      return payload_strings;
+   }
+
+
 } // namespace {}
 
 
@@ -172,51 +226,7 @@ auto bb::write_payloads_to_file(
    const abs_directory_path& working_dir
 ) -> void
 {
-   std::vector<std::string> payload_strings;
-   for (payload& pl : payloads)
-   {
-      const byte_count uncompressed_size{ pl.m_content_data.size() }; // needs to be read here because it's moved in next line
-      const std::vector<uint8_t> data_source = detail::get_final_bytestream(pl, cfg);
-
-      report_diagnostics(cfg, pl, uncompressed_size, data_source);
-
-      std::string content;
-      const int symbol_count = get_symbol_count<uint64_t>(byte_count{ data_source.size() });
-      content.reserve(symbol_count * 21);
-
-      const uint64_t* ui64_ptr = reinterpret_cast<const uint64_t*>(data_source.data());
-
-      constexpr auto chunk_len = std::char_traits<char>::length("0x3f3ffc3f3ffc3f3f, ");
-      const int groups_per_line = (cfg.max_columns - cfg.indentation_size) / chunk_len;
-      int in_line_count = 0;
-      const std::string indentation_str(cfg.indentation_size, ' ');
-      for (int i = 0; i < symbol_count; ++i)
-      {
-         const bool is_last = i == (symbol_count - 1);
-         append_ui64_str(ui64_ptr[i], content);
-         if (is_last == false)
-         {
-            content += ", ";
-         }
-         ++in_line_count;
-         if (in_line_count == groups_per_line && is_last == false)
-         {
-            content += "\n";
-            content += indentation_str;
-            in_line_count = 0;
-         }
-      }
-
-      std::string payload_str;
-      payload_str += "static constexpr uint64_t ";
-      payload_str += get_variable_name(pl.m_path);
-      payload_str += "[]{\n";
-      payload_str += indentation_str;
-      payload_str += content;
-      payload_str += "\n};\n";
-      payload_strings.emplace_back(std::move(payload_str));
-   }
-
+   const std::vector<std::string> payload_strings = get_payload_strings(std::move(payloads), cfg);
    const fs::path output_path = working_dir.get_path() / cfg.output_filename;
    std::ofstream filestream(output_path, std::ios::out);
    if (!filestream.good())
@@ -226,7 +236,7 @@ auto bb::write_payloads_to_file(
    }
 
    filestream << "namespace bb{\n";
-   for(std::string& payload_string : payload_strings)
+   for(const std::string& payload_string : payload_strings)
    {
       filestream << payload_string;
    }
