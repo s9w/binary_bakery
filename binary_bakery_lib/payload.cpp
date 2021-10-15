@@ -90,6 +90,9 @@ namespace {
    char const* second
 ) -> bool
 {
+   if(std::is_constant_evaluated() == false)
+      return strcmp(first, second) == 0;
+
    return *first == *second &&
       (*first == '\0' || is_equal_c_string(&first[1], &second[1]));
 }
@@ -277,6 +280,8 @@ auto bb::write_payloads_to_file(
       return;
    }
 
+   filestream << "#include <cstdint>\n";
+   filestream << "#include <cstring>\n\n";
    filestream << "namespace bb{\n";
    for(const std::string& payload_string : payload_strings)
    {
