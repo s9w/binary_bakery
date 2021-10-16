@@ -28,7 +28,7 @@ bb::image<bpp>::image(
 )
    : m_width(image_dim.width)
    , m_height(image_dim.height)
-   , m_pixels(this->get_byte_count(), no_init{})
+   , m_pixels(this->get_byte_count(), color<bpp>{ no_init{} })
 {
    setup_stb_load_flipping(direction);
 

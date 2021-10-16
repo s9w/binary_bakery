@@ -9,11 +9,11 @@ namespace bb {
    struct color {
       uint8_t m_components[bpp];
 
-      constexpr color(no_init) { }
-      constexpr color(uint8_t r)                                  requires(bpp == 1);
-      constexpr color(uint8_t r, uint8_t a)                       requires(bpp == 2);
-      constexpr color(uint8_t r, uint8_t g, uint8_t b)            requires(bpp == 3);
-      constexpr color(uint8_t r, uint8_t g, uint8_t b, uint8_t a) requires(bpp == 4);
+      constexpr explicit color(no_init) { }
+      constexpr explicit color(uint8_t r)                                  requires(bpp == 1);
+      constexpr explicit color(uint8_t r, uint8_t a)                       requires(bpp == 2);
+      constexpr explicit color(uint8_t r, uint8_t g, uint8_t b)            requires(bpp == 3);
+      constexpr explicit color(uint8_t r, uint8_t g, uint8_t b, uint8_t a) requires(bpp == 4);
       [[nodiscard]] constexpr auto operator[](const int index) const -> uint8_t;
       [[nodiscard]] constexpr auto operator[](const int index)       -> uint8_t&;
       auto operator<=>(const color<bpp>&) const = default;

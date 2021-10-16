@@ -30,14 +30,14 @@ namespace
    }
 
 
+   // Returns lowercased for std::string, identity otherwise
    template<typename read_type>
    [[nodiscard]] constexpr auto get_sanitized_input(
       const read_type& input
    ) -> read_type
    {
-      if constexpr (std::same_as<read_type, std::string>) {
+      if constexpr (std::same_as<read_type, std::string>)
          return get_lowercase_string(input);
-      }
       else
          return input;
    }
@@ -48,21 +48,25 @@ namespace
       target_type& target,
       const toml::table& tbl,
       const char* key,
-      const fun_type& fun
+      const fun_type& interpreter
    ) -> void
    {
       const std::optional<read_type> read_value = tbl[key].value<read_type>();
+
+      // toml file didn't contain this setting
       if (read_value.has_value() == false)
-      {
          return;
-      }
-      const std::optional<target_type> interpret_result = fun(get_sanitized_input(read_value.value()));
-      if (interpret_result.has_value() == false)
+
+      const std::optional<target_type> result = interpreter(get_sanitized_input(read_value.value()));
+
+      // Interpretation error
+      if (result.has_value() == false)
       {
          fmt::print("The config value \"{}\" couldn't be parsed. Skipping.\n", read_value.value());
          return;
       }
-      target = interpret_result.value();
+
+      target = result.value();
    }
 
 
@@ -93,10 +97,7 @@ namespace
       else if (value == "lz4")
          return compression_mode::lz4;
       else
-      {
-         fmt::print("compression_mode value \"{}\" not recognized. Using no compression.\n", value);
-         return compression_mode::none;
-      }
+         return std::nullopt;
    }
 
 
@@ -123,9 +124,7 @@ auto bb::get_cfg_from_dir(
 {
    const fs::path config_path = dir.get_path() / default_config_filename;
    if (fs::exists(config_path) == false)
-   {
       return std::nullopt;
-   }
    return get_cfg_from_file(abs_file_path{ dir.get_path() / default_config_filename });
 }
 

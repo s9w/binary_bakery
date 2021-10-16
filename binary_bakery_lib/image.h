@@ -39,6 +39,8 @@ namespace bb
       auto operator<=>(const image<bpp>&) const = default;
    };
 
+   // To instantiate the templated image type, it's necessary to first find out the images bpp
+   // before reading.
    [[nodiscard]] auto get_image_dimensions(const abs_file_path& file) -> image_dimensions;
 
    template<int bpp>
