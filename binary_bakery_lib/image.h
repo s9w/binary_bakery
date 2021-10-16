@@ -4,7 +4,7 @@
 #include <vector>
 #include <string> // memcpy
 
-#include "color.h"
+#include <binary_bakery_lib/color.h>
 
 
 namespace bb

@@ -2,8 +2,8 @@
 
 #include <vector>
 
-#include "content_meta.h"
-#include "file_tools.h"
+#include <binary_bakery_lib/content_meta.h>
+#include <binary_bakery_lib/file_tools.h>
 
 
 namespace bb {

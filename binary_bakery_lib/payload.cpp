@@ -2,11 +2,11 @@
 
 #include <fstream>
 
-#include "config.h"
-#include "tools.h"
-#include "file_tools.h"
-#include "image.h"
-#include "compression.h"
+#include <binary_bakery_lib/config.h>
+#include <binary_bakery_lib/tools.h>
+#include <binary_bakery_lib/file_tools.h>
+#include <binary_bakery_lib/image.h>
+#include <binary_bakery_lib/compression.h>
 
 #include <fmt/format.h>
 
