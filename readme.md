@@ -143,7 +143,7 @@ bb::error_callback = my_error_function;
 | User-defined error function | Compile error | Call user-defined function |
 
 ## Costs and benefits
-There's two main concerns about embedding non-code data into your source code and resulting binary: Compile times and the size of the resulting binary. But there's also the potential of higher decode speed. What follows is an analysis of the pros and cons this method vs file loading in regard to various metrics. To get realistic results, a dataset of different images was created (in [sample_datasets/](sample_datasets)):
+There are two main concerns about embedding non-code data into your source code and resulting binary: Compile times and the size of the resulting binary. There's also the potential of higher decode speed. What follows is an analysis of the pros and cons this method vs file loading in regard to various metrics. To get realistic results, a dataset of different images was created (in [sample_datasets/](sample_datasets)):
 
 |                                              | Dimensions     | Uncompressed size | zstd ratio | LZ4 ratio |
 | -------------------------------------------: | -------------: | ----------------: | ---------: | --------: |
@@ -177,7 +177,7 @@ As an example datapoint, an image with an uncompressed size of 16MB only adds 1.
 
 The increase in compile times is linear with the size of the payload (note the log scale). Compression decreases the effective payload size. For the biggest 16 MB data sample, compile time increases by 5 seconds uncompressed and 0.5 seconds with zstd.
 
-The payload header should only be included in one translation unit (TU). With commonplace parallel compilation, the effective compile time increase should only be 1/n (n cores) of those numbers because the other n-1 threads can compile other TUs. So even ignoring compression, a payload size of 16MB only increases compile times by 0.06 seconds (assuming 8 threads and enough TUs to saturate them).
+The payload header should only be included in one translation unit (TU). With commonplace parallel compilation, the effective compile time increase should only be 1/n (with n threads) of those numbers because the other n-1 threads can compile other TUs. So even ignoring compression, a payload size of 16MB only increases compile times by 0.06 seconds (assuming 8 threads and enough TUs to saturate them).
 
 ### Decode speed
 
@@ -185,7 +185,7 @@ Of interest is also the loading speed compared to traditional loading from files
 
 <p align="center"><img src="https://github.com/s9w/binary_bakery/raw/master/readme/decode_speed_analysis.png"></p>
 
-LZ4 performs identical to uncompressed data in decoding speed by being fast enough to not be the bottleneck. zstd is heaver bit also often reduced the compile impact by half compared to LZ4.
+LZ4 performs identical to uncompressed data in decoding speed by being fast enough to not be the bottleneck. zstd is heavier bit also often reduced the compile impact by half compared to LZ4.
 
 Baking performs better than file loading for all sizes and compression types. In particular for small files, which should be the main target demographic for this tool.
 
