@@ -1,8 +1,8 @@
 # Binary bakery :cookie:
-Translates binary files (images, fonts etc.) into C++ *source code* and extract that binary data at compile- or runtime. There are different reasons why you might want this:
+Translates binary files (images, fonts etc.) into **C++ source code** and extract that binary data at compile- or runtime. There are different reasons why you might want this:
 
 - Avoiding the complexity of loading images or archives with external libraries
-- Compile-time access to image dimensions and content
+- Compile-time access to meta information and content itself, including pixel colors
 - Faster load times, especially with small files
 - Avoiding to ship files with your application binary or preventing people from grabbing such files
 
@@ -11,7 +11,7 @@ Binary bakery allows the data itself as well as some meta information to be avai
 [**Basics**](#basics) :cake:  [**Encoding**](#encoding) :cupcake: [**Decoding**](#decoding) :pie: [**Costs and benefits**](#costs-and-benefits) :birthday:
 
 ## Basics
-A small executable translates binary file(s) into C++ source code:
+An executable translates binary file(s) into C++ source code:
 
 ![](readme/encoding_video.gif)
 
@@ -49,7 +49,7 @@ binary_bakery.exe file1 file2 ...
 There's a [`binary_bakery.toml`](binary_bakery.toml) configuration file, which documents its options.
 
 The program tries to pick the best available configuration file. In order of priority:
-1. A suitable `toml` file among one of the parameters (or files dragged onto the executable).
+1. A suitable `.toml` file among one of the parameters (or files dragged onto the executable).
 2. A `binary_bakery.toml` in the directory of the files being encoded.
 3. A `binary_bakery.toml` in the current working directory.
 4. Default settings.
@@ -99,7 +99,7 @@ For zstd for example, that would typically contain a call to `ZSTD_decompress(ds
 
 |<pre>template&lt;typename user_type&gt;<br>constexpr auto bb::get_element(const uint64_t* payload, const int index) -> user_type</pre>|
 |:---|
-| Special compile-time access interface that only works for **uncompressed** data. For images, it should be `sizeof(user_type)==bpp`. |
+| Compile-time access that only works for **uncompressed** data. For images, it should be `sizeof(user_type)==bpp`. |
 
 
 #### Do your own thing
@@ -119,7 +119,7 @@ auto my_error_function(
    std::cerr << std::format(
       "ERROR: {} in: {}({}:{}) \"{}\"\n",
       msg, loc.file_name(), loc.line(), loc.column(), loc.function_name()
-   );
+      );
    std::terminate();
 }
 // ...
@@ -136,15 +136,15 @@ bb::error_callback = my_error_function;
 ## Costs and benefits
 There's two main concerns about embedding non-code data into your source code and resulting binary: Compile times and the size of the resulting binary. But there's also the potential of higher decode speed. What follows is an analysis of the pros and cons this method vs file loading in regard to various metrics. To get realistic results, a dataset of different images was created (in [sample_datasets/](sample_datasets)):
 
-|         | Dimensions | Uncompressed size | zstd ratio | LZ4 ratio |
-| ------: | ---------: | ----------------: | ---------: | ---------: |
-| [192.png](sample_datasets/192.png)           | 8×8×3BPP       | 192 B | 91.7% | 94.8% |
-| [3072.png](sample_datasets/3072.png)         | 32×32×3BPP     | 3 KB      | 88.7% | 99.7% |
-| [49152.png](sample_datasets/49152.png)       | 128×128×3BPP   | 48 KB     | 12.0% | 29.1% |
-| [240000.png](sample_datasets/240000.png)     | 400×200×3BPP   | 234 KB    | 34.9% | 43.6% |
-| [480000.png](sample_datasets/480000.png)     | 400×400×3BPP   | 468 KB    | 22.4% | 31.9% |
-| [3145728.png](sample_datasets/3145728.png)   | 1024×1024×3BPP | 3 MB      | 14.2% | 24.9% |
-| [16777216.png](sample_datasets/16777216.png) | 2048×2048×4BPP | 16 MB     | 10.6% | 17.5% |
+|                                              | Dimensions     | Uncompressed size | zstd ratio | LZ4 ratio |
+| -------------------------------------------: | -------------: | ----------------: | ---------: | --------: |
+|      [192.png](sample_datasets/192.png)      |       8×8×3BPP |             192 B |      91.7% |     94.8% |
+|     [3072.png](sample_datasets/3072.png)     |     32×32×3BPP |              3 KB |      88.7% |     99.7% |
+|    [49152.png](sample_datasets/49152.png)    |   128×128×3BPP |             48 KB |      12.0% |     29.1% |
+|   [240000.png](sample_datasets/240000.png)   |   400×200×3BPP |            234 KB |      34.9% |     43.6% |
+|   [480000.png](sample_datasets/480000.png)   |   400×400×3BPP |            468 KB |      22.4% |     31.9% |
+|  [3145728.png](sample_datasets/3145728.png)  | 1024×1024×3BPP |              3 MB |      14.2% |     24.9% |
+| [16777216.png](sample_datasets/16777216.png) | 2048×2048×4BPP |             16 MB |      10.6% |     17.5% |
 
 Note that the compression ratio here refers to **compressed size / uncompressed size** (lower is better).
 
