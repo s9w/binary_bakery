@@ -148,7 +148,6 @@ auto bb::get_cfg_from_file(
    config cfg;
    set_value(cfg.output_filename, tbl, "output_filename");
    set_value(cfg.max_columns, tbl, "max_columns");
-   set_value(cfg.smart_mode, tbl, "smart_mode");
    set_value(cfg.compression, tbl, "compression_mode", get_compression_mode);
    set_value(cfg.prompt_for_key, tbl, "prompt_for_key");
    set_value(cfg.image_loading_direction, tbl, "image_loading_direction", get_image_write_direction);

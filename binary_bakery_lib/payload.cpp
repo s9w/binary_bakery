@@ -19,8 +19,6 @@ namespace {
    {
       const std::string ext_string = file.get_path().extension().string();
       return ext_string == std::string{ ".png" }
-          || ext_string == std::string{ ".jpg" }
-          || ext_string == std::string{ ".jpeg" }
           || ext_string == std::string{ ".tga" }
           || ext_string == std::string{ ".bmp" };
    }

@@ -15,7 +15,6 @@ namespace bb
       std::string output_filename = "binary_bakery_payload.h";
       int indentation_size = 3;
       int max_columns = 100;
-      bool smart_mode = true;
       compression_mode compression = compression_mode::none;
       bool prompt_for_key = true;
       image_vertical_direction image_loading_direction = image_vertical_direction::bottom_to_top;
