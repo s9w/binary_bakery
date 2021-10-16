@@ -20,7 +20,7 @@ namespace bb {
       uint8_t  compression = 0; // Compression mode
                                 // 0: No compression
                                 // 1: zstd
-                                // 2: lz4
+                                // 2: LZ4
       uint8_t  version = 0;     // Version of the payload format. If everything goes well, this stays at 0.
       uint8_t  bpp = 0;         // For images: Number of channels [1-4]
       uint16_t width = 0;       // For images: Width in pixels [0-65535]
@@ -34,7 +34,7 @@ namespace bb {
    };
    static_assert(sizeof(header) == 2 * sizeof(uint64_t));
 
-   // Retrieves the header from a payload by name or pointer.
+   // Retrieves the header from a payload.
    [[nodiscard]] constexpr auto get_header(const uint64_t* source) -> header;
 
    // Retrieves parts of the header. Just for convenience.
@@ -383,8 +383,8 @@ constexpr auto bb::get_data_ptr(const uint64_t* source) -> const void*
 
 
 auto bb::detail::error(
-   [[maybe_unused]] const char* msg,
-   [[maybe_unused]] const std::source_location& location
+   const char* msg,
+   const std::source_location& location
 ) -> void
 {
    if (error_callback != nullptr)

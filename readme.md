@@ -15,28 +15,35 @@ An executable translates binary file(s) into C++ source code:
 
 ![](readme/encoding_video.gif)
 
-Include the resulting header as well as a general decoder header into your code:
+Include the resulting payload header as well as a decoder header into your code:
 ```c++
-#include <bb_payload.h>
+#include <binary_bakery_payload.h>
 #define BAKERY_PROVIDE_VECTOR
-#include <bb_decoder.h>
+#include <binary_bakery_decoder.h>
 
 // All binary information can just be read as bytes.
-// Interfaces other than vector also available, see further down
-const std::vector<uint8_t> font_bytes = bb::decode_to_vector<uint8_t>(get_payload("fancy_font.ttf"));
+const std::vector<uint8_t> font_bytes = bb::decode_to_vector<uint8_t>(bb::get_payload("fancy_font.ttf"));
 
 // Images have their pixel information available directly, without third party libraries
 struct color { uint8_t r, g, b; };
-const std::vector<color> logo_pixels = bb::decode_to_vector<color>(get_payload("logo.png"));
 
-// Meta information is also available at compile time!
-constexpr bb::header meta_information = bb::get_header(get_payload("logo.png"))
+constexpr const uint64_t* logo_ptr = bb::get_payload("logo.png");
+const std::vector<color> logo_pixels = bb::decode_to_vector<color>(logo_ptr);
 
-// For uncompressed images, color information can also be accessed at compile time
-constexpr color first_pixel = get_element(get_payload("logo.png"), 0);
+// Meta information is also available - at compile time!
+constexpr bb::header meta_information = bb::get_header(logo_ptr);
+
+// For uncompressed payloads, the data can also be accessed at compile time
+constexpr color first_pixel = bb::get_element<color>(logo_ptr, 0);
+
+// If you don't want to use std::vector, the data can just be memcopied
+my_vec<uint8_t> storage;
+constexpr const uint64_t* large_data_ptr = bb::get_payload("level.bin");
+storage.resize(bb::get_element_count<uint8_t>(large_data_ptr));
+bb::decode_into_pointer(large_data_ptr, storage.data(), my_decompression_function);
 ```
 
-If decompression code is available in the target codebase, the bytestream can be compressed during encoding, resulting in less impact on the [compile metrics](#costs-and-benefits). Currently supported is [zstd](https://github.com/facebook/zstd) and [LZ4](https://github.com/lz4/lz4).
+If decompression code is available in the target codebase, the payload can be compressed during encoding, resulting in less impact on the [compile metrics](#costs-and-benefits). Currently supported is [zstd](https://github.com/facebook/zstd) and [LZ4](https://github.com/lz4/lz4).
 
 ## Encoding
 The tool is a command line executable that encodes all files from its command line parameters. Dragging files on top of it is the same as calling it from the command line:

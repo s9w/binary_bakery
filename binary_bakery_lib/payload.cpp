@@ -279,7 +279,8 @@ auto bb::write_payloads_to_file(
    }
 
    filestream << "#include <cstdint>\n";
-   filestream << "#include <cstring>\n\n";
+   filestream << "#include <cstring>\n";
+   filestream << "#include <type_traits> // std::is_constant_evaluated\n\n";
    filestream << "namespace bb{\n";
    for(const std::string& payload_string : payload_strings)
    {
