@@ -91,6 +91,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\binary_bakery_decoder.h" />
     <ClInclude Include="color.h" />
     <ClInclude Include="compression.h" />
     <ClInclude Include="config.h" />

@@ -115,7 +115,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\binary_bakery_decoder.h" />
     <ClInclude Include="decoding_tools.h" />
     <ClInclude Include="test_types.h" />
   </ItemGroup>

@@ -16,6 +16,9 @@
     <Filter Include="fmt lib">
       <UniqueIdentifier>{c6f511da-6c7c-460a-b1f6-9ae4bb3d61da}</UniqueIdentifier>
     </Filter>
+    <Filter Include="decoder">
+      <UniqueIdentifier>{f2563080-7c52-4543-aea1-08fb058ba0d0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="color.h">
@@ -44,6 +47,9 @@
     </ClInclude>
     <ClInclude Include="compression.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\binary_bakery_decoder.h">
+      <Filter>decoder</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

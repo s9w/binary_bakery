@@ -1,5 +1,5 @@
 # Binary bakery :cookie:
-Translates binary files (images, fonts etc.) into **C++ source code** and extract that binary data at compile- or runtime. There are different reasons why you might want this:
+Translates binary files (images, fonts etc.) into **C++ source code** and gives access to that data at compile- or runtime. There are different reasons why you might want this:
 
 - Avoiding the complexity of loading images or archives with external libraries
 - Compile-time access to meta information and content itself, including pixel colors
@@ -15,7 +15,7 @@ An executable translates binary file(s) into C++ source code:
 
 ![](readme/encoding_video.gif)
 
-Include the resulting payload header as well as a decoder header into your code:
+Include the resulting payload header as well as the [decoder header](binary_bakery_decoder.h) into your code:
 ```c++
 #include <binary_bakery_payload.h>
 #define BAKERY_PROVIDE_VECTOR
@@ -53,7 +53,7 @@ binary_bakery.exe file1 file2 ...
 ```
 
 #### Configuration
-There's a [`binary_bakery.toml`](binary_bakery.toml) configuration file, which documents its options.
+There's a [`binary_bakery.toml`](binary_bakery.toml) configuration file, which documents its options. Most importantly, you can set your compression there.
 
 The program tries to pick the best available configuration file. In order of priority:
 1. A suitable `.toml` file among one of the parameters (or files dragged onto the executable).
@@ -66,7 +66,7 @@ Not all settings have to be set, left out will be defaulted.
 Currently `png`, `tga` and `bmp` images will be read as images and have their pixel information stored directly. Other image formats like `jpg` will be treated as any other generic binary file. It's not recommended to use images without another compression algorithm. `png` files can have a huge memory footprint compared to their filesize when not compressed in another way.
 
 ## Decoding
-The encoder produces a *payload header*, which contains valid C++ and needs to be included in your source code. Make sure to only include it in one translation unit because of its potentially large size. To access the encoded information inside, you also need the [binary_bakery_decoder.h](binary_bakery_decoder.h). It's written in and requires C++20. If that's a problem, reach out - I think most interfaces could be written to work with earlier standards.
+The encoder produces a *payload header*, which contains valid C++ and needs to be included in your source code. Make sure to only include it in one translation unit because of its potentially large size. To access the encoded information inside, you also need the [binary_bakery_decoder.h](binary_bakery_decoder.h).
 
 A typical payload header looks like this:
 ```c++
@@ -80,7 +80,7 @@ static constexpr uint64_t bb_bitmap_font_16_png[]{
 } // namespace bb
 ```
 #### Header
-You can get a `const uint64_t*` pointer to the payloads by filename with `bb::get_payload(const char*)`. All other functions require that payload pointer.
+You can get a `const uint64_t*` pointer to the payloads at compile-time by filename with `bb::get_payload(const char*)`. All other functions require that payload pointer.
 
 Inside those `uint64` payload arrays is a header with meta information and the data itself. You can access the header with `constexpr get_header(const uint64_t*)`. See [binary_bakery_decoder.h#L16-L34](binary_bakery_decoder.h#L16-L34) for the header members.
 
@@ -95,18 +95,18 @@ auto compression_fun(
 ) -> void;
 ```
 
-For zstd for example, that would typically contain a call to `ZSTD_decompress(dst, dst_size, src, src_size);`. For Lz4, that might look like `LZ4_decompress_safe(src, dst, src_size, dst_size)`.
+For zstd for example, that would typically contain a call to `ZSTD_decompress(dst, dst_size, src, src_size);`. For LZ4, that might look like `LZ4_decompress_safe(src, dst, src_size, dst_size)`.
 
 #### Data interfaces
-|<pre>template&lt;typename user_type&gt;<br>auto bb::decode_to_vector(const uint64_t* payload, decomp_fun) -> std::vector&lt;user_type&gt;</pre>|
+|<pre>template&lt;typename user_type&gt;<br>std::vector&lt;user_type&gt; bb::decode_to_vector(const uint64_t* payload, decomp_fun)</pre>|
 |:---|
 | Returns a vector of your target type. If you want to use this interface, you need to `#define BAKERY_PROVIDE_VECTOR` before you include the decoder header (to prevent the `<vector>` include if you don't). Note that this function requires `user_type` to be default constructible. |
 
-|<pre>auto bb::decode_into_pointer(const uint64_t* payload, void* dst, decomp_fun) -> void</pre>|
+|<pre>void bb::decode_into_pointer(const uint64_t* payload, void* dst, decomp_fun)</pre>|
 |:---|
-| Writes into a **preallocated** memory. You can access the required decompressed size in bytes (at compile-time) from `header::decompressed_size`. |
+| Writes into a **preallocated** memory. You can access the required decompressed size in bytes (at compile-time) from `header::decompressed_size`. This function memcopies into the destination. |
 
-|<pre>template&lt;typename user_type&gt;<br>constexpr auto bb::get_element(const uint64_t* payload, const int index) -> user_type</pre>|
+|<pre>template&lt;typename user_type&gt;<br>constexpr user_type bb::get_element(const uint64_t* payload, const int index)</pre>|
 |:---|
 | Compile-time access that only works for **uncompressed** data. For images, it should be `sizeof(user_type)==bpp`. |
 
@@ -143,7 +143,7 @@ bb::error_callback = my_error_function;
 | User-defined error function | Compile error | Call user-defined function |
 
 ## Costs and benefits
-There are two main concerns about embedding non-code data into your source code and resulting binary: Compile times and the size of the resulting binary. There's also the potential of higher decode speed. What follows is an analysis of the pros and cons this method vs file loading in regard to various metrics. To get realistic results, a dataset of different images was created (in [sample_datasets/](sample_datasets)):
+There are two main concerns about embedding non-code data into your source code and resulting binary: Compile times and the size of the resulting binary. On the flipside, there's also the potential of higher decode speed. What follows is an analysis of the pros and cons this method vs file loading in regard to various metrics. To get realistic results, a dataset of different images with common dimension and sizes was created (in [sample_datasets/](sample_datasets)):
 
 |                                              | Dimensions     | Uncompressed size | zstd ratio | LZ4 ratio |
 | -------------------------------------------: | -------------: | ----------------: | ---------: | --------: |
@@ -163,11 +163,11 @@ The dataset contains various game spritesheets like this:
 
 ### Binary size
 
-The expected size of the resulting binary is the size without anything plus the byte-size of the payload. The following plot shows the resulting binary size relative to that expected size.
+The expected size of the resulting binary is the size without any embedded binary files plus the byte-size of the payload. The following plot shows the resulting binary size relative to that expected size.
 
 <p align="center"><img src="https://github.com/s9w/binary_bakery/raw/master/readme/binary_size.png"></p>
 
-So the compiler doesn't add overhead beyond the payload size and a small constant size penalty of ~3KB from the decoding header. Compression allows the payload size to decrease, reducing the impact on binary size and compile time.
+Good news: the compiler doesn't add overhead beyond the payload size and a small constant size penalty of ~3KB from the decoding header. Compression allows the payload size to decrease, reducing the impact on binary size and -time.
 
 As an example datapoint, an image with an uncompressed size of 16MB only adds 1.78MB to the resulting binary with zstd compression.
 
@@ -177,7 +177,7 @@ As an example datapoint, an image with an uncompressed size of 16MB only adds 1.
 
 The increase in compile times is linear with the size of the payload (note the log scale). Compression decreases the effective payload size. For the biggest 16 MB data sample, compile time increases by 5 seconds uncompressed and 0.5 seconds with zstd.
 
-The payload header should only be included in one translation unit (TU). With commonplace parallel compilation, the effective compile time increase should only be 1/n (with n threads) of those numbers because the other n-1 threads can compile other TUs. So even ignoring compression, a payload size of 16MB only increases compile times by 0.06 seconds (assuming 8 threads and enough TUs to saturate them).
+The payload header should only be included in one translation unit (TU). With commonplace parallel compilation, the effective compile time increase should only be 1/n (with n threads) of that number because the other n-1 threads can compile other TUs. So even ignoring compression, a payload size of 16MB only increases compile times by 0.06 seconds (assuming 8 threads and enough TUs to saturate them).
 
 ### Decode speed
 
