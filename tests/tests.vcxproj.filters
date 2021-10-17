@@ -42,7 +42,7 @@
     <ClCompile Include="image_tests.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="decode_error_test_default.cpp">
+    <ClCompile Include="decode_error_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="decoding_tests_uncompressed.cpp">
