@@ -98,5 +98,3 @@ auto bb::get_image_dimensions(
    }
    return dimensions;
 }
-
-

@@ -60,6 +60,7 @@ namespace bb
 
       constexpr auto operator<=>(const byte_count&) const = default;
    };
+   [[nodiscard]] constexpr auto operator/(const byte_count& a, const byte_count& b) -> double;
 
 
    template<typename... Ts>
@@ -97,4 +98,10 @@ constexpr auto bb::equal(
 constexpr auto bb::div(const int x, const int y) -> div_t
 {
    return { x / y, x % y };
+}
+
+
+constexpr auto bb::operator/(const byte_count& a, const byte_count& b) -> double
+{
+   return static_cast<double>(a.m_value) / static_cast<double>(b.m_value);
 }

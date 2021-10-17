@@ -86,7 +86,7 @@ namespace
    }
 
 
-   [[nodiscard]] auto get_compression_mode(
+   [[nodiscard]] constexpr auto get_compression_mode(
       const std::string& value
    ) -> std::optional<compression_mode>
    {
@@ -101,7 +101,7 @@ namespace
    }
 
 
-   [[nodiscard]] auto get_image_write_direction(
+   [[nodiscard]] constexpr auto get_image_write_direction(
       const std::string& value
    ) -> std::optional<image_vertical_direction>
    {

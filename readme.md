@@ -63,7 +63,7 @@ The program tries to pick the best available configuration file. In order of pri
 
 Not all settings have to be set, left out will be defaulted.
 
-Currently `png`, `tga` and `bmp` images will be read as images and have their pixel information stored directly. Other image formats like `jpg` will be treated as any other generic binary file.
+Currently `png`, `tga` and `bmp` images will be read as images and have their pixel information stored directly. Other image formats like `jpg` will be treated as any other generic binary file. It's not recommended to use images without another compression algorithm. `png` files can have a huge memory footprint compared to their filesize when not compressed in another way.
 
 ## Decoding
 The encoder produces a *payload header*, which contains valid C++ and needs to be included in your source code. Make sure to only include it in one translation unit because of its potentially large size. To access the encoded information inside, you also need the [binary_bakery_decoder.h](binary_bakery_decoder.h). It's written in and requires C++20. If that's a problem, reach out - I think most interfaces could be written to work with earlier standards.

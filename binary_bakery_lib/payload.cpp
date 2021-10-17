@@ -73,9 +73,8 @@ namespace {
       const abs_file_path& file
    ) -> std::string
    {
-      std::string result = "bb_" + file.get_path().filename().string();
-      result = get_replaced_str(result, ".", "_");
-      return result;
+      const std::string var_name = fmt::format("bb_{}", file.get_path().filename().string());
+      return get_replaced_str(var_name, ".", "_");
    }
 
 
@@ -144,10 +143,10 @@ namespace {
       );
       if (cfg.compression != compression_mode::none)
       {
-         const double ratio = static_cast<double>(compressed_size.m_value) / static_cast<double>(uncompressed_size.m_value);
+         const double compression_ratio = compressed_size / uncompressed_size;
          fmt::print(
             " compressed size: {} (compressed to {:.1f}%)"
-            , get_human_readable_size(compressed_size), 100.0 * ratio
+            , get_human_readable_size(compressed_size), 100.0 * compression_ratio
          );
       }
       printf("\n");
@@ -222,7 +221,7 @@ namespace {
 
 
    [[nodiscard]] auto get_payload_strings(
-      std::vector<payload>&& payloads,
+      std::vector<payload>& payloads,
       const config& cfg
    ) -> std::vector<std::string>
    {
@@ -231,9 +230,10 @@ namespace {
       const int words_per_line = (cfg.max_columns - cfg.indentation_size) / chunk_string_len;
 
       std::vector<std::string> payload_strings;
+      payload_strings.reserve(payloads.size());
       for (payload& pl : payloads)
       {
-         const byte_count uncompressed_size{ pl.m_content_data.size() }; // needs to be read here because it's moved in next line
+         const byte_count uncompressed_size{ pl.m_content_data.size() }; // needs to be read here because pl.m_content_data is moved in next line
          const std::vector<uint8_t> data_source = detail::get_final_bytestream(pl, cfg);
 
          report_diagnostics(cfg, pl, uncompressed_size, data_source);
@@ -245,6 +245,24 @@ namespace {
          payload_strings.emplace_back(std::move(payload_str));
       }
       return payload_strings;
+   }
+
+
+   [[nodiscard]] auto get_payload_bytes(
+      std::vector<uint8_t>&& uncompressed_payload_bytes,
+      const config& cfg
+   ) -> std::vector<uint8_t>
+   {
+      switch (cfg.compression) {
+      case compression_mode::none:
+         return std::move(uncompressed_payload_bytes);
+      case compression_mode::zstd:
+         return get_zstd_compressed(uncompressed_payload_bytes);
+      case compression_mode::lz4:
+         return get_lz4_compressed(uncompressed_payload_bytes);
+      default:
+         std::terminate();
+      }
    }
 
 
@@ -269,7 +287,7 @@ auto bb::write_payloads_to_file(
    const abs_directory_path& working_dir
 ) -> void
 {
-   const std::vector<std::string> payload_strings = get_payload_strings(std::move(payloads), cfg);
+   const std::vector<std::string> payload_strings = get_payload_strings(payloads, cfg);
    const fs::path output_path = working_dir.get_path() / cfg.output_filename;
    std::ofstream filestream(output_path, std::ios::out);
    if (!filestream.good())
@@ -301,41 +319,16 @@ auto detail::get_final_bytestream(
 ) -> std::vector<uint8_t>
 {
    const byte_count uncompressed_size{ pl.m_content_data.size() };
-   byte_count compressed_size = uncompressed_size;
+   std::vector<uint8_t> payload_bytes = get_payload_bytes(std::move(pl.m_content_data), cfg);
+   const byte_count compressed_size{ payload_bytes.size() };
 
-   std::optional<std::vector<uint8_t>> compressed_stream;
-
-   switch (cfg.compression) {
-   case compression_mode::none:
-      // nothing
-      break;
-   case compression_mode::zstd:
-      compressed_stream.emplace(get_zstd_compressed(pl.m_content_data));
-      break;
-   case compression_mode::lz4:
-      compressed_stream.emplace(get_lz4_compressed(pl.m_content_data));
-      break;
-   default:
-      break;
-   }
-
-   if (compressed_stream.has_value())
-   {
-      compressed_size.m_value = static_cast<int>(compressed_stream.value().size());
-   }
    const std::array<uint8_t, 16> header_stream = get_header_bytes(pl.m_meta, cfg.compression, uncompressed_size, compressed_size);
 
    std::vector<uint8_t> result(16); // for header
-   result.reserve(result.size() + pl.m_content_data.size());
+   result.reserve(result.size() + payload_bytes.size());
    std::copy(header_stream.begin(), header_stream.end(), result.data());
-   if (compressed_stream.has_value())
-   {
-      append_moved(result, std::move(*compressed_stream));
-   }
-   else
-   {
-      append_moved(result, std::move(pl.m_content_data));
-   }
+
+   append_moved(result, std::move(payload_bytes));
 
    return result;
 }

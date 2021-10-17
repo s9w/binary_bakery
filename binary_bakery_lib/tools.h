@@ -11,11 +11,17 @@ namespace bb {
    template<typename T>
    [[nodiscard]] constexpr auto get_symbol_count(const byte_count count) -> int;
 
-   [[nodiscard]] auto get_replaced_str(const std::string& source, const std::string& from, const std::string& to) -> std::string;
+   [[nodiscard]] auto get_replaced_str(
+      const std::string& source,
+      const std::string& from,
+      const std::string& to
+   ) -> std::string;
 
    template <class T>
    auto append_moved(std::vector<T>& dst, std::vector<T>&& src) -> void;
 
+   // returns "0xffffffffffffffff" string representation of the uint64. This is _much_ faster than
+   // std::format unfortunately
    auto append_ui64_str(const uint64_t value, std::string& target) -> void;
 
    [[nodiscard]] auto get_human_readable_size(const byte_count bytes) -> std::string;
