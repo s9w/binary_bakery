@@ -1,6 +1,6 @@
-#include "content_meta.h"
+#include <binary_bakery_lib/content_meta.h>
 
-#include "../binary_bakery_decoder.h" // for header type
+#include <binary_bakery_decoder.h> // for header type
 
 
 namespace

@@ -1,6 +1,6 @@
-#include "tools.h"
+#include <binary_bakery_lib/tools.h>
 
-#include <stb/stb_image.h>
+#include <stb_image.h>
 #include <fmt/format.h>
 
 

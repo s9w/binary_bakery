@@ -4,8 +4,8 @@
 
 #include <binary_bakery_lib/image.h>
 
-#include <zstd_1.5.0/zstd.h>
-#include <lz4/lz4.h>
+#include <zstd.h>
+#include <lz4.h>
 
 
 using namespace bb;

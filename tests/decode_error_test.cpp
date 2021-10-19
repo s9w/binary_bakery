@@ -3,7 +3,7 @@
 #include "test_types.h"
 
 #include "../tests/test_images/test_payload_rgb.h"
-#include "../binary_bakery_decoder.h"
+#include <binary_bakery_decoder.h>
 
 
 using namespace bb;

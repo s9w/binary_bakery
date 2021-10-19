@@ -1,0 +1,4 @@
+#include <filesystem>
+namespace bb {
+    static auto const testRoot = std::filesystem::path{"@testRoot@"};
+}

@@ -2,10 +2,11 @@
 
 #include <binary_bakery_lib/image.h>
 #include <binary_bakery_lib/file_tools.h>
+#include <binary_bakery_testpaths.h>
 
 using namespace bb;
 
-const abs_file_path test_image_file{ "test_images/test_image_rgb.png" };
+const abs_file_path test_image_file{ testRoot / "test_images/test_image_rgb.png" };
 
 
 TEST_CASE("image basics")

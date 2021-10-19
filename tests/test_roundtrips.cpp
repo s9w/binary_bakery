@@ -6,9 +6,10 @@
 #include <binary_bakery_lib/image.h>
 #include <binary_bakery_lib/payload.h>
 #include <binary_bakery_lib/config.h>
+#include <binary_bakery_testpaths.h>
 
 #define BAKERY_PROVIDE_VECTOR
-#include "../binary_bakery_decoder.h"
+#include <binary_bakery_decoder.h>
 
 
 using namespace bb;
@@ -31,7 +32,7 @@ namespace tests {
 
    TEST_CASE("png image roundtrip")
    {
-      const abs_file_path source_file{ "test_images/test_image_rgb.png" };
+      const abs_file_path source_file{testRoot / "test_images/test_image_rgb.png"};
       const image<3> image(source_file, image_vertical_direction::bottom_to_top);
       const std::vector<uint8_t> expected = get_image_bytestream(image);
       const std::vector<uint8_t> result = get_file_roundtrip_bytes(source_file);
@@ -40,7 +41,7 @@ namespace tests {
 
    TEST_CASE("tga image roundtrip")
    {
-      const abs_file_path source_file{ "test_images/tga_image.tga" };
+      const abs_file_path source_file{testRoot / "test_images/tga_image.tga"};
       const image<3> image(source_file, image_vertical_direction::bottom_to_top);
       const std::vector<uint8_t> expected = get_image_bytestream(image);
       const std::vector<uint8_t> result = get_file_roundtrip_bytes(source_file);
@@ -49,7 +50,7 @@ namespace tests {
 
    TEST_CASE("bmp image roundtrip")
    {
-      const abs_file_path source_file{ "test_images/bmp_image.bmp" };
+      const abs_file_path source_file{testRoot / "test_images/bmp_image.bmp"};
       const image<3> image(source_file, image_vertical_direction::bottom_to_top);
       const std::vector<uint8_t> expected = get_image_bytestream(image);
       const std::vector<uint8_t> result = get_file_roundtrip_bytes(source_file);
@@ -58,7 +59,7 @@ namespace tests {
 
    TEST_CASE("binary roundtrip")
    {
-      const abs_file_path source_file{ "test_images/binary0.bin" };
+      const abs_file_path source_file{testRoot / "test_images/binary0.bin"};
       const auto expected = get_binary_file(source_file);
       const auto result = get_file_roundtrip_bytes(source_file);
       CHECK_EQ(result, expected);
