@@ -26,8 +26,8 @@ git clone https://github.com/microsoft/vcpkg build/vcpkg
 
 Configuration step will require the path to vcpkg.
 Windows
-```powershell
-cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=build/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-static
+```console
+cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=%cd%/build/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-static
 ```
 
 Ubuntu
@@ -36,13 +36,13 @@ cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmak
 ```
 
 Compile the tests
-```powershell
+```console
 cmake --build build --config Release --target tests
 ```
 
 Run the tests
 Windows
-```powershell
+```console
 .\build\tests\Release\tests.exe
 ```
 Ubuntu
