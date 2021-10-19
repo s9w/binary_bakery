@@ -61,12 +61,12 @@ namespace bb
       constexpr auto operator<=>(const byte_count&) const = default;
    };
    [[nodiscard]] constexpr auto operator/(const byte_count& a, const byte_count& b) -> double;
-
-
+   
+#ifndef __GNUG__
    template<typename... Ts>
    constexpr byte_count byte_sizeof = (0 + ... + sizeof(Ts));
    static_assert(byte_sizeof<double, int> == byte_count{ 12 });
-
+#endif
    
 } // namespace bb
 

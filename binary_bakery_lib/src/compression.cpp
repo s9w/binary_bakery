@@ -3,7 +3,7 @@
 #include <zstd.h>
 #include <lz4.h>
 #include <bit>
-
+#include <cstdio>
 
 auto bb::get_zstd_compressed(
    const std::vector<uint8_t>& input

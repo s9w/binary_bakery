@@ -8,18 +8,31 @@ Other should follow the user instructions. See the [Readme](readme.md) for instr
 
 Recommended way to install the dependencies is using [vcpkg](https://vcpkg.io/en/index.html).
 
-Quick start on windows:
+Quick start on Windows:
 ```powershell
 git clone https://github.com/microsoft/vcpkg build/vcpkg
 .\build\vcpkg\bootstrap-vcpkg.bat
 .\build\vcpkg\vcpkg install zstd lz4 tomlplusplus fmt stb doctest --triplet=x64-windows-static
 ```
 
+Ubuntu
+```bash
+git clone https://github.com/microsoft/vcpkg build/vcpkg
+./build/vcpkg/bootstrap-vcpkg.sh
+./build/vcpkg/vcpkg install zstd lz4 tomlplusplus fmt stb doctest --triplet=x64-linux
+```
+
 ## Configure \& Build
 
 Configuration step will require the path to vcpkg.
+Windows
 ```powershell
-cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-static
+cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=build/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-static
+```
+
+Ubuntu
+```bash
+cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-linux
 ```
 
 Compile the tests
@@ -28,6 +41,16 @@ cmake --build build --config Release --target tests
 ```
 
 Run the tests
+Windows
 ```powershell
 .\build\tests\Release\tests.exe
 ```
+Ubuntu
+```bash
+./build/tests/tests
+```
+
+## Contribute
+- Install scripts
+- CI/CD
+- CMake functions to automate resource file generation

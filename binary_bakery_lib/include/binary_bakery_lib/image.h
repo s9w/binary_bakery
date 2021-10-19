@@ -2,7 +2,7 @@
 
 #include <compare>
 #include <vector>
-#include <string> // memcpy
+#include <cstring> // memcpy
 
 #include <binary_bakery_lib/color.h>
 

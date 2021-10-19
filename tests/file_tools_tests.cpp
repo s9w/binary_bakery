@@ -9,7 +9,6 @@ TEST_CASE("abs_directory_path")
    SUBCASE("must be a directory")
    {
       CHECK_THROWS_AS(abs_directory_path{ "tests.cpp" }, std::exception);
-      CHECK_NOTHROW(abs_directory_path{ "C:/" });
       CHECK_NOTHROW(abs_directory_path{ "." });
    }
    SUBCASE("must exist")

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <binary_bakery_lib/universal.h>
-
+#include <cstdint>
 
 namespace bb {
 
