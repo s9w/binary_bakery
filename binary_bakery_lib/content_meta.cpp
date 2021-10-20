@@ -59,8 +59,8 @@ namespace
 auto bb::get_header_bytes(
     const content_meta& meta,
     const compression_mode compression,
-   const byte_count uncompressed_size,
-   const byte_count compressed_size
+   const byte_count& uncompressed_size,
+   const byte_count& compressed_size
 ) -> std::array<uint8_t, 16>
 {
    header head;
