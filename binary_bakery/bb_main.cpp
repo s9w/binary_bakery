@@ -42,7 +42,7 @@ namespace bb {
       const std::vector<abs_file_path>& packing_files
    ) -> config
    {
-      // First: Try to get the config from the dirctory of the first file
+      // First: Try to get the config from the directory of the first file
       if(packing_files.empty() == false)
       {
          const abs_directory_path payload_dir{ packing_files[0].get_path().parent_path() };
