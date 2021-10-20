@@ -195,3 +195,12 @@ All these numbers were measured in release mode (`/O2`) with Visual Studio 16.11
 This is a niche tool. File systems and other means of packing data are a good inventions and the better choice in most cases.
 
 If this suits your needs however, the tradeoffs are manageable.
+
+
+## Comparable Tools
+
+- https://github.com/d-led/ris (archived)
+- https://github.com/graphitemaster/incbin -- uses inline assembler `.incbin` operations and has a separate MSVC mode, which is rather convoluted as MSVC does not support any `.incbin`-like (assembler) command. Hence not really the go-to solution for Windows dev or cross-platform development which has native Windows support as one of its priorities.
+- https://github.com/rxi/cembed -- very basic tooling.
+- https://github.com/Sophrinix/incbin -- shell script that does the job. Pretty basic.
+- The https://github.com/search?q=cembed & https://github.com/search?q=incbin GitHub searches will turn up more basic tools like the above. None that I checked supported compression, for example -- unless you're willing, for example, to plonk [a `libarchive` instance](https://github.com/libarchive/libarchive) on top of them *plus* your own special glue logic.
