@@ -2,7 +2,15 @@
 
 #include <bit>             // For std::bit_cast
 #include <cstdint>         // For sized types
+#include <cstring>
+#ifdef __GNUG__
+#include <experimental/source_location> // For source locations of errors
+namespace std{
+using source_location = experimental::source_location;
+}
+#else
 #include <source_location> // For source locations of errors
+#endif
 #include <string>          // For std::memcpy
 #include <type_traits>     // For add_pointer, just to look nice
 

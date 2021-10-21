@@ -2,6 +2,7 @@
 
 #include <array>
 #include <variant>
+#include <cstdint>
 
 #include <binary_bakery_lib/universal.h>
 

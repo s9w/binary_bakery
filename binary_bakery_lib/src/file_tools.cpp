@@ -1,4 +1,4 @@
-#include "file_tools.h"
+#include <binary_bakery_lib/file_tools.h>
 
 #include <fstream>
 
@@ -11,7 +11,7 @@ namespace
    auto get_absolute_path(const fs::path& path) -> fs::path
    {
       if (fs::exists(path) == false)
-         throw std::exception("Path doesn't exist");
+         throw std::runtime_error("Path doesn't exist");
       if (path.is_absolute())
          return path;
       else
@@ -23,7 +23,7 @@ namespace
    {
       const fs::path absolute = get_absolute_path(path);
       if (fs::is_regular_file(absolute) == false)
-         throw std::exception("Path is no file");
+         throw std::runtime_error("Path is no file");
       return absolute;
    }
 
@@ -32,7 +32,7 @@ namespace
    {
       const fs::path absolute = get_absolute_path(path);
       if (fs::is_directory(absolute) == false)
-         throw std::exception("Path is no directory");
+         throw std::runtime_error("Path is no directory");
       return absolute;
    }
 

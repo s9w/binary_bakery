@@ -1,6 +1,6 @@
-#include "tools.h"
+#include <binary_bakery_lib/tools.h>
 
-#include <stb/stb_image.h>
+#include <stb_image.h>
 #include <fmt/format.h>
 
 
@@ -40,7 +40,7 @@ auto bb::append_ui64_str(
    for (int i = 0; i < 16; ++i)
    {
       const int shift_amount = 60 - 4 * i;
-      const uint64_t mask = 15ui64 << shift_amount;
+      const uint64_t mask = static_cast<uint64_t>(15) << shift_amount;
       const uint8_t part = static_cast<uint8_t>((value & mask) >> shift_amount);
       if (part < 10)
          target += static_cast<char>('0' + part);

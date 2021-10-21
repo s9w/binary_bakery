@@ -9,3 +9,4 @@ sample_datasets/binary_bakery_payload.h
 decoder_example/*.txt
 binary_bakery.exe
 binary_bakery.toml
+build

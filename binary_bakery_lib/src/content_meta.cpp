@@ -1,7 +1,7 @@
-#include "content_meta.h"
+#include <binary_bakery_lib/content_meta.h>
 
-#include "../binary_bakery_decoder.h" // for header type
-
+#include <binary_bakery_decoder.h> // for header type
+#include <exception>
 
 namespace
 {
@@ -26,13 +26,13 @@ namespace
    {
       switch (compression) {
       case compression_mode::none:
-         return 0ui8;
+         return 0;
          break;
       case compression_mode::zstd:
-         return 1ui8;
+         return 1;
          break;
       case compression_mode::lz4:
-         return 2ui8;
+         return 2;
          break;
       default:
          std::terminate();
@@ -66,7 +66,7 @@ auto bb::get_header_bytes(
    header head;
    head.type = static_cast<uint8_t>(get_type_index(meta));
    head.compression = get_compression_int(compression);
-   head.version = 0ui8;
+   head.version = static_cast<uint8_t>(0);
    head.bpp = static_cast<uint8_t>(get_property(meta, [](const naive_image_type& image) {return image.m_bpp; }));
    head.width = static_cast<uint8_t>(get_property(meta, [](const naive_image_type& image) {return image.m_width; }));
    head.height = static_cast<uint8_t>(get_property(meta, [](const naive_image_type& image) {return image.m_height; }));

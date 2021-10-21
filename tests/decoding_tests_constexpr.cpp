@@ -1,6 +1,6 @@
 #include <doctest/doctest.h>
 
-#include "../binary_bakery_decoder.h"
+#include <binary_bakery_decoder.h>
 #include "test_images/test_payload_rgb.h"
 
 #include "test_types.h"

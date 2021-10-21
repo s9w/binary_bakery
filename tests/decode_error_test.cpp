@@ -3,7 +3,7 @@
 #include "test_types.h"
 
 #include "../tests/test_images/test_payload_rgb.h"
-#include "../binary_bakery_decoder.h"
+#include <binary_bakery_decoder.h>
 
 
 using namespace bb;
@@ -66,7 +66,7 @@ namespace tests {
    TEST_CASE("user-defined run-time error handling ")
    {
       bb::error_callback = my_error_function;
-      CHECK_THROWS_AS(bb::get_element<nc_test_rgb>(nullptr, 0), std::exception);
+      CHECK_THROWS_AS(static_cast<void>(bb::get_element<nc_test_rgb>(nullptr, 0)), std::exception);
 
       // Correct cases
       CHECK_EQ(bb::get_element<nc_test_rgb>(bb::get_payload("test_image_rgb.png"), 0), nc_test_rgb{ 255, 0, 0 });

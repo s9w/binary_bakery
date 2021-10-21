@@ -1,11 +1,11 @@
-#include "config.h"
+#include <binary_bakery_lib/config.h>
 
 #include <algorithm>
 #include <fstream>
 
 #include <binary_bakery_lib/file_tools.h>
 
-#include <tomlplusplus/toml.hpp>
+#include <toml++/toml.h>
 #include <fmt/format.h>
 
 

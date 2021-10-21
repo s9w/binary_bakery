@@ -1,8 +1,8 @@
-#include "image.h"
+#include <binary_bakery_lib/image.h>
 
 #include <binary_bakery_lib/file_tools.h>
 
-#include <stb/stb_image.h>
+#include <stb_image.h>
 #include <fmt/format.h>
 
 namespace
