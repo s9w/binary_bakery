@@ -1,4 +1,4 @@
-project(tests)
+project(bb_tests)
 
 set(testRoot ${CMAKE_CURRENT_LIST_DIR})
 configure_file(binary_bakery_testpaths.h.in include/binary_bakery_testpaths.h)
@@ -41,3 +41,6 @@ target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 set_target_properties(
   ${PROJECT_NAME} PROPERTIES MSVC_RUNTIME_LIBRARY
                              "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
+enable_testing()
+add_test(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME})
