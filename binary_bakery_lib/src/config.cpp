@@ -86,15 +86,27 @@ namespace
    }
 
 
+   [[nodiscard]] constexpr auto is_equal_c_string(
+      char const* first,
+      char const* second
+   ) -> bool
+   {
+      if(std::is_constant_evaluated() == false)
+         return strcmp(first, second) == 0;
+
+      return *first == *second &&
+         (*first == '\0' || is_equal_c_string(&first[1], &second[1]));
+   }
+
    [[nodiscard]] constexpr auto get_compression_mode(
-      const std::string& value
+      std::string_view const value
    ) -> std::optional<compression_mode>
    {
-      if (value == "none")
+      if (is_equal_c_string(value.data(), "none"))
          return compression_mode::none;
-      else if (value == "zstd")
+      else if (is_equal_c_string(value.data(), "zstd"))
          return compression_mode::zstd;
-      else if (value == "lz4")
+      else if (is_equal_c_string(value.data(), "lz4"))
          return compression_mode::lz4;
       else
          return std::nullopt;
@@ -102,12 +114,12 @@ namespace
 
 
    [[nodiscard]] constexpr auto get_image_write_direction(
-      const std::string& value
+      std::string_view const value
    ) -> std::optional<image_vertical_direction>
    {
-      if (value == "bottom_to_top")
+      if (is_equal_c_string(value.data(), "bottom_to_top"))
          return image_vertical_direction::bottom_to_top;
-      else if (value == "top_to_bottom")
+      else if (is_equal_c_string(value.data(), "top_to_bottom"))
          return image_vertical_direction::top_to_bottom;
       else
          return std::nullopt;

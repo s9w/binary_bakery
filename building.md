@@ -1,8 +1,20 @@
 # Binary bakery - Building from source
 ===========================
 
-This document has instructions on how to build Binary bakery :cookie: from source. Note that it only covers the build of library itself and is mostly meant for contributors and/or power users.
-Other should follow the user instructions. See the [Readme](readme.md) for instructions.
+This document has instructions on how to build Binary bakery :cookie: from source. [![binary_bakery_CI](https://github.com/s9w/binary_bakery/actions/workflows/main.yml/badge.svg)](https://github.com/s9w/binary_bakery/actions/workflows/main.yml)
+
+Note that it only covers the build of library itself and is mostly meant for contributors and/or power users. Other should follow the user instructions. See the [Readme](readme.md) for instructions.
+
+## Quick jump
+Our CI handles most of the cases and steps are available through cmake. Your mileage may vary.
+
+```bash
+cmake -B build -S . -DBUILD_VCPKG=ON
+cmake --build build --config Release --target install
+ctest --test-dir build -C Release --output-on-failure
+```
+
+If you would like to set the dependencies manually, continue below.
 
 ## Pre-requisites
 
@@ -32,12 +44,12 @@ cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=%cd%/build/vcpkg/scripts/buildsystems
 
 Ubuntu
 ```bash
-cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-linux
+cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-linux -DCMAKE_INSTALL_PREFIX=install
 ```
 
 Compile all
 ```console
-cmake --build build --config Release --target Install
+cmake --build build --config Release --target install
 ```
 
 Run the tests
