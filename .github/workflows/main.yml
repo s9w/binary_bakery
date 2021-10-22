@@ -21,11 +21,9 @@ jobs:
           - platform_name: linux
             os: ubuntu-latest
             cxx: g++-11
-            triplet: x64-linux
           - platform_name: windows
             os: windows-latest
             cxx: msvc
-            triplet: x64-windows-static
 
           # Tomlplusplus doesn't support OSx
           # - platform_name: macos
