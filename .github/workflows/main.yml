@@ -3,9 +3,9 @@ name: binary_bakery_CI
 on:
   # Triggers the workflow on push or pull request events but only for the main branch
   push:
-    branches: [ main ]
+    branches: [ main, master ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, master ]
   release:
     types: [published]
   # Allows you to run this workflow manually from the Actions tab
@@ -14,66 +14,41 @@ on:
 jobs:
   binary_bakery_CI:
     runs-on: ${{ matrix.os }}
-    env:
-      BUILD_TYPE: Release
     strategy:
       fail-fast: false
       matrix:
-        # specify a specific compiler to build with each OS separately
         include:
           - platform_name: linux
-            os: ubuntu-20.04
-            cxx: g++-10
-          - platform_name: macos
-            os: macos-10.15
-            cxx: clang++
+            os: ubuntu-latest
+            cxx: g++-11
           - platform_name: windows
-            os: windows-2019
+            os: windows-latest
             cxx: msvc
+
+          # Tomlplusplus doesn't support OSx
+          # - platform_name: macos
+          #   os: macos-latest
+          #   cxx: clang++
 
     steps:
       - uses: actions/checkout@v2
 
-      - name: Get dependencies
-        env:
-          CXX: ${{ matrix.cxx }}
-        # Use a bash shell so we can use the same syntax for environment variable
-        # access regardless of the host operating system
-        shell: bash
-        working-directory: ${{github.workspace}}/build
+      - name: Install g++-11
+        if: matrix.os == 'ubuntu-latest'
         run: |
-          git clone https://github.com/microsoft/vcpkg
-          if [ "$RUNNER_OS" == "Windows" ]; then
-            ./vcpkg/bootstrap-vcpkg.bat
-            VCPKG_DEFAULT_TRIPLET=x64-windows-static
-          elif [ "$RUNNER_OS" == "Windows" ]; then
-            ./vcpkg/bootstrap-vcpkg.sh
-          fi
-          ./vcpkg/vcpkg install zstd lz4 tomlplusplus fmt stb doctest
+          sudo apt update
+          sudo apt -y install gcc-11 g++-11
 
       - name: Configure CMake
         env:
           CXX: ${{ matrix.cxx }}
-        # Use a bash shell so we can use the same syntax for environment variable
-        # access regardless of the host operating system
-        shell: bash
-        working-directory: ${{github.workspace}}/build
-        run: |
-          if [ "$RUNNER_OS" == "Windows" ]; then
-            VCPKG_DEFAULT_TRIPLET=x64-windows-static
-          fi
-          cmake -S $GITHUB_WORKSPACE -B ${{github.workspace}}/build -DCMAKE_INSTALL_PREFIX:PATH=$GITHUB_WORKSPACE/artifacts -DCMAKE_TOOLCHAIN_FILE=${{github.workspace}}/build/vcpkg/scripts/buildsystems/vcpkg.cmake
+        run: cmake . -DBUILD_VCPKG=ON
 
       - name: Build & Install
-        working-directory: ${{github.workspace}}/build
-        shell: bash
-        run: cmake --build . --config $BUILD_TYPE --target Install
+        run: cmake --build . --config Release --target install
 
       - name: Test
-        working-directory: ${{github.workspace}}/build
-        shell: bash
-        # Use CTest to run tests
-        run: ctest -C $BUILD_TYPE --output-on-failure
+        run: ctest -C Release --output-on-failure
 
       - name: Upload
         uses: actions/upload-artifact@v2
