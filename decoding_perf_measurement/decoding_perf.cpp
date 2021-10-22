@@ -12,7 +12,7 @@
 namespace example {
 
    auto from_stb_image(
-      const char* filename
+      std::string_view filename
    ) -> std::vector<user_type>
    {
       int width, height, bpp;

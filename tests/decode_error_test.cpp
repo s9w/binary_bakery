@@ -42,7 +42,7 @@ namespace tests {
    }
 
 
-   auto my_error_function(const char*, const std::source_location&) -> void
+   auto my_error_function(std::string_view, const std::source_location&) -> void
    {
       throw std::exception{};
    }

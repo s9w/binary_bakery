@@ -29,7 +29,7 @@ namespace {
    ) -> void
    {
       const int decompressed_bytes = LZ4_decompress_safe(
-         static_cast<const char*>(src),
+         static_cast<std::string_view>(src),
          static_cast<char*>(dst),
          static_cast<int>(src_size),
          static_cast<int>(dst_size)
@@ -42,7 +42,7 @@ namespace {
 }
 
 auto example::decode_to_vector(
-   const char* name
+   std::string_view name
 ) -> std::vector<example::user_type>
 {
    const auto header = bb::get_header(bb::get_payload(name));

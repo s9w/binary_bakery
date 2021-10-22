@@ -41,7 +41,7 @@ struct user_type {
 };
 
 
-auto from_stb_image(const char* filename) -> std::vector<user_type>
+auto from_stb_image(std::string_view filename) -> std::vector<user_type>
 {
    int width, height, bpp;
    unsigned char* data = nullptr;
