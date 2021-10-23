@@ -15,7 +15,7 @@ namespace
    using namespace bb;
 
    [[nodiscard]] auto get_lowercase_string(
-      const std::string& input
+      std::string input
    ) -> std::string
    {
       const auto get_lowercase_char = [](const char ch) {
@@ -23,10 +23,8 @@ namespace
          const int lowered = std::tolower(uc);
          return static_cast<char>(lowered);
       };
-
-      std::string result = input;
-      std::transform(result.begin(), result.end(), result.begin(), get_lowercase_char);
-      return result;
+      std::transform(input.begin(), input.end(), input.begin(), get_lowercase_char);
+      return input;
    }
 
 
