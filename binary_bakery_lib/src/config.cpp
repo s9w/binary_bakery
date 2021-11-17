@@ -15,7 +15,7 @@ namespace
    using namespace bb;
 
    [[nodiscard]] auto get_lowercase_string(
-      const std::string& input
+      std::string input
    ) -> std::string
    {
       const auto get_lowercase_char = [](const char ch) {
@@ -23,10 +23,8 @@ namespace
          const int lowered = std::tolower(uc);
          return static_cast<char>(lowered);
       };
-
-      std::string result = input;
-      std::transform(result.begin(), result.end(), result.begin(), get_lowercase_char);
-      return result;
+      std::transform(input.begin(), input.end(), input.begin(), get_lowercase_char);
+      return input;
    }
 
 
@@ -47,7 +45,7 @@ namespace
    auto set_value(
       target_type& target,
       const toml::table& tbl,
-      const char* key,
+      std::string_view key,
       const fun_type& interpreter
    ) -> void
    {
@@ -75,7 +73,7 @@ namespace
    auto set_value(
       target_type& target,
       const toml::table& tbl,
-      const char* key
+      std::string_view key
    ) -> void
    {
       using read_type = target_type;
@@ -85,28 +83,15 @@ namespace
       set_value<read_type>(target, tbl, key, opt_identity);
    }
 
-
-   [[nodiscard]] constexpr auto is_equal_c_string(
-      char const* first,
-      char const* second
-   ) -> bool
-   {
-      if(std::is_constant_evaluated() == false)
-         return strcmp(first, second) == 0;
-
-      return *first == *second &&
-         (*first == '\0' || is_equal_c_string(&first[1], &second[1]));
-   }
-
    [[nodiscard]] constexpr auto get_compression_mode(
       std::string_view const value
    ) -> std::optional<compression_mode>
    {
-      if (is_equal_c_string(value.data(), "none"))
+      if (value == "none")
          return compression_mode::none;
-      else if (is_equal_c_string(value.data(), "zstd"))
+      else if (value == "zstd")
          return compression_mode::zstd;
-      else if (is_equal_c_string(value.data(), "lz4"))
+      else if (value == "lz4")
          return compression_mode::lz4;
       else
          return std::nullopt;
@@ -117,9 +102,9 @@ namespace
       std::string_view const value
    ) -> std::optional<image_vertical_direction>
    {
-      if (is_equal_c_string(value.data(), "bottom_to_top"))
+      if (value == "bottom_to_top")
          return image_vertical_direction::bottom_to_top;
-      else if (is_equal_c_string(value.data(), "top_to_bottom"))
+      else if (value == "top_to_bottom")
          return image_vertical_direction::top_to_bottom;
       else
          return std::nullopt;

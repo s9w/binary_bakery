@@ -4,6 +4,7 @@
 #include <lz4.h>
 #include <bit>
 #include <cstdio>
+#include <string_view>
 
 auto bb::get_zstd_compressed(
    const std::vector<uint8_t>& input
@@ -25,8 +26,8 @@ auto bb::get_zstd_compressed(
 
    if (ZSTD_isError(written_comp_size))
    {
-      const char* error_name = ZSTD_getErrorName(written_comp_size);
-      printf("ZSTD_compress() error: %s\n", error_name);
+      std::string_view error_name = ZSTD_getErrorName(written_comp_size);
+      printf("ZSTD_compress() error: %s\n", error_name.data());
       return {};
    }
    destination.resize(written_comp_size);

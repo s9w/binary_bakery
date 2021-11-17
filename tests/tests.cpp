@@ -7,7 +7,7 @@
 namespace {
 
    //auto my_error_function(
-   //   const char* msg,
+   //   std::string_view msg,
    //   const std::source_location& loc
    //) -> void
    //{

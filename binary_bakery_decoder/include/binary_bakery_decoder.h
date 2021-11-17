@@ -75,7 +75,7 @@ namespace bb {
 
    [[nodiscard]] constexpr auto get_data_ptr(const uint64_t* source) -> const void*;
 
-   using error_callback_type = void(*)(const char* msg, const std::source_location& location);
+   using error_callback_type = void(*)(std::string_view msg, const std::source_location& location);
    inline error_callback_type error_callback = nullptr;
 
 } // namespace bb
@@ -83,7 +83,7 @@ namespace bb {
 
 namespace bb::detail {
 
-   inline auto error(const char* msg, const std::source_location& location) -> void;
+   inline auto error(std::string_view msg, const std::source_location& location) -> void;
 
    template<typename T, int size>
    struct better_array {
@@ -391,7 +391,7 @@ constexpr auto bb::get_data_ptr(const uint64_t* source) -> const void*
 
 
 auto bb::detail::error(
-   const char* msg,
+   std::string_view msg,
    const std::source_location& location
 ) -> void
 {

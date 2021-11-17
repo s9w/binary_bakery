@@ -77,33 +77,13 @@ namespace {
       return get_replaced_str(var_name, ".", "_");
    }
 
-
-   auto write_string_compare_fun(
-      std::ofstream& out
-   ) -> void
-   {
-      out << R"([[nodiscard]] constexpr auto is_equal_c_string(
-   char const* first,
-   char const* second
-) -> bool
-{
-   if(std::is_constant_evaluated() == false)
-      return strcmp(first, second) == 0;
-
-   return *first == *second &&
-      (*first == '\0' || is_equal_c_string(&first[1], &second[1]));
-}
-)";
-   }
-
-
    auto write_bb_get_fun(
       std::ofstream& out,
       const std::vector<payload>& payloads
    ) -> void
    {
       out << R"([[nodiscard]] static constexpr auto get_payload(
-   [[maybe_unused]] const char* name
+   [[maybe_unused]] std::string_view name
 ) -> const uint64_t*
 {
 )";
@@ -112,7 +92,7 @@ namespace {
       {
          const std::string conditional_keyword = first ? "if" : "else if";
          out << fmt::format(
-            "   {}(is_equal_c_string(name, \"{}\"))\n      return &{}[0];\n",
+            "   {}(name == \"{}\")\n      return &{}[0];\n",
             conditional_keyword, pl.m_path.get_path().filename().string(), get_variable_name(pl.m_path)
          );
          first = false;
@@ -298,6 +278,7 @@ auto bb::write_payloads_to_file(
 
    filestream << "#include <cstdint>\n";
    filestream << "#include <cstring>\n";
+   filestream << "#include <string_view> // std::string_view\n\n";
    filestream << "#include <type_traits> // std::is_constant_evaluated\n\n";
    filestream << "namespace bb{\n";
    for(const std::string& payload_string : payload_strings)
@@ -305,8 +286,6 @@ auto bb::write_payloads_to_file(
       filestream << payload_string;
    }
 
-   filestream << '\n';
-   write_string_compare_fun(filestream);
    filestream << '\n';
    write_bb_get_fun(filestream, payloads);
    filestream << "\n} // namespace bb\n";

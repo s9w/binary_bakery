@@ -80,7 +80,7 @@ static constexpr uint64_t bb_bitmap_font_16_png[]{
 } // namespace bb
 ```
 #### Header
-You can get a `const uint64_t*` pointer to the payloads at compile-time by filename with `bb::get_payload(const char*)`. All other functions require that payload pointer.
+You can get a `const uint64_t*` pointer to the payloads at compile-time by filename with `bb::get_payload(std::string_view)`. All other functions require that payload pointer.
 
 Inside those `uint64` payload arrays is a header with meta information and the data itself. You can access the header with `constexpr get_header(const uint64_t*)`. See [binary_bakery_decoder.h#L16-L34](binary_bakery_decoder.h#L16-L34) for the header members.
 
@@ -121,7 +121,7 @@ To provide a custom error function, set set the function pointer to your functio
 
 ```c++
 auto my_error_function(
-   const char* msg,
+   std::string_view msg,
    const std::source_location& loc
 ) -> void
 {

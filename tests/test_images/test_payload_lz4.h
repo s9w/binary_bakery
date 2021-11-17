@@ -17,25 +17,13 @@ static constexpr uint64_t bb_blue_png[]{
    0x0002000303000201, 0x0000000c00000012, 0x00500003ff000036, 0x00000000ff0000ff
 };
 
-[[nodiscard]] constexpr auto is_equal_c_string(
-   char const* first,
-   char const* second
-) -> bool
-{
-   if(std::is_constant_evaluated() == false)
-      return strcmp(first, second) == 0;
-
-   return *first == *second &&
-      (*first == '\0' || is_equal_c_string(&first[1], &second[1]));
-}
-
 [[nodiscard]] static constexpr auto get_payload(
-   [[maybe_unused]] const char* name
+   [[maybe_unused]] std::string_view name
 ) -> const uint64_t*
 {
-   if(is_equal_c_string(name, "binary0.bin"))
+   if(name == "binary0.bin")
       return &bb_binary0_bin[0];
-   else if(is_equal_c_string(name, "blue.png"))
+   else if(name == "blue.png")
       return &bb_blue_png[0];
    else
       return nullptr;

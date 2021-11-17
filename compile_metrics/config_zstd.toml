@@ -1,3 +1,0 @@
-output_filename = "temp_payload.h"
-compression_mode = "zstd"
-prompt_for_key = false
